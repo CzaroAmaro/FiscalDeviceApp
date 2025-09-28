@@ -1,0 +1,29 @@
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+
+import App from './App.vue'
+import router from './router'
+import api from '@/api'
+
+import 'vuetify/styles'
+import {createVuetify} from "vuetify";
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+
+const vuetify = createVuetify({
+    components,
+    directives,
+})
+
+const token = localStorage.getItem('accessToken')
+if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+}
+
+const app = createApp(App)
+
+app.use(createPinia())
+app.use(router)
+app.use(vuetify)
+
+app.mount('#app')
