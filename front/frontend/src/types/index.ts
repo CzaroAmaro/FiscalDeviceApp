@@ -1,3 +1,5 @@
+import type {RouteLocationRaw} from "vue-router";
+
 export interface FiscalDevice {
     id: number;
     model_name: string;
@@ -8,3 +10,10 @@ export interface FiscalDevice {
     owner_name: string;
 }
 
+export interface MenuItem {
+    title: string;
+    value: string;
+    icon: string;
+    to: RouteLocationRaw;
+    divider?: boolean;
+}

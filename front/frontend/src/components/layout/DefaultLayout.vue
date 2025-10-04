@@ -1,21 +1,6 @@
 <template>
   <v-navigation-drawer v-model="drawer" color="grey-darken-3">
-    <v-list>
-      <v-list-item
-        prepend-icon="mdi-view-dashboard"
-        title="Dashboard"
-        value="dashboard"
-        :to="{ name: 'home' }"
-        link
-      ></v-list-item>
-      <v-list-item
-        prepend-icon="mdi-printer-pos"
-        title="Urządzenia"
-        value="devices"
-        :to="{ name: 'devices' }"
-        link
-      ></v-list-item>
-    </v-list>
+    <MainMenu />
   </v-navigation-drawer>
 
   <v-app-bar color="primary">
@@ -51,6 +36,7 @@ import { RouterView } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 import UserMenu from '@/components/user/UserMenu.vue'
+import MainMenu from '@/components/MainMenu.vue'
 
 const authStore = useAuthStore()
 const drawer = ref(true)

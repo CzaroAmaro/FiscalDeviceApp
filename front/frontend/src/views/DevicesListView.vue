@@ -1,4 +1,3 @@
-<!-- src/views/DevicesListView.vue (nowa, czysta wersja) -->
 <template>
   <v-card>
     <v-card-title class="d-flex align-center">
