@@ -6,6 +6,14 @@ interface AuthState {
   accessToken: string | null
 }
 
+interface RegisterCredentials {
+  username: string;
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+}
+
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     accessToken: localStorage.getItem('accessToken') || null,
@@ -36,6 +44,21 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Błąd logowania:', error)
         alert('Nieprawidłowa nazwa użytkownika lub hasło.')
+        throw error
+      }
+    },
+    async register(credentials: RegisterCredentials) {
+      try {
+        // Wysyłamy żądanie POST do endpointu, który przygotowałeś w Django
+        await api.post('/register/', credentials)
+
+        // Po udanej rejestracji, przekierowujemy użytkownika na stronę logowania
+        // Można też wyświetlić powiadomienie o sukcesie (np. "Konto utworzone!")
+        await router.push({ name: 'login' })
+      } catch (error) {
+        console.error('Błąd podczas rejestracji:', error)
+        // Rzucamy błąd dalej, aby komponent RegisterView.vue
+        // mógł go przechwycić i wyświetlić użytkownikowi
         throw error
       }
     },

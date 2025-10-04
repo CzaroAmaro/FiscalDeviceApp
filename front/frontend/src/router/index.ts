@@ -20,7 +20,13 @@ const router = createRouter({
       path: '/devices',
       name: 'devices',
       component: () => import('../views/DevicesListView.vue'),
-      meta: { requiresAuth: true } // Ta strona również wymaga zalogowania
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+      meta: { isPublic: true }
     }
   ]
 })

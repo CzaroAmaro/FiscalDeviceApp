@@ -35,6 +35,12 @@
           </v-btn>
         </v-form>
       </v-card-text>
+      <v-card-actions class="justify-center mt-2">
+        <span class="text-body-2">Nie masz konta?</span>
+        <v-btn :to="{ name: 'register' }" variant="text" color="primary" size="small">
+          Zarejestruj się
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-container>
 </template>

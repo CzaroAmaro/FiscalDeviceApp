@@ -7,3 +7,4 @@ export interface FiscalDevice {
     status: string;
     owner_name: string;
 }
+
