@@ -4,15 +4,10 @@ import router from '@/router'
 
 interface AuthState {
   accessToken: string | null
-  // W przyszłości możemy tu trzymać dane użytkownika
-  // user: object | null
 }
 
 export const useAuthStore = defineStore('auth', {
-  // 1. STATE: Dane, które przechowujemy
   state: (): AuthState => ({
-    // Przy starcie aplikacji, próbujemy odczytać token z localStorage.
-    // Dzięki temu logowanie przetrwa odświeżenie strony.
     accessToken: localStorage.getItem('accessToken') || null,
   }),
 
@@ -21,37 +16,37 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    // Action to initialize the store and set the auth header on app load
+    initialize() {
+      if (this.accessToken) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${this.accessToken}`
+      }
+    },
+
     async login(credentials: { username: string; password: string }) {
       try {
         const response = await api.post('/login/', credentials)
-
-
         const token = response.data.access
 
         this.accessToken = token
-
         localStorage.setItem('accessToken', token)
-
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-        router.push({ name: 'home' })
-
+        await router.push({ name: 'home' })
       } catch (error) {
         console.error('Błąd logowania:', error)
-        alert('Nieprawidłowa nazwa użytkownika lub hasło.');
+        alert('Nieprawidłowa nazwa użytkownika lub hasło.')
+        throw error
       }
     },
 
     logout() {
       this.accessToken = null
-
       localStorage.removeItem('accessToken')
-
       delete api.defaults.headers.common['Authorization']
 
-      router.push({ name: 'login' }).then(() => {
-        location.reload();
-      });
+      // Redirect to login and then reload to ensure a clean state
+      router.push({ name: 'login' })
     },
-  },
+  }
 })

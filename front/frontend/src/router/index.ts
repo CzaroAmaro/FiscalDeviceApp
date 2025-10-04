@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
@@ -9,14 +8,13 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
-      // Dodajemy metadane, aby wiedzieć, że to strona logowania
       meta: { isPublic: true }
     },
     {
       path: '/',
       name: 'home',
-      component: HomeView,
-      meta: { requiresAuth: true } // Ta strona wymaga zalogowania
+      component: () => import('../views/HomeView.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/devices',
@@ -42,7 +40,6 @@ router.beforeEach((to, from, next) => {
     // Przekieruj go na stronę główną
     next({ name: 'home' })
   }
-  // W każdym innym przypadku, po prostu pozwól na nawigację
   else {
     next()
   }

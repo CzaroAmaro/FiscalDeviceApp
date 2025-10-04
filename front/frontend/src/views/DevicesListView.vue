@@ -1,72 +1,58 @@
+<!-- src/views/DevicesListView.vue (nowa, czysta wersja) -->
 <template>
   <v-card>
     <v-card-title class="d-flex align-center">
       Urządzenia Fiskalne
       <v-spacer></v-spacer>
-      <v-btn color="primary">Dodaj urządzenie</v-btn>
+      <!-- W przyszłości ten przycisk otworzy modal -->
+      <v-btn color="primary" @click="openAddDeviceModal">Dodaj urządzenie</v-btn>
     </v-card-title>
 
-    <v-alert v-if="error" type="error" class="ma-4">{{ error }}</v-alert>
+    <!-- Globalny komunikat o błędzie -->
+    <v-alert v-if="devicesStore.error" type="error" class="ma-4">
+      {{ devicesStore.error }}
+    </v-alert>
 
-    <v-data-table
-      :headers="headers"
-      :items="devices"
-      :loading="isLoading"
-      loading-text="Ładowanie danych..."
-      no-data-text="Nie znaleziono urządzeń"
-      class="elevation-1"
-    >
-    </v-data-table>
+    <!-- Przekazujemy dane do naszego nowego komponentu tabeli -->
+    <DeviceDataTable
+      :devices="devicesStore.devices"
+      :loading="devicesStore.isLoading"
+      @edit="handleEdit"
+      @delete="handleDelete"
+    />
   </v-card>
+
+  <!-- W przyszłości: <DeviceFormModal v-model="isModalOpen" /> -->
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import api from '@/api' // Nasza instancja Axios
+import { onMounted } from 'vue'
+import { useDevicesStore } from '@/stores/devices'
+import DeviceDataTable from '@/components/devices/DeviceDataTable.vue'
 
-// Definiujemy typ dla pojedynczego urządzenia, aby TypeScript nam pomagał
-interface FiscalDevice {
-  id: number;
-  model_name: string;
-  serial_number: string;
-  production_date: string;
-  last_service_date: string | null;
-  status: string;
-  owner_name: string;
-}
+// Pobieramy instancję naszego nowego store'a
+const devicesStore = useDevicesStore()
 
-const devices = ref<FiscalDevice[]>([]) // Reaktywna lista urządzeń
-const isLoading = ref(true) // Stan ładowania danych
-const error = ref<string | null>(null) // Przechowywanie ewentualnych błędów
-
-// Definiujemy nagłówki dla naszej tabeli Vuetify
-const headers = [
-  { title: 'Model', key: 'model_name' },
-  { title: 'Numer seryjny', key: 'serial_number' },
-  { title: 'Właściciel', key: 'owner_name' },
-  { title: 'Status', key: 'status' },
-  { title: 'Data prod.', key: 'production_date' },
-  { title: 'Ostatni serwis', key: 'last_service_date' },
-]
-
-// Funkcja do pobierania danych z API
-const fetchDevices = async () => {
-  isLoading.value = true
-  error.value = null
-  try {
-    const response = await api.get('/devices/')
-    devices.value = response.data
-  } catch (err) {
-    console.error('Błąd podczas pobierania urządzeń:', err)
-    error.value = 'Nie udało się załadować danych. Spróbuj ponownie później.'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// `onMounted` to "hak cyklu życia" komponentu.
-// Kod wewnątrz zostanie wykonany, gdy komponent zostanie zamontowany w DOM.
+// Wywołujemy akcję pobierania danych, gdy komponent jest montowany
 onMounted(() => {
-  fetchDevices()
+  // Pobieramy dane tylko jeśli jeszcze ich nie mamy, aby uniknąć zbędnych zapytań
+  if (devicesStore.devices.length === 0) {
+    devicesStore.fetchDevices()
+  }
 })
+
+const openAddDeviceModal = () => {
+  console.log('Otwieranie modala do dodawania urządzenia...')
+  // Tutaj będzie logika otwierania modala/dialogu
+}
+
+const handleEdit = (id: number) => {
+  console.log(`Edytowanie urządzenia o ID: ${id}`)
+  // Tutaj logika edycji
+}
+
+const handleDelete = (id: number) => {
+  console.log(`Usuwanie urządzenia o ID: ${id}`)
+  // Tutaj logika usuwania
+}
 </script>

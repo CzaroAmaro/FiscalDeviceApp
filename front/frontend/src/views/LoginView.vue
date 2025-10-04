@@ -5,13 +5,17 @@
         Zaloguj się
       </v-card-title>
       <v-card-text>
-        <v-form @submit.prevent="handleLogin">
+        <v-form ref="form" @submit.prevent="handleLogin">
+          <v-alert v-if="error" type="error" density="compact" class="mb-4">
+            {{ error }}
+          </v-alert>
+
           <v-text-field
             v-model="username"
             label="Nazwa użytkownika"
             prepend-inner-icon="mdi-account"
             variant="outlined"
-            required
+            :rules="[rules.required]"
             :disabled="isLoading"
           ></v-text-field>
 
@@ -21,19 +25,12 @@
             prepend-inner-icon="mdi-lock"
             variant="outlined"
             type="password"
-            required
+            :rules="[rules.required]"
             class="mt-3"
             :disabled="isLoading"
           ></v-text-field>
 
-          <v-btn
-            type="submit"
-            color="primary"
-            block
-            class="mt-4"
-            :loading="isLoading"
-            :disabled="isLoading"
-          >
+          <v-btn type="submit" color="primary" block class="mt-4" :loading="isLoading">
             Zaloguj
           </v-btn>
         </v-form>
@@ -44,35 +41,35 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth' // Importujemy nasz authStore
+import { useAuthStore } from '@/stores/auth'
+import type { VForm } from 'vuetify/components'
 
-// Pobieramy instancję store'a
 const authStore = useAuthStore()
-
-// Reaktywne zmienne do przechowywania danych z formularza
+const form = ref<VForm | null>(null)
 const username = ref('')
 const password = ref('')
-const isLoading = ref(false) // Dodajemy stan ładowania
+const isLoading = ref(false)
+const error = ref<string | null>(null)
+
+const rules = {
+  required: (value: string) => !!value || 'Pole jest wymagane.',
+}
 
 const handleLogin = async () => {
-  if (!username.value || !password.value) {
-    alert('Proszę wypełnić oba pola.')
-    return
-  }
+  const { valid } = await form.value!.validate()
+  if (!valid) return
 
-  isLoading.value = true // Ustawiamy stan ładowania
+  isLoading.value = true
+  error.value = null
   try {
-    // Wywołujemy akcję 'login' z naszego store'a, przekazując dane
     await authStore.login({
       username: username.value,
       password: password.value,
     })
-    // Reszta logiki (przekierowanie) jest już obsłużona wewnątrz akcji 'login'
-  } catch (error) {
-    // Błąd jest już obsługiwany w store, ale możemy tu dodać dodatkową logikę
-    console.error("Wystąpił błąd w komponencie LoginView", error)
+  } catch (err: any) {
+    error.value = err.response?.data?.detail || 'Nieprawidłowe dane logowania.'
   } finally {
-    isLoading.value = false // Wyłączamy stan ładowania niezależnie od wyniku
+    isLoading.value = false
   }
 }
 </script>
