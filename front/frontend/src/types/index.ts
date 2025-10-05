@@ -1,13 +1,15 @@
 import type {RouteLocationRaw} from "vue-router";
 
 export interface FiscalDevice {
-    id: number;
-    model_name: string;
-    serial_number: string;
-    production_date: string;
-    last_service_date: string | null;
-    status: string;
-    owner_name: string;
+  id: number;
+  model_name: string;
+  serial_number: string;
+  production_date: string;
+  last_service_date: string | null;
+  status: string;
+  owner: number;
+  owner_name: string;
+  service_history: ServiceRecord[];
 }
 
 export interface MenuItem {
@@ -26,4 +28,11 @@ export interface Client {
   phone_number: string;
   email: string;
   created_at: string;
+}
+
+export interface ServiceRecord {
+  id: number;
+  description: string;
+  service_date: string;
+  technician_username: string;
 }

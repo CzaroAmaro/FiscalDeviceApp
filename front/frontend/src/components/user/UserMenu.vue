@@ -1,4 +1,3 @@
-<!-- src/components/layout/UserMenu.vue -->
 <template>
   <v-card min-width="250" elevation="2">
     <v-list density="compact">
@@ -26,6 +25,7 @@
             v-bind="props"
             prepend-icon="mdi-cog-outline"
             title="Preferencje"
+            @click.stop
           ></v-list-item>
         </template>
 
@@ -64,7 +64,6 @@ const emit = defineEmits<{
 }>()
 
 const onLogout = () => {
-  // Kiedy użytkownik klika "Wyloguj", emitujemy zdarzenie 'logout'
   emit('logout')
 }
 </script>

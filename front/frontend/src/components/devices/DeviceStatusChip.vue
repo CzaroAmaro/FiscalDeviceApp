@@ -15,7 +15,6 @@ const statusMap: Record<string, { color: string; text: string }> = {
   active: { color: 'green', text: 'Aktywne' },
   inactive: { color: 'red', text: 'Niewaktywne' },
   serviced: { color: 'blue', text: 'W serwisie' },
-  // Dodaj inne statusy, jeśli istnieją
   default: { color: 'grey', text: 'Nieznany' }
 }
 

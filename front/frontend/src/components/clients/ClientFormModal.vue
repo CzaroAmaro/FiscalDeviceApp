@@ -44,7 +44,7 @@ import type { Client } from '@/types'
 import type { VForm } from 'vuetify/components'
 
 const props = defineProps<{
-  modelValue: boolean // v-model
+  modelValue: boolean
   editingClient: Client | null
 }>()
 

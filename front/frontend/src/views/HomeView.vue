@@ -40,13 +40,11 @@
           title="Klienci"
           :value="clientsStore.totalClients"
           :loading="clientsStore.isLoading"
-          icon="mdi-printer-pos"
+          icon="mdi-account-multiple"
           color="primary"
           :to="{ name: 'clients' }"
         />
       </v-col>
-
-      <!-- Możesz dodać więcej kafelków w ten sam sposób -->
 
     </v-row>
   </v-container>
@@ -57,19 +55,12 @@ import { onMounted } from 'vue'
 import DashboardStatCard from '@/components/dashboard/DashboardStatCard.vue'
 import { useDevicesStore } from '@/stores/devices'
 import { useClientsStore } from '@/stores/clients'
-// W przyszłości importujesz inne store'y, np.
-// import { useTechniciansStore } from '@/stores/technicians'
 
-// Inicjalizujemy store dla urządzeń
 const devicesStore = useDevicesStore()
 const clientsStore = useClientsStore()
 
-// Gdy komponent jest gotowy, pobieramy dane, jeśli jeszcze ich nie ma
 onMounted(() => {
-  // To zapobiega wielokrotnemu, niepotrzebnemu pobieraniu danych
-  // przy przełączaniu się między widokami.
-  if (devicesStore.totalDevices === 0) {
-    devicesStore.fetchDevices()
-  }
+  devicesStore.fetchDevices()
+  clientsStore.fetchClients()
 });
 </script>

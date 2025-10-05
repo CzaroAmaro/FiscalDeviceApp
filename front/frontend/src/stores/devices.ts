@@ -1,7 +1,14 @@
 import { defineStore } from 'pinia'
 import api from '@/api' // lub '@/services/api'
-import type { FiscalDevice } from '@/types' // Za chwilę tam przeniesiemy interfejs
+import type { FiscalDevice } from '@/types'
 
+type DevicePayload = Pick<FiscalDevice,
+  'model_name' |
+  'serial_number' |
+  'production_date' |
+  'status' |
+  'owner'
+>
 interface DevicesState {
   devices: FiscalDevice[]
   isLoading: boolean
@@ -16,10 +23,9 @@ export const useDevicesStore = defineStore('devices', {
   }),
 
   getters: {
-    // Możemy tu tworzyć przydatne gettery, np. zliczające urządzenia
     deviceCount: (state) => state.devices.length,
     totalDevices: (state): number => {
-      return state.devices.length;
+      return state.devices.length
     },
   },
 
@@ -39,8 +45,37 @@ export const useDevicesStore = defineStore('devices', {
       }
     },
 
-    // W przyszłości możesz tu dodać inne akcje
-    // async addDevice(deviceData) { ... }
-    // async deleteDevice(deviceId) { ... }
+    async addDevice(deviceData: DevicePayload) {
+      try {
+        const response = await api.post<FiscalDevice>('/devices/', deviceData)
+        this.devices.unshift(response.data)
+      } catch (error) {
+        console.error('Błąd dodawania urządzenia:', error)
+        throw error
+      }
+    },
+
+    async updateDevice(deviceId: number, deviceData: DevicePayload) {
+      try {
+        const response = await api.put<FiscalDevice>(`/devices/${deviceId}/`, deviceData)
+        const index = this.devices.findIndex(d => d.id === deviceId)
+        if (index !== -1) {
+          this.devices[index] = response.data
+        }
+      } catch (error) {
+        console.error('Błąd aktualizacji urządzenia:', error)
+        throw error
+      }
+    },
+
+    async deleteDevice(deviceId: number) {
+      try {
+        await api.delete(`/devices/${deviceId}/`)
+        this.devices = this.devices.filter(d => d.id !== deviceId)
+      } catch (error) {
+        console.error('Błąd usuwania urządzenia:', error)
+        throw error
+      }
+    },
   },
 })

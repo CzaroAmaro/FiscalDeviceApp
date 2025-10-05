@@ -15,10 +15,11 @@
 
     <!-- Slot na przyszłe akcje (np. przyciski Edytuj/Usuń) -->
     <template #item.actions="{ item }">
-      <v-icon size="small" class="me-2" @click="$emit('edit', item.id)">
+      <!-- 'item' to cały obiekt FiscalDevice, więc to jest poprawne -->
+      <v-icon class="me-2" size="small" @click="$emit('edit', item)">
         mdi-pencil
       </v-icon>
-      <v-icon size="small" @click="$emit('delete', item.id)">
+      <v-icon size="small" @click="$emit('delete', item)">
         mdi-delete
       </v-icon>
     </template>
