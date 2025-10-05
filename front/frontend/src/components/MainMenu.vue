@@ -3,7 +3,6 @@
 
     <template v-for="item in menuItems" :key="item.value">
 
-      <!-- Opcjonalny separator -->
       <v-divider v-if="item.divider" class="my-2"></v-divider>
 
       <v-list-item
@@ -39,7 +38,7 @@ const menuItems = ref<MenuItem[]>([
     title: 'Klienci',
     value: 'clients',
     icon: 'mdi-account-group-outline',
-    to: { name: 'home' }, // Zmień na właściwą ścieżkę w przyszłości
+    to: { name: 'clients' },
   }
 ])
 </script>

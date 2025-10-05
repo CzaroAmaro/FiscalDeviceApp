@@ -17,3 +17,13 @@ export interface MenuItem {
     to: RouteLocationRaw;
     divider?: boolean;
 }
+
+export interface Client {
+  id: number;
+  name: string;
+  address: string;
+  nip: string;
+  phone_number: string;
+  email: string;
+  created_at: string;
+}

@@ -4,7 +4,6 @@
     <h1 class="text-h4 mb-6">Pulpit</h1>
 
     <v-row>
-      <!-- Kafelek z liczbą urządzeń -->
       <v-col cols="12" sm="6" md="4" lg="3">
         <DashboardStatCard
           title="Wszystkie urządzenia"
@@ -16,7 +15,6 @@
         />
       </v-col>
 
-      <!-- Przykład przyszłego kafelka: Serwisanci -->
       <v-col cols="12" sm="6" md="4" lg="3">
         <DashboardStatCard
           title="Aktywni serwisanci"
@@ -27,7 +25,6 @@
         />
       </v-col>
 
-      <!-- Przykład przyszłego kafelka: Oczekujące zlecenia -->
       <v-col cols="12" sm="6" md="4" lg="3">
         <DashboardStatCard
           title="Zlecenia w toku"
@@ -35,6 +32,17 @@
           :loading="false"
           icon="mdi-clipboard-text-clock-outline"
           color="warning"
+        />
+      </v-col>
+
+      <v-col cols="12" sm="6" md="4" lg="3">
+        <DashboardStatCard
+          title="Klienci"
+          :value="clientsStore.totalClients"
+          :loading="clientsStore.isLoading"
+          icon="mdi-printer-pos"
+          color="primary"
+          :to="{ name: 'clients' }"
         />
       </v-col>
 
@@ -48,11 +56,13 @@
 import { onMounted } from 'vue'
 import DashboardStatCard from '@/components/dashboard/DashboardStatCard.vue'
 import { useDevicesStore } from '@/stores/devices'
+import { useClientsStore } from '@/stores/clients'
 // W przyszłości importujesz inne store'y, np.
 // import { useTechniciansStore } from '@/stores/technicians'
 
 // Inicjalizujemy store dla urządzeń
 const devicesStore = useDevicesStore()
+const clientsStore = useClientsStore()
 
 // Gdy komponent jest gotowy, pobieramy dane, jeśli jeszcze ich nie ma
 onMounted(() => {
