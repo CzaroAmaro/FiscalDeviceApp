@@ -1,13 +1,11 @@
-<!-- src/components/layout/MainMenu.vue -->
 <template>
   <v-list density="compact">
-    <!-- Używamy pętli v-for do dynamicznego generowania linków -->
+
     <template v-for="item in menuItems" :key="item.value">
 
       <!-- Opcjonalny separator -->
       <v-divider v-if="item.divider" class="my-2"></v-divider>
 
-      <!-- Element listy -->
       <v-list-item
         :prepend-icon="item.icon"
         :title="item.title"
@@ -24,7 +22,6 @@
 import { ref } from 'vue'
 import type { MenuItem } from '@/types/index.ts'
 
-// Nasze menu jako tablica obiektów - jedyne miejsce, które będziesz edytować w przyszłości!
 const menuItems = ref<MenuItem[]>([
   {
     title: 'Pulpit',
@@ -37,9 +34,6 @@ const menuItems = ref<MenuItem[]>([
     value: 'devices',
     icon: 'mdi-printer-pos',
     to: { name: 'devices' },
-  },
-  {
-    divider: true
   },
   {
     title: 'Klienci',
