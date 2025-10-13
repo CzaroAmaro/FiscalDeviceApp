@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <TableToolbar
-      title="Klienci"
+      :title="t('clients.title')"
       :selected-count="selectedClients.length"
       :actions="toolbarActions"
       @action="handleToolbarAction"
@@ -24,20 +24,20 @@
 
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
-        <v-card-title class="text-h5">Potwierdź usunięcie</v-card-title>
+        <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
         <v-card-text>
           <span v-if="selectedClients.length === 1">
-            Czy na pewno chcesz usunąć klienta <strong>"{{ selectedClients[0].name }}"</strong>?
+           {{ t('clients.deleteConfirm', { name: selectedClients[0].name }) }}
           </span>
           <span v-else>
-            Czy na pewno chcesz usunąć <strong>{{ selectedClients.length }}</strong> zaznaczonych klientów?
+            {{ t('clients.deleteConfirmMulti', { count: selectedClients.length }) }}
           </span>
-          <br>Ta operacja jest nieodwracalna.
+          <br>{{ t('common.confirmDeleteMsg') }}
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
-          <v-btn text @click="isConfirmOpen = false" :disabled="isDeleting">Anuluj</v-btn>
-          <v-btn color="error" @click="handleDeleteConfirm" :loading="isDeleting">Usuń</v-btn>
+          <v-btn text @click="isConfirmOpen = false" :disabled="isDeleting">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="error" @click="handleDeleteConfirm" :loading="isDeleting">{{ t('common.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useClientsStore } from '@/stores/clients';
 import type { Client } from '@/types';
 import { clientHeaders } from '@/config/tables/clientHeaders';
@@ -59,6 +60,7 @@ import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue'
 import ClientFormModal from '@/components/clients/ClientFormModal.vue';
 
 const clientsStore = useClientsStore();
+const { t } = useI18n();
 
 const selectedClients = ref<Client[]>([]);
 const isFormModalOpen = ref(false);
@@ -72,9 +74,9 @@ onMounted(() => {
 });
 
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: 'Dodaj', icon: 'mdi-plus', requiresSelection: 'none' },
-  { id: 'edit', label: 'Edytuj', icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'delete', label: 'Usuń', icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
+  { id: 'add', label: t('clients.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'edit', label: t('clients.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'delete', label: t('clients.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
 ]);
 
 function handleToolbarAction(actionId: string) {

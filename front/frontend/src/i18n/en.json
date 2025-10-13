@@ -1,0 +1,53 @@
+{
+  "common": {
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirmDelete": "Confirm Deletion",
+    "confirmDeleteMsg": "This operation is irreversible."
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "devices": "Devices",
+    "clients": "Clients"
+  },
+  "toolbar": {
+    "userMenu": "User Menu",
+    "selected": "Selected: {count}"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "cards": {
+      "devices": "All Devices",
+      "clients": "Active Clients"
+    }
+  },
+  "clients": {
+    "title": "Clients",
+    "toolbar": {
+      "add": "Add Client",
+      "edit": "Edit Client",
+      "delete": "Delete Client"
+    },
+    "deleteConfirm": "Are you sure you want to delete client \"{name}\"?",
+    "deleteConfirmMulti": "Are you sure you want to delete {count} selected clients?"
+  },
+  "devices": {
+    "title": "Fiscal Devices",
+    "toolbar": {
+      "add": "Add Device",
+      "edit": "Edit Device",
+      "delete": "Delete Device"
+    },
+    "deleteConfirm": "Are you sure you want to delete device \"{name}\"?",
+    "deleteConfirmMulti": "Are you sure you want to delete {count} selected devices?"
+  },
+  "userMenu": {
+    "preferences": "Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "logout": "Logout"
+  }
+}

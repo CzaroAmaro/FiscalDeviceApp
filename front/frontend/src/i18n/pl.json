@@ -1,0 +1,53 @@
+{
+  "common": {
+    "add": "Dodaj",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "confirmDelete": "Potwierdź usunięcie",
+    "confirmDeleteMsg": "Ta operacja jest nieodwracalna."
+  },
+  "menu": {
+    "dashboard": "Pulpit",
+    "devices": "Urządzenia",
+    "clients": "Klienci"
+  },
+  "toolbar": {
+    "userMenu": "Menu użytkownika",
+    "selected": "Zaznaczono: {count}"
+  },
+  "dashboard": {
+    "title": "Pulpit",
+    "cards": {
+      "devices": "Wszystkie urządzenia",
+      "clients": "Aktywni klienci"
+    }
+  },
+  "clients": {
+    "title": "Klienci",
+    "toolbar": {
+      "add": "Dodaj klienta",
+      "edit": "Edytuj klienta",
+      "delete": "Usuń klienta"
+    },
+    "deleteConfirm": "Czy na pewno chcesz usunąć klienta \"{name}\"?",
+    "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych klientów?"
+  },
+  "devices": {
+    "title": "Urządzenia Fiskalne",
+    "toolbar": {
+      "add": "Dodaj urządzenie",
+      "edit": "Edytuj urządzenie",
+      "delete": "Usuń urządzenie"
+    },
+    "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\"?",
+    "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych urządzeń?"
+  },
+  "userMenu": {
+    "preferences": "Preferencje",
+    "language": "Język",
+    "theme": "Motyw",
+    "logout": "Wyloguj"
+  }
+}
