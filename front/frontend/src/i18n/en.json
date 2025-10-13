@@ -6,7 +6,15 @@
     "save": "Save",
     "cancel": "Cancel",
     "confirmDelete": "Confirm Deletion",
-    "confirmDeleteMsg": "This operation is irreversible."
+    "confirmDeleteMsg": "This operation is irreversible.",
+    "loadingData": "Loading data...",
+    "noDataFound": "No data found",
+    "serverError": "A server error occurred. Please try again."
+  },
+  "validation": {
+    "required": "Field is required",
+    "nip": "NIP must be 10 digits long",
+    "email": "Invalid e-mail format"
   },
   "menu": {
     "dashboard": "Dashboard",
@@ -31,6 +39,17 @@
       "edit": "Edit Client",
       "delete": "Delete Client"
     },
+    "forms": {
+      "addTitle": "Add New Client",
+      "editTitle": "Edit Client Details",
+      "nameLabel": "Company name/Full name",
+      "nipLabel": "NIP",
+      "phoneLabel": "Phone number",
+      "emailLabel": "E-mail address",
+      "addressLabel": "Address",
+      "addSuccess": "New client has been successfully added.",
+      "editSuccess": "Client details have been updated."
+    },
     "deleteConfirm": "Are you sure you want to delete client \"{name}\"?",
     "deleteConfirmMulti": "Are you sure you want to delete {count} selected clients?"
   },
@@ -41,8 +60,37 @@
       "edit": "Edit Device",
       "delete": "Delete Device"
     },
-    "deleteConfirm": "Are you sure you want to delete device \"{name}\"?",
-    "deleteConfirmMulti": "Are you sure you want to delete {count} selected devices?"
+    "headers": {
+      "model": "Model",
+      "serialNumber": "Serial number",
+      "owner": "Owner",
+      "status": "Status",
+      "prodDate": "Production date",
+      "lastService": "Last service",
+      "actions": "Actions"
+    },
+    "forms": {
+      "addTitle": "Add New Device",
+      "editTitle": "Edit Device",
+      "modelLabel": "Device model",
+      "serialLabel": "Serial number",
+      "prodDateLabel": "Production date",
+      "statusLabel": "Status",
+      "ownerLabel": "Owner",
+      "addSuccess": "New device has been successfully added.",
+      "editSuccess": "Device details have been updated.",
+      "statusOptions": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "serviced": "In service",
+        "decommissioned": "Decommissioned"
+      }
+    },
+    "deleteConfirm": "Are you sure you want to delete the device \"{name}\" (S/N: {serial})?",
+    "deleteConfirmMulti": "Are you sure you want to delete {count} selected devices?",
+    "deleteSuccessSingle": "Device \"{name}\" has been deleted.",
+    "deleteSuccessMulti": "{count} devices have been deleted.",
+    "deleteError": "An error occurred while deleting devices."
   },
   "userMenu": {
     "preferences": "Preferences",

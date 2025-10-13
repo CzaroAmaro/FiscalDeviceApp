@@ -10,19 +10,19 @@
           <v-container>
             <v-row>
               <v-col cols="12">
-                <v-text-field v-model="formData.name" label="Nazwa firmy/Imię i nazwisko" :rules="[rules.required]" />
+                <v-text-field v-model="formData.name" :label="t('clients.forms.nameLabel')" :rules="[rules.required]" />
               </v-col>
               <v-col cols="12" sm="6">
-                <v-text-field v-model="formData.nip" label="NIP" :rules="[rules.required, rules.nip]" />
+                <v-text-field v-model="formData.nip" :label="t('clients.forms.nipLabel')" :rules="[rules.required, rules.nip]" />
               </v-col>
               <v-col cols="12" sm="6">
-                <v-text-field v-model="formData.phone_number" label="Numer telefonu" />
+                <v-text-field v-model="formData.phone_number" :label="t('clients.forms.phoneLabel')" />
               </v-col>
               <v-col cols="12">
-                <v-text-field v-model="formData.email" label="Adres e-mail" :rules="[rules.email]" />
+                <v-text-field v-model="formData.email" :label="t('clients.forms.emailLabel')" :rules="[rules.email]" />
               </v-col>
               <v-col cols="12">
-                <v-text-field v-model="formData.address" label="Adres" />
+                <v-text-field v-model="formData.address" :label="t('clients.forms.addressLabel')" />
               </v-col>
             </v-row>
           </v-container>
@@ -30,8 +30,8 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn color="grey-darken-1" @click="closeDialog">Anuluj</v-btn>
-        <v-btn color="primary" @click="submitForm" :loading="isLoading">Zapisz</v-btn>
+        <v-btn color="grey-darken-1" @click="closeDialog">{{ t('common.cancel') }}</v-btn>
+        <v-btn color="primary" @click="submitForm" :loading="isLoading">{{ t('common.save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -39,64 +39,62 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useClientsStore } from '@/stores/clients'
 import type { Client } from '@/types'
 import type { VForm } from 'vuetify/components'
 
-const props = defineProps<{
-  modelValue: boolean
-  editingClient: Client | null
-}>()
+const { t } = useI18n();
 
-const emit = defineEmits(['update:modelValue', 'save-success'])
+const props = defineProps<{ modelValue: boolean, editingClient: Client | null }>();
+const emit = defineEmits(['update:modelValue', 'save-success']);
 
-const clientsStore = useClientsStore()
-const form = ref<VForm | null>(null)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
+const clientsStore = useClientsStore();
+const form = ref<VForm | null>(null);
+const isLoading = ref(false);
+const error = ref<string | null>(null);
 
-const initialFormData = { name: '', address: '', nip: '', phone_number: '', email: '' }
-const formData = reactive({ ...initialFormData })
+const initialFormData = { name: '', address: '', nip: '', phone_number: '', email: '' };
+const formData = reactive({ ...initialFormData });
 
-const isEditing = computed(() => !!props.editingClient)
-const formTitle = computed(() => isEditing.value ? 'Edytuj dane klienta' : 'Dodaj nowego klienta')
+const isEditing = computed(() => !!props.editingClient);
+const formTitle = computed(() => isEditing.value ? t('clients.forms.editTitle') : t('clients.forms.addTitle'));
 
 watch(() => props.modelValue, (isOpen) => {
-  if (isOpen) {
-    if (isEditing.value) {
-      Object.assign(formData, props.editingClient)
-    } else {
-      Object.assign(formData, initialFormData)
-    }
+  if (isOpen && props.editingClient) {
+    Object.assign(formData, props.editingClient);
+  } else if (isOpen) {
+    Object.assign(formData, initialFormData);
   }
-})
+});
 
-const rules = {
-  required: (v: string) => !!v || 'Pole jest wymagane',
-  nip: (v: string) => /^\d{10}$/.test(v) || 'NIP musi składać się z 10 cyfr',
-  email: (v: string) => !v || /.+@.+\..+/.test(v) || 'Nieprawidłowy format e-mail',
-}
+const rules = computed(() => ({
+  required: (v: string) => !!v || t('validation.required'),
+  nip: (v: string) => /^\d{10}$/.test(v) || t('validation.nip'),
+  email: (v: string) => !v || /.+@.+\..+/.test(v) || t('validation.email'),
+}));
 
-const closeDialog = () => emit('update:modelValue', false)
+const closeDialog = () => emit('update:modelValue', false);
 
-const submitForm = async () => {
-  const { valid } = await form.value!.validate()
-  if (!valid) return
+async function submitForm() {
+  const { valid } = await form.value!.validate();
+  if (!valid) return;
 
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
   try {
     if (isEditing.value) {
-      await clientsStore.updateClient(props.editingClient!.id, formData)
+      await clientsStore.updateClient(props.editingClient!.id, formData);
+      emit('save-success', t('clients.forms.editSuccess'));
     } else {
-      await clientsStore.addClient(formData)
+      await clientsStore.addClient(formData);
+      emit('save-success', t('clients.forms.addSuccess'));
     }
-    emit('save-success', isEditing.value ? 'Dane klienta zaktualizowane.' : 'Nowy klient dodany.')
-    closeDialog()
+    closeDialog();
   } catch (err: any) {
-    error.value = err.response?.data?.detail || 'Wystąpił błąd serwera.'
+    error.value = err.response?.data?.detail || t('common.serverError');
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
 }
 </script>

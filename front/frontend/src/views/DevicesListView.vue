@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <TableToolbar
-      title="Urządzenia Fiskalne"
+      :title="t('devices.title')"
       :selected-count="selectedDevices.length"
       :actions="toolbarActions"
       @action="handleToolbarAction"
@@ -13,6 +13,8 @@
         :headers="deviceHeaders"
         :items="devicesStore.devices"
         :loading="devicesStore.isLoading"
+        :loading-text="t('common.loadingData')"
+        :no-data-text="t('common.noDataFound')"
       >
         <template #item.status="{ item }">
           <DeviceStatusChip :status="item.status" />
@@ -28,20 +30,20 @@
 
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
-        <v-card-title class="text-h5">Potwierdź usunięcie</v-card-title>
+        <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
         <v-card-text>
           <span v-if="selectedDevices.length === 1">
-            Czy na pewno chcesz usunąć urządzenie <strong>"{{ selectedDevices[0].model_name }}"</strong> (S/N: {{ selectedDevices[0].serial_number }})?
+            {{ t('devices.deleteConfirm', { name: selectedDevices[0].model_name, serial: selectedDevices[0].serial_number }) }}
           </span>
           <span v-else>
-            Czy na pewno chcesz usunąć <strong>{{ selectedDevices.length }}</strong> zaznaczonych urządzeń?
+            {{ t('devices.deleteConfirmMulti', { count: selectedDevices.length }) }}
           </span>
-          <br>Ta operacja jest nieodwracalna.
+          <br>{{ t('common.confirmDeleteMsg') }}
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
-          <v-btn text @click="isConfirmOpen = false" :disabled="isDeleting">Anuluj</v-btn>
-          <v-btn color="error" @click="handleDeleteConfirm" :loading="isDeleting">Usuń</v-btn>
+          <v-btn text @click="isConfirmOpen = false" :disabled="isDeleting">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="error" @click="handleDeleteConfirm" :loading="isDeleting">{{ t('common.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -57,6 +59,7 @@ import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { useDevicesStore } from '@/stores/devices';
 import type { FiscalDevice } from '@/types';
 import { deviceHeaders } from '@/config/tables/deviceHeaders';
+import { useI18n } from 'vue-i18n';
 
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
@@ -65,6 +68,7 @@ import DeviceFormModal from '@/components/devices/DeviceFormModal.vue';
 import DeviceStatusChip from '@/components/devices/DeviceStatusChip.vue';
 
 const devicesStore = useDevicesStore();
+const { t } = useI18n();
 
 const selectedDevices = ref<FiscalDevice[]>([]);
 const isFormModalOpen = ref(false);
@@ -78,9 +82,9 @@ onMounted(() => {
 });
 
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: 'Dodaj', icon: 'mdi-plus', requiresSelection: 'none' },
-  { id: 'edit', label: 'Edytuj', icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'delete', label: 'Usuń', icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
+  { id: 'add', label: t('devices.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
 ]);
 
 function handleToolbarAction(actionId: string) {
@@ -119,13 +123,13 @@ async function handleDeleteConfirm() {
     await Promise.all(deletePromises);
 
     const message = selectedDevices.value.length === 1
-      ? `Urządzenie "${selectedDevices.value[0].model_name}" zostało usunięte.`
-      : `${selectedDevices.value.length} urządzeń zostało usuniętych.`;
+      ? t('devices.deleteSuccessSingle', { name: selectedDevices.value[0].model_name })
+      : t('devices.deleteSuccessMulti', { count: selectedDevices.value.length });
 
     showSnackbar(message, 'info');
     selectedDevices.value = [];
   } catch {
-    showSnackbar('Wystąpił błąd podczas usuwania urządzeń.', 'error');
+    showSnackbar(t('devices.deleteError'), 'error');
   } finally {
     isDeleting.value = false;
     isConfirmOpen.value = false;

@@ -6,7 +6,15 @@
     "save": "Zapisz",
     "cancel": "Anuluj",
     "confirmDelete": "Potwierdź usunięcie",
-    "confirmDeleteMsg": "Ta operacja jest nieodwracalna."
+    "confirmDeleteMsg": "Ta operacja jest nieodwracalna.",
+    "loadingData": "Ładowanie danych...",
+    "noDataFound": "Nie znaleziono danych",
+    "serverError": "Wystąpił błąd serwera. Spróbuj ponownie."
+  },
+  "validation": {
+    "required": "Pole jest wymagane",
+    "nip": "NIP musi składać się z 10 cyfr",
+    "email": "Nieprawidłowy format e-mail"
   },
   "menu": {
     "dashboard": "Pulpit",
@@ -31,6 +39,17 @@
       "edit": "Edytuj klienta",
       "delete": "Usuń klienta"
     },
+    "forms": {
+      "addTitle": "Dodaj nowego klienta",
+      "editTitle": "Edytuj dane klienta",
+      "nameLabel": "Nazwa firmy/Imię i nazwisko",
+      "nipLabel": "NIP",
+      "phoneLabel": "Numer telefonu",
+      "emailLabel": "Adres e-mail",
+      "addressLabel": "Adres",
+      "addSuccess": "Nowy klient został pomyślnie dodany.",
+      "editSuccess": "Dane klienta zostały zaktualizowane."
+    },
     "deleteConfirm": "Czy na pewno chcesz usunąć klienta \"{name}\"?",
     "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych klientów?"
   },
@@ -41,8 +60,37 @@
       "edit": "Edytuj urządzenie",
       "delete": "Usuń urządzenie"
     },
-    "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\"?",
-    "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych urządzeń?"
+    "headers": {
+      "model": "Model",
+      "serialNumber": "Numer seryjny",
+      "owner": "Właściciel",
+      "status": "Status",
+      "prodDate": "Data produkcji",
+      "lastService": "Ostatni serwis",
+      "actions": "Akcje"
+    },
+    "forms": {
+      "addTitle": "Dodaj nowe urządzenie",
+      "editTitle": "Edytuj urządzenie",
+      "modelLabel": "Model urządzenia",
+      "serialLabel": "Numer seryjny",
+      "prodDateLabel": "Data produkcji",
+      "statusLabel": "Status",
+      "ownerLabel": "Właściciel",
+      "addSuccess": "Nowe urządzenie zostało pomyślnie dodane.",
+      "editSuccess": "Dane urządzenia zostały zaktualizowane.",
+      "statusOptions": {
+        "active": "Aktywna",
+        "inactive": "Niewykorzystywana",
+        "serviced": "W serwisie",
+        "decommissioned": "Wycofana"
+      }
+    },
+    "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\" (S/N: {serial})?",
+    "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych urządzeń?",
+    "deleteSuccessSingle": "Urządzenie \"{name}\" zostało usunięte.",
+    "deleteSuccessMulti": "{count} urządzeń zostało usuniętych.",
+    "deleteError": "Wystąpił błąd podczas usuwania urządzeń."
   },
   "userMenu": {
     "preferences": "Preferencje",
