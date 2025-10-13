@@ -1,45 +1,43 @@
 <template>
   <v-container fluid>
-    <v-row class="align-center mb-4">
-      <v-col>
-        <h1 class="text-h4">Klienci</h1>
-      </v-col>
-      <v-col class="text-right">
-        <v-btn color="primary" @click="openAddModal">
-          <v-icon start>mdi-plus</v-icon>
-          Dodaj klienta
-        </v-btn>
-      </v-col>
-    </v-row>
+    <TableToolbar
+      title="Klienci"
+      :selected-count="selectedClients.length"
+      :actions="toolbarActions"
+      @action="handleToolbarAction"
+    />
 
     <v-card>
-      <v-alert v-if="clientsStore.error" type="error" class="ma-4">
-        {{ clientsStore.error }}
-      </v-alert>
-      <ClientDataTable
-        :clients="clientsStore.clients"
+      <DataTable
+        v-model="selectedClients"
+        :headers="clientHeaders"
+        :items="clientsStore.clients"
         :loading="clientsStore.isLoading"
-        @edit="openEditModal"
-        @delete="openDeleteConfirm"
       />
     </v-card>
 
     <ClientFormModal
       v-model="isFormModalOpen"
-      :editing-client="selectedClient"
-      @save-success="showSnackbar"
+      :editing-client="clientToEdit"
+      @save-success="onSaveSuccess"
     />
 
-    <v-dialog v-model="isConfirmOpen" max-width="400" persistent>
+    <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
         <v-card-title class="text-h5">Potwierdź usunięcie</v-card-title>
         <v-card-text>
-          Czy na pewno chcesz usunąć klienta "{{ selectedClient?.name }}"? Ta operacja jest nieodwracalna.
+          <span v-if="selectedClients.length === 1">
+            Czy na pewno chcesz usunąć klienta <strong>"{{ selectedClients[0].name }}"</strong>?
+          </span>
+          <span v-else>
+            Czy na pewno chcesz usunąć <strong>{{ selectedClients.length }}</strong> zaznaczonych klientów?
+          </span>
+          <br>Ta operacja jest nieodwracalna.
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
-          <v-btn text @click="isConfirmOpen = false">Anuluj</v-btn>
-          <v-btn color="error" @click="handleDelete">Usuń</v-btn>
+          <v-btn text @click="isConfirmOpen = false" :disabled="isDeleting">Anuluj</v-btn>
+          <v-btn color="error" @click="handleDeleteConfirm" :loading="isDeleting">Usuń</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -51,49 +49,86 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
-import { useClientsStore } from '@/stores/clients'
-import type { Client } from '@/types'
-import ClientDataTable from '@/components/clients/ClientDataTable.vue'
-import ClientFormModal from '@/components/clients/ClientFormModal.vue'
+import { ref, onMounted, reactive, computed, watch } from 'vue';
+import { useClientsStore } from '@/stores/clients';
+import type { Client } from '@/types';
+import { clientHeaders } from '@/config/tables/clientHeaders';
 
-const clientsStore = useClientsStore()
+import DataTable from "@/components/DataTable.vue";
+import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
+import ClientFormModal from '@/components/clients/ClientFormModal.vue';
 
-const isFormModalOpen = ref(false)
-const isConfirmOpen = ref(false)
-const selectedClient = ref<Client | null>(null)
-const snackbar = reactive({ show: false, text: '', color: 'success' })
+const clientsStore = useClientsStore();
+
+const selectedClients = ref<Client[]>([]);
+const isFormModalOpen = ref(false);
+const clientToEdit = ref<Client | null>(null);
+const isConfirmOpen = ref(false);
+const isDeleting = ref(false);
+const snackbar = reactive({ show: false, text: '', color: 'success' });
 
 onMounted(() => {
-  clientsStore.fetchClients()
-})
+  clientsStore.fetchClients();
+});
 
-const openAddModal = () => {
-  selectedClient.value = null
-  isFormModalOpen.value = true
-}
+const toolbarActions = computed<ToolbarAction[]>(() => [
+  { id: 'add', label: 'Dodaj', icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'edit', label: 'Edytuj', icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'delete', label: 'Usuń', icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
+]);
 
-const openEditModal = (client: Client) => {
-  selectedClient.value = { ...client } // Kopiujemy, aby uniknąć reaktywności
-  isFormModalOpen.value = true
-}
-
-const openDeleteConfirm = (client: Client) => {
-  selectedClient.value = client
-  isConfirmOpen.value = true
-}
-
-const handleDelete = async () => {
-  if (selectedClient.value) {
-    await clientsStore.deleteClient(selectedClient.value.id)
-    showSnackbar(`Klient ${selectedClient.value.name} został usunięty.`, 'info')
+function handleToolbarAction(actionId: string) {
+  switch (actionId) {
+    case 'add':
+      clientToEdit.value = null;
+      isFormModalOpen.value = true;
+      break;
+    case 'edit':
+      if (selectedClients.value.length === 1) {
+        clientToEdit.value = selectedClients.value[0];
+        isFormModalOpen.value = true;
+      }
+      break;
+    case 'delete':
+      isConfirmOpen.value = true;
+      break;
   }
-  isConfirmOpen.value = false
 }
 
-const showSnackbar = (text: string, color = 'success') => {
-  snackbar.text = text
-  snackbar.color = color
-  snackbar.show = true
+function onSaveSuccess(message: string) {
+  selectedClients.value = [];
+  showSnackbar(message);
+}
+
+watch(isFormModalOpen, (isOpen) => {
+  if (!isOpen) {
+    clientToEdit.value = null;
+  }
+});
+
+async function handleDeleteConfirm() {
+  isDeleting.value = true;
+  try {
+    const deletePromises = selectedClients.value.map(client => clientsStore.deleteClient(client.id));
+    await Promise.all(deletePromises);
+
+    const message = selectedClients.value.length === 1
+      ? `Klient "${selectedClients.value[0].name}" został usunięty.`
+      : `${selectedClients.value.length} klientów zostało usuniętych.`;
+
+    showSnackbar(message, 'info');
+    selectedClients.value = [];
+  } catch {
+    showSnackbar('Wystąpił błąd podczas usuwania.', 'error');
+  } finally {
+    isDeleting.value = false;
+    isConfirmOpen.value = false;
+  }
+}
+
+function showSnackbar(text: string, color = 'success') {
+  snackbar.text = text;
+  snackbar.color = color;
+  snackbar.show = true;
 }
 </script>

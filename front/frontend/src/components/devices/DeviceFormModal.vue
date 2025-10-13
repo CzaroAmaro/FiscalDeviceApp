@@ -1,4 +1,3 @@
-<!-- src/components/devices/DeviceFormModal.vue -->
 <template>
   <v-dialog :model-value="modelValue" @update:model-value="closeDialog" max-width="700px" persistent>
     <v-card>
@@ -80,7 +79,6 @@ const statusOptions = [
   { title: 'Wycofana', value: 'decommissioned' },
 ]
 
-// Pobierz listę klientów, gdy komponent się załaduje
 onMounted(() => {
   clientsStore.fetchClients()
 })
@@ -88,7 +86,6 @@ onMounted(() => {
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     if (isEditing.value && props.editingDevice) {
-      // Przygotuj dane do edycji
       formData.model_name = props.editingDevice.model_name
       formData.serial_number = props.editingDevice.serial_number
       formData.production_date = props.editingDevice.production_date

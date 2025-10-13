@@ -1,48 +1,47 @@
-<!-- src/views/DevicesListView.vue -->
 <template>
   <v-container fluid>
-    <v-row class="align-center mb-4">
-      <v-col>
-        <h1 class="text-h4">Urządzenia Fiskalne</h1>
-      </v-col>
-      <v-col class="text-right">
-        <v-btn color="primary" @click="openAddModal">
-          <v-icon start>mdi-plus</v-icon>
-          Dodaj urządzenie
-        </v-btn>
-      </v-col>
-    </v-row>
+    <TableToolbar
+      title="Urządzenia Fiskalne"
+      :selected-count="selectedDevices.length"
+      :actions="toolbarActions"
+      @action="handleToolbarAction"
+    />
 
     <v-card>
-      <v-alert v-if="devicesStore.error" type="error" class="ma-4">
-        {{ devicesStore.error }}
-      </v-alert>
-      <DeviceDataTable
-        :devices="devicesStore.devices"
+      <DataTable
+        v-model="selectedDevices"
+        :headers="deviceHeaders"
+        :items="devicesStore.devices"
         :loading="devicesStore.isLoading"
-        @edit="openEditModal"
-        @delete="openDeleteConfirm"
-      />
+      >
+        <template #item.status="{ item }">
+          <DeviceStatusChip :status="item.status" />
+        </template>
+      </DataTable>
     </v-card>
 
     <DeviceFormModal
       v-model="isFormModalOpen"
-      :editing-device="selectedDevice"
-      @save-success="showSnackbar"
+      :editing-device="deviceToEdit"
+      @save-success="onSaveSuccess"
     />
 
-    <v-dialog v-model="isConfirmOpen" max-width="400" persistent>
+    <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
         <v-card-title class="text-h5">Potwierdź usunięcie</v-card-title>
         <v-card-text>
-          Czy na pewno chcesz usunąć urządzenie
-          <strong>{{ selectedDevice?.model_name }} (S/N: {{ selectedDevice?.serial_number }})</strong>?
-          Ta operacja jest nieodwracalna.
+          <span v-if="selectedDevices.length === 1">
+            Czy na pewno chcesz usunąć urządzenie <strong>"{{ selectedDevices[0].model_name }}"</strong> (S/N: {{ selectedDevices[0].serial_number }})?
+          </span>
+          <span v-else>
+            Czy na pewno chcesz usunąć <strong>{{ selectedDevices.length }}</strong> zaznaczonych urządzeń?
+          </span>
+          <br>Ta operacja jest nieodwracalna.
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
-          <v-btn text @click="isConfirmOpen = false">Anuluj</v-btn>
-          <v-btn color="error" @click="handleDelete">Usuń</v-btn>
+          <v-btn text @click="isConfirmOpen = false" :disabled="isDeleting">Anuluj</v-btn>
+          <v-btn color="error" @click="handleDeleteConfirm" :loading="isDeleting">Usuń</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -54,49 +53,88 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
-import { useDevicesStore } from '@/stores/devices'
-import type { FiscalDevice } from '@/types'
-import DeviceDataTable from '@/components/devices/DeviceDataTable.vue'
-import DeviceFormModal from '@/components/devices/DeviceFormModal.vue'
+import { ref, onMounted, reactive, computed, watch } from 'vue';
+import { useDevicesStore } from '@/stores/devices';
+import type { FiscalDevice } from '@/types';
+import { deviceHeaders } from '@/config/tables/deviceHeaders';
 
-const devicesStore = useDevicesStore()
+import DataTable from '@/components/DataTable.vue';
+import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
 
-const isFormModalOpen = ref(false)
-const isConfirmOpen = ref(false)
-const selectedDevice = ref<FiscalDevice | null>(null)
-const snackbar = reactive({ show: false, text: '', color: 'success' })
+import DeviceFormModal from '@/components/devices/DeviceFormModal.vue';
+import DeviceStatusChip from '@/components/devices/DeviceStatusChip.vue';
+
+const devicesStore = useDevicesStore();
+
+const selectedDevices = ref<FiscalDevice[]>([]);
+const isFormModalOpen = ref(false);
+const deviceToEdit = ref<FiscalDevice | null>(null);
+const isConfirmOpen = ref(false);
+const isDeleting = ref(false);
+const snackbar = reactive({ show: false, text: '', color: 'success' });
 
 onMounted(() => {
-  devicesStore.fetchDevices()
-})
+  devicesStore.fetchDevices();
+});
 
-const openAddModal = () => {
-  selectedDevice.value = null
-  isFormModalOpen.value = true
-}
+const toolbarActions = computed<ToolbarAction[]>(() => [
+  { id: 'add', label: 'Dodaj', icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'edit', label: 'Edytuj', icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'delete', label: 'Usuń', icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
+]);
 
-const openEditModal = (device: FiscalDevice) => {
-  selectedDevice.value = { ...device } // Kopiujemy, aby uniknąć problemów z reaktywnością
-  isFormModalOpen.value = true
-}
-
-const openDeleteConfirm = (device: FiscalDevice) => {
-  selectedDevice.value = device
-  isConfirmOpen.value = true
-}
-
-const handleDelete = async () => {
-  if (selectedDevice.value) {
-    await devicesStore.deleteDevice(selectedDevice.value.id)
-    showSnackbar(`Urządzenie ${selectedDevice.value.model_name} zostało usunięte.`, 'info')
+function handleToolbarAction(actionId: string) {
+  switch (actionId) {
+    case 'add':
+      deviceToEdit.value = null;
+      isFormModalOpen.value = true;
+      break;
+    case 'edit':
+      if (selectedDevices.value.length === 1) {
+        deviceToEdit.value = selectedDevices.value[0];
+        isFormModalOpen.value = true;
+      }
+      break;
+    case 'delete':
+      isConfirmOpen.value = true;
+      break;
   }
-  isConfirmOpen.value = false
 }
 
-const showSnackbar = (text: string, color = 'success') => {
-  snackbar.text = text
-  snackbar.color = color
-  snackbar.show = true
+function onSaveSuccess(message: string) {
+  selectedDevices.value = [];
+  showSnackbar(message);
+}
+
+watch(isFormModalOpen, (isOpen) => {
+  if (!isOpen) {
+    deviceToEdit.value = null;
+  }
+});
+
+async function handleDeleteConfirm() {
+  isDeleting.value = true;
+  try {
+    const deletePromises = selectedDevices.value.map(device => devicesStore.deleteDevice(device.id));
+    await Promise.all(deletePromises);
+
+    const message = selectedDevices.value.length === 1
+      ? `Urządzenie "${selectedDevices.value[0].model_name}" zostało usunięte.`
+      : `${selectedDevices.value.length} urządzeń zostało usuniętych.`;
+
+    showSnackbar(message, 'info');
+    selectedDevices.value = [];
+  } catch {
+    showSnackbar('Wystąpił błąd podczas usuwania urządzeń.', 'error');
+  } finally {
+    isDeleting.value = false;
+    isConfirmOpen.value = false;
+  }
+}
+
+function showSnackbar(text: string, color = 'success') {
+  snackbar.text = text;
+  snackbar.color = color;
+  snackbar.show = true;
 }
 </script>
