@@ -47,7 +47,10 @@ import type { VForm } from 'vuetify/components'
 const { t } = useI18n();
 
 const props = defineProps<{ modelValue: boolean, editingClient: Client | null }>();
-const emit = defineEmits(['update:modelValue', 'save-success']);
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void;
+  (e: 'save-success', message: string, newClient?: Client): void;
+}>();
 
 const clientsStore = useClientsStore();
 const form = ref<VForm | null>(null);
@@ -87,8 +90,8 @@ async function submitForm() {
       await clientsStore.updateClient(props.editingClient!.id, formData);
       emit('save-success', t('clients.forms.editSuccess'));
     } else {
-      await clientsStore.addClient(formData);
-      emit('save-success', t('clients.forms.addSuccess'));
+      const newClient = await clientsStore.addClient(formData);
+      emit('save-success', t('clients.forms.addSuccess'), newClient);
     }
     closeDialog();
   } catch (err: any) {

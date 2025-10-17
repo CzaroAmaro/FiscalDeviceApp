@@ -40,10 +40,11 @@ export const useClientsStore = defineStore('clients', {
     async addClient(clientData: ClientPayload) {
       try {
         const response = await api.post<Client>('/clients/', clientData)
-        this.clients.unshift(response.data) // Dodaj na początek listy bez przeładowania
+        this.clients.unshift(response.data)
+        return response.data
       } catch (error) {
         console.error('Błąd dodawania klienta:', error)
-        throw error // Rzuć błąd, aby formularz go obsłużył
+        throw error
       }
     },
 

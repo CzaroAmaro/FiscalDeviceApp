@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Fiscal Device Manager"
+  },
   "common": {
     "add": "Add",
     "edit": "Edit",
@@ -34,6 +37,12 @@
   },
   "clients": {
     "title": "Clients",
+    "headers": {
+      "name": "Company name/Full name",
+      "nip": "NIP",
+      "phone": "Phone",
+      "email": "Email"
+    },
     "toolbar": {
       "add": "Add Client",
       "edit": "Edit Client",
@@ -72,18 +81,26 @@
     "forms": {
       "addTitle": "Add New Device",
       "editTitle": "Edit Device",
+      "brandLabel": "Brand",
       "modelLabel": "Device model",
+      "uniqueNumberLabel": "Unique number",
       "serialLabel": "Serial number",
-      "prodDateLabel": "Production date",
+      "saleDateLabel": "Sale date",
       "statusLabel": "Status",
       "ownerLabel": "Owner",
+      "instructionsLabel": "Operating instructions",
+      "remarksLabel": "Remarks",
       "addSuccess": "New device has been successfully added.",
       "editSuccess": "Device details have been updated.",
+      "addNewClientTooltip": "Add new client",
       "statusOptions": {
         "active": "Active",
         "inactive": "Inactive",
         "serviced": "In service",
         "decommissioned": "Decommissioned"
+      },
+      "errors": {
+        "uniqueNumber": "Unique number: {value}"
       }
     },
     "deleteConfirm": "Are you sure you want to delete the device \"{name}\" (S/N: {serial})?",
@@ -96,6 +113,8 @@
     "preferences": "Preferences",
     "language": "Language",
     "theme": "Theme",
-    "logout": "Logout"
+    "logout": "Logout",
+    "placeholderName": "John Doe",
+    "placeholderEmail": "john.doe@example.com"
   }
 }

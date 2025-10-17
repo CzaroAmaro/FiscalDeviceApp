@@ -27,12 +27,15 @@ class FiscalDevice(models.Model):
         ('serviced', 'W serwisie'),
         ('decommissioned', 'Wycofana'),
     ]
-
+    brand_name = models.CharField(max_length=100, verbose_name="Marka urządzenia")
     model_name = models.CharField(max_length=100, verbose_name="Model urządzenia")
-    serial_number = models.CharField(max_length=100, unique=True, verbose_name="Numer seryjny")
-    production_date = models.DateField(verbose_name="Data produkcji")
+    unique_number = models.CharField(max_length=100, unique=True, null=True, verbose_name="Numer unikatowy")
+    serial_number = models.CharField(max_length=100, verbose_name="Numer seryjny")
+    sale_date = models.DateField(verbose_name="Data sprzedaży")
     last_service_date = models.DateField(null=True, blank=True, verbose_name="Data ostatniego przeglądu")
     status = models.CharField(max_length=20, choices=DEVICE_STATUS_CHOICES, default='active', verbose_name="Status")
+    operating_instructions = models.TextField(blank=True, verbose_name="Sposób użytkowania")
+    remarks = models.TextField(blank=True, verbose_name="Uwagi")
 
     owner = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='devices', verbose_name="Właściciel")
 

@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Manager Urządzeń Fiskalnych"
+  },
   "common": {
     "add": "Dodaj",
     "edit": "Edytuj",
@@ -34,6 +37,12 @@
   },
   "clients": {
     "title": "Klienci",
+    "headers": {
+      "name": "Nazwa firmy/Imię i nazwisko",
+      "nip": "NIP",
+      "phone": "Telefon",
+      "email": "Email"
+    },
     "toolbar": {
       "add": "Dodaj klienta",
       "edit": "Edytuj klienta",
@@ -72,18 +81,26 @@
     "forms": {
       "addTitle": "Dodaj nowe urządzenie",
       "editTitle": "Edytuj urządzenie",
+      "brandLabel": "Marka",
       "modelLabel": "Model urządzenia",
+      "uniqueNumberLabel": "Numer unikatowy",
       "serialLabel": "Numer seryjny",
-      "prodDateLabel": "Data produkcji",
+      "saleDateLabel": "Data sprzedaży",
       "statusLabel": "Status",
       "ownerLabel": "Właściciel",
+      "instructionsLabel": "Sposób użytkowania",
+      "remarksLabel": "Uwagi",
       "addSuccess": "Nowe urządzenie zostało pomyślnie dodane.",
       "editSuccess": "Dane urządzenia zostały zaktualizowane.",
+      "addNewClientTooltip": "Dodaj nowego klienta",
       "statusOptions": {
         "active": "Aktywna",
         "inactive": "Niewykorzystywana",
         "serviced": "W serwisie",
         "decommissioned": "Wycofana"
+      },
+      "errors": {
+        "uniqueNumber": "Numer unikatowy: {value}"
       }
     },
     "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\" (S/N: {serial})?",
@@ -96,6 +113,8 @@
     "preferences": "Preferencje",
     "language": "Język",
     "theme": "Motyw",
-    "logout": "Wyloguj"
+    "logout": "Wyloguj",
+    "placeholderName": "Jan Kowalski",
+    "placeholderEmail": "jan.kowalski@example.com"
   }
 }

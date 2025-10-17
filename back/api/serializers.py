@@ -31,11 +31,15 @@ class FiscalDeviceSerializer(serializers.ModelSerializer):
         model = FiscalDevice
         fields = [
             'id',
+            'brand_name',
             'model_name',
+            'unique_number',
             'serial_number',
-            'production_date',
+            'sale_date',
             'last_service_date',
             'status',
+            'operating_instructions',
+            'remarks',
             'owner',
             'owner_name',
             'service_history'

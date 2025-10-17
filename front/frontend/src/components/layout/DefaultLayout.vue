@@ -1,20 +1,29 @@
+
 <template>
-  <v-navigation-drawer v-model="drawer" color="grey-darken-3">
+  <v-navigation-drawer
+    v-model="drawer"
+    color="grey-darken-3"
+    permanent
+    :rail="isRail"
+  >
+    <!-- Twoje istniejące menu idealnie tu pasuje -->
     <MainMenu />
   </v-navigation-drawer>
 
   <v-app-bar color="primary">
-    <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-    <v-toolbar-title>Manager Urządzeń Fiskalnych</v-toolbar-title>
+    <v-app-bar-nav-icon @click="toggleDrawer"></v-app-bar-nav-icon>
+
+    <v-toolbar-title>{{ t('app.title') }}</v-toolbar-title>
+
+    <v-spacer></v-spacer>
 
     <v-menu location="bottom end" transition="slide-y-transition">
-      <!-- 1. Aktywator: to co widać, zanim menu się otworzy -->
       <template v-slot:activator="{ props }">
         <v-btn v-bind="props" icon>
           <v-avatar color="white" size="36">
             <v-icon color="primary">mdi-account-circle</v-icon>
           </v-avatar>
-          <v-tooltip activator="parent" location="bottom">Menu użytkownika</v-tooltip>
+          <v-tooltip activator="parent" location="bottom">{{ t('toolbar.userMenu') }}</v-tooltip>
         </v-btn>
       </template>
 
@@ -31,17 +40,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { RouterView } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { ref } from 'vue';
+import { useDisplay } from 'vuetify';
+import { useI18n } from 'vue-i18n';
+import { RouterView } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 
-import UserMenu from '@/components/user/UserMenu.vue'
-import MainMenu from '@/components/MainMenu.vue'
+import MainMenu from '@/components/MainMenu.vue';
+import UserMenu from '@/components/user/UserMenu.vue';
 
-const authStore = useAuthStore()
-const drawer = ref(true)
+const { t } = useI18n();
+const authStore = useAuthStore();
+
+const { mobile } = useDisplay();
+
+const drawer = ref(true);
+
+const isRail = ref(false);
+
+const toggleDrawer = () => {
+  if (mobile.value) {
+    drawer.value = !drawer.value;
+  } else {
+    isRail.value = !isRail.value;
+  }
+};
 
 const handleLogout = () => {
-  authStore.logout()
-}
+  authStore.logout();
+};
 </script>

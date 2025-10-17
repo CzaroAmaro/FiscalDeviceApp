@@ -23,9 +23,16 @@
     </v-card>
 
     <DeviceFormModal
-      v-model="isFormModalOpen"
-      :editing-device="deviceToEdit"
-      @save-success="onSaveSuccess"
+    v-model="isDeviceModalOpen"
+    :editing-device="deviceToEdit"
+    :newly-added-client-id="newlyCreatedClientId"
+    @save-success="onDeviceSaveSuccess"
+    @request-new-client="isClientModalOpen = true"/>
+
+    <ClientFormModal
+      v-model="isClientModalOpen"
+      :editing-client="null"
+      @save-success="onClientSaveSuccess"
     />
 
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
@@ -61,6 +68,9 @@ import type { FiscalDevice } from '@/types';
 import { deviceHeaders } from '@/config/tables/deviceHeaders';
 import { useI18n } from 'vue-i18n';
 
+import type { Client } from '@/types';
+import ClientFormModal from '@/components/clients/ClientFormModal.vue';
+
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
 
@@ -71,8 +81,12 @@ const devicesStore = useDevicesStore();
 const { t } = useI18n();
 
 const selectedDevices = ref<FiscalDevice[]>([]);
-const isFormModalOpen = ref(false);
+const isDeviceModalOpen = ref(false); // Zmieniona nazwa dla jasności
 const deviceToEdit = ref<FiscalDevice | null>(null);
+
+const isClientModalOpen = ref(false); // Stan dla modala klientów
+const newlyCreatedClientId = ref<number | null>(null); // Przechowuje ID nowego klienta
+
 const isConfirmOpen = ref(false);
 const isDeleting = ref(false);
 const snackbar = reactive({ show: false, text: '', color: 'success' });
@@ -91,12 +105,12 @@ function handleToolbarAction(actionId: string) {
   switch (actionId) {
     case 'add':
       deviceToEdit.value = null;
-      isFormModalOpen.value = true;
+      isDeviceModalOpen.value = true;
       break;
     case 'edit':
       if (selectedDevices.value.length === 1) {
         deviceToEdit.value = selectedDevices.value[0];
-        isFormModalOpen.value = true;
+        isDeviceModalOpen.value = true;
       }
       break;
     case 'delete':
@@ -105,12 +119,12 @@ function handleToolbarAction(actionId: string) {
   }
 }
 
-function onSaveSuccess(message: string) {
+function onDeviceSaveSuccess(message: string) {
   selectedDevices.value = [];
   showSnackbar(message);
 }
 
-watch(isFormModalOpen, (isOpen) => {
+watch(isDeviceModalOpen, (isOpen) => {
   if (!isOpen) {
     deviceToEdit.value = null;
   }
@@ -140,5 +154,12 @@ function showSnackbar(text: string, color = 'success') {
   snackbar.text = text;
   snackbar.color = color;
   snackbar.show = true;
+}
+
+function onClientSaveSuccess(message: string, newClient?: Client) {
+  showSnackbar(message);
+  if (newClient) {
+    newlyCreatedClientId.value = newClient.id;
+  }
 }
 </script>
