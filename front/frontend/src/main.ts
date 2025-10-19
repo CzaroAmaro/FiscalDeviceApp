@@ -49,6 +49,13 @@ const vuetify = createVuetify({
             mdi,
         },
     },
+  theme: {
+    defaultTheme: localStorage.getItem('user-theme') || 'light',
+    themes: {
+      light: {},
+      dark: {},
+    },
+  }
 })
 
 const token = localStorage.getItem('accessToken')

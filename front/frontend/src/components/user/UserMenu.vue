@@ -32,12 +32,16 @@
           <LanguageSelect />
         </v-list-item>
 
-        <v-list-item
-          :title="t('userMenu.theme')"
-          prepend-icon="mdi-theme-light-dark"
-          value="theme"
-          disabled
-        ></v-list-item>
+        <v-list-item @click.stop>
+          <v-switch
+            v-model="isDarkMode"
+            :label="t('userMenu.theme')"
+            color="primary"
+            inset
+            hide-details
+            @change="themeStore.toggleTheme"
+          ></v-switch>
+        </v-list-item>
       </v-list-group>
 
       <v-divider/>
@@ -53,12 +57,20 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import LanguageSelect from "@/components/languageSelect/LanguageSelect.vue";
+import { useThemeStore } from '@/stores/theme';
 
 const { t } = useI18n();
+const themeStore = useThemeStore();
 
 const emit = defineEmits<{ (e: 'logout'): void }>();
+
+const isDarkMode = computed({
+  get: () => themeStore.currentThemeName === 'dark',
+  set: () => themeStore.toggleTheme(),
+});
 
 const onLogout = () => {
   emit('logout');

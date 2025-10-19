@@ -3,9 +3,14 @@ import api from '@/api' // lub '@/services/api'
 import type { FiscalDevice } from '@/types'
 
 type DevicePayload = Pick<FiscalDevice,
+  'brand_name' |
   'model_name' |
+  'unique_number' |
   'serial_number' |
-  'production_date' |
+  'sale_date' |
+  'last_service_date' |
+  'operating_instructions' |
+  'remarks' |
   'status' |
   'owner'
 >
