@@ -31,7 +31,6 @@ export interface Client {
   nip: string;
   phone_number: string;
   email: string;
-  created_at: string;
 }
 
 export interface ServiceRecord {
