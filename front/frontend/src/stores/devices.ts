@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+
 import api from '@/api' // lub '@/services/api'
 import type { FiscalDevice } from '@/types'
 

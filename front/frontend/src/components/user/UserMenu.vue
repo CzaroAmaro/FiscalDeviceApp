@@ -2,7 +2,7 @@
   <v-card min-width="250" elevation="2">
     <v-list density="compact">
       <v-list-item lines="two" class="px-4 pt-2 pb-3">
-        <template v-slot:prepend>
+        <template #prepend>
           <v-avatar color="primary" icon="mdi-account-circle"></v-avatar>
         </template>
         <v-list-item-title class="font-weight-bold">
@@ -16,7 +16,7 @@
       <v-divider></v-divider>
 
       <v-list-group value="Preferences">
-        <template v-slot:activator="{ props }">
+        <template #activator="{ props }">
           <v-list-item
             v-bind="props"
             :title="t('userMenu.preferences')"
@@ -49,8 +49,8 @@
       <v-list-item
         :title="t('userMenu.logout')"
         prepend-icon="mdi-logout"
-        @click="onLogout"
         class="text-error"
+        @click="onLogout"
       ></v-list-item>
     </v-list>
   </v-card>
@@ -62,10 +62,10 @@ import { useI18n } from 'vue-i18n';
 import LanguageSelect from "@/components/languageSelect/LanguageSelect.vue";
 import { useThemeStore } from '@/stores/theme';
 
+const emit = defineEmits<{
+  (e: 'logout'): void }>();
 const { t } = useI18n();
 const themeStore = useThemeStore();
-
-const emit = defineEmits<{ (e: 'logout'): void }>();
 
 const isDarkMode = computed({
   get: () => themeStore.currentThemeName === 'dark',

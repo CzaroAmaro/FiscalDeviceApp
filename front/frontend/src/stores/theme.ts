@@ -11,15 +11,15 @@ export const useThemeStore = defineStore('theme', () => {
    * @param theme - Nazwa motywu ('light' lub 'dark')
    */
   function setTheme(theme: ThemeName) {
-    vuetifyTheme.global.name.value = theme;
-    localStorage.setItem('user-theme', theme);
+    vuetifyTheme.global.name.value = theme
+    localStorage.setItem('user-theme', theme)
   }
 
   /**
    * Przełącza między motywem jasnym a ciemnym.
    */
   function toggleTheme() {
-    const newTheme = vuetifyTheme.global.current.value.dark ? 'light' : 'dark';
+    const newTheme = vuetifyTheme.global.current.value.dark ? 'light' : 'dark'
     setTheme(newTheme);
   }
 

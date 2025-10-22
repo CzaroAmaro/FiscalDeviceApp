@@ -1,9 +1,9 @@
 <template>
   <v-dialog
     :model-value="modelValue"
-    @update:model-value="closeDialog"
     max-width="700px"
     persistent
+    @update:model-value="closeDialog"
   >
     <v-card>
       <v-card-title>
@@ -70,7 +70,7 @@
         <v-btn color="grey-darken-1" @click="closeDialog">
           {{ t('common.cancel') }}
         </v-btn>
-        <v-btn color="primary" @click="submitForm" :loading="isLoading">
+        <v-btn color="primary" :loading="isLoading" @click="submitForm">
           {{ t('common.save') }}
         </v-btn>
       </v-card-actions>
@@ -85,8 +85,6 @@ import { useClientsStore } from '@/stores/clients'
 import type { Client } from '@/types'
 import type { VForm } from 'vuetify/components'
 
-const { t } = useI18n()
-
 const props = defineProps<{
   modelValue: boolean
   editingClient: Client | null
@@ -96,6 +94,8 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'save-success', message: string, newClient?: Client): void
 }>()
+
+const { t } = useI18n()
 
 const clientsStore = useClientsStore()
 const form = ref<VForm | null>(null)

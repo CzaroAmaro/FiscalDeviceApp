@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+
 import api from '@/api'
 import type { Client } from '@/types'
 

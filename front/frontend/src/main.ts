@@ -1,25 +1,24 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-
-import App from './App.vue'
-import router from './router'
-import api from '@/api'
-import {useAuthStore} from "@/stores/auth.ts";
-
-import { createI18n } from 'vue-i18n'
-import plMessages from './i18n/pl.json'
-import enMessages from './i18n/en.json'
-
 import 'vuetify/styles'
+import '@mdi/font/css/materialdesignicons.css'
+
+import { createPinia } from 'pinia'
+import { createApp } from 'vue'
+import { createI18n } from 'vue-i18n'
+import {useI18n} from "vue-i18n"
 import {createVuetify} from "vuetify";
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-
 import {mdi} from 'vuetify/iconsets/mdi'
-import '@mdi/font/css/materialdesignicons.css'
 import {en, pl} from "vuetify/locale";
 import {createVueI18nAdapter} from "vuetify/locale/adapters/vue-i18n";
-import {useI18n} from "vue-i18n"
+
+import api from '@/api'
+import {useAuthStore} from "@/stores/auth.ts";
+
+import App from './App.vue'
+import enMessages from './i18n/en.json'
+import plMessages from './i18n/pl.json'
+import router from './router'
 
 const i18n = createI18n({
   legacy: false,
