@@ -4,34 +4,27 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, permissions
 
-from .models import Client, FiscalDevice, ServiceRecord
-from .serializers import ClientSerializer, FiscalDeviceSerializer, ServiceRecordSerializer, RegisterSerializer
+from .models import (
+    Client, FiscalDevice, ServiceTicket, Manufacturer, Technician, Certification
+)
+from .serializers import (
+    ClientSerializer, FiscalDeviceSerializer, ServiceTicketSerializer,
+    RegisterSerializer, ManufacturerSerializer, TechnicianSerializer,
+    CertificationSerializer
+)
 
 # --- Widoki do zarządzania Klientami ---
-
 class ClientListCreateView(generics.ListCreateAPIView):
-    """
-    Widok do listowania i tworzenia klientów.
-    GET /api/clients/ -> Zwraca listę wszystkich klientów.
-    POST /api/clients/ -> Tworzy nowego klienta.
-    """
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 class ClientDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Widok do wyświetlania, aktualizacji i usuwania pojedynczego klienta.
-    GET /api/clients/{id}/ -> Zwraca dane jednego klienta.
-    PUT/PATCH /api/clients/{id}/ -> Aktualizuje dane klienta.
-    DELETE /api/clients/{id}/ -> Usuwa klienta.
-    """
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 # --- Widoki do zarządzania Urządzeniami Fiskalnymi ---
-
 class FiscalDeviceListCreateView(generics.ListCreateAPIView):
     queryset = FiscalDevice.objects.all()
     serializer_class = FiscalDeviceSerializer
@@ -42,49 +35,47 @@ class FiscalDeviceDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FiscalDeviceSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-# --- Widoki do zarządzania Historią Serwisową ---
+# --- NOWE Widoki dla Nowych Modeli ---
 
-class ServiceRecordListCreateView(generics.ListCreateAPIView):
-    serializer_class = ServiceRecordSerializer
+class ManufacturerListCreateView(generics.ListCreateAPIView):
+    queryset = Manufacturer.objects.all()
+    serializer_class = ManufacturerSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        """
-        Filtrujemy wpisy serwisowe, aby pokazać tylko te,
-        które należą do urządzenia o zadanym ID w URL.
-        np. /api/devices/5/history/
-        """
-        device_id = self.kwargs['device_pk']
-        return ServiceRecord.objects.filter(device_id=device_id)
+class TechnicianListView(generics.ListAPIView):
+    queryset = Technician.objects.filter(is_active=True)
+    serializer_class = TechnicianSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    def perform_create(self, serializer):
-        """
-        Automatycznie przypisujemy tworzony wpis serwisowy
-        do urządzenia z URL oraz do zalogowanego użytkownika.
-        """
-        device_id = self.kwargs['device_pk']
-        device = FiscalDevice.objects.get(pk=device_id)
-        serializer.save(technician=self.request.user, device=device)
+class CertificationListCreateView(generics.ListCreateAPIView):
+    queryset = Certification.objects.all()
+    serializer_class = CertificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-# --- Widok do Rejestracji Użytkownika ---
+# --- ZAKTUALIZOWANY Widok dla Zgłoszeń Serwisowych ---
+
+class ServiceTicketListCreateView(generics.ListCreateAPIView):
+    queryset = ServiceTicket.objects.all()
+    serializer_class = ServiceTicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    # Można dodać filtrowanie, np. po statusie
+    # filterset_fields = ['status', 'ticket_type', 'assigned_technician']
+
+class ServiceTicketDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ServiceTicket.objects.all()
+    serializer_class = ServiceTicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+# --- Widoki Pomocnicze i Autentykacji ---
 
 class RegisterView(generics.CreateAPIView):
-    """
-    Widok do rejestracji nowych użytkowników. Dostępny dla wszystkich.
-    POST /api/register/ -> Tworzy nowego użytkownika.
-    """
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
 class FetchCompanyDataView(APIView):
-        """
-        Pobiera dane firmy z API Białej Listy MF na podstawie numeru NIP.
-        Wymaga autentykacji.
-        Endpoint: GET /api/company-data/<nip>/
-        """
-        permission_classes = [permissions.IsAuthenticated]
-
-        def get(self, request, nip, format=None):
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request, nip, format=None):
             """
             Obsługuje żądanie GET.
             """
