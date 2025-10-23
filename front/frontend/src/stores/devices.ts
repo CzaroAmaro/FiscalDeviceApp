@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 
-import api from '@/api' // lub '@/services/api'
+import api from '@/api'
 import type { FiscalDevice } from '@/types'
 
 type DevicePayload = Pick<FiscalDevice,
-  'brand_name' |
+  'brand' |
   'model_name' |
   'unique_number' |
   'serial_number' |
@@ -55,6 +55,7 @@ export const useDevicesStore = defineStore('devices', {
       try {
         const response = await api.post<FiscalDevice>('/devices/', deviceData)
         this.devices.unshift(response.data)
+        return response.data;
       } catch (error) {
         console.error('Błąd dodawania urządzenia:', error)
         throw error

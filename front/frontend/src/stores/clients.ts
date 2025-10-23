@@ -25,6 +25,7 @@ export const useClientsStore = defineStore('clients', {
   },
   actions: {
     async fetchClients() {
+      if (this.clients.length > 0 && !this.isLoading) return;
       this.isLoading = true
       this.error = null
       try {
