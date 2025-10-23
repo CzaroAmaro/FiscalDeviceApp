@@ -51,8 +51,11 @@
     "forms": {
       "addTitle": "Add New Client",
       "editTitle": "Edit Client Details",
+      "nipToFetchLabel": "Search company by NIP",
+      "nipFetchHint": "Enter NIP and press the icon or Enter to fetch company data from public registry.",
       "nameLabel": "Company name/Full name",
       "nipLabel": "NIP",
+      "regonLabel": "REGON",
       "phoneLabel": "Phone number",
       "emailLabel": "E-mail address",
       "addressLabel": "Address",

@@ -51,8 +51,11 @@
     "forms": {
       "addTitle": "Dodaj nowego klienta",
       "editTitle": "Edytuj dane klienta",
+      "nipToFetchLabel": "Wyszukaj firmę po NIP",
+      "nipFetchHint": "Wpisz NIP i naciśnij ikonę lub Enter, aby pobrać dane z bazy GUS.",
       "nameLabel": "Nazwa firmy/Imię i nazwisko",
       "nipLabel": "NIP",
+      "regonLabel": "REGON",
       "phoneLabel": "Numer telefonu",
       "emailLabel": "Adres e-mail",
       "addressLabel": "Adres",

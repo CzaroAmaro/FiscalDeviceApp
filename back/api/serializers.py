@@ -11,7 +11,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
-        fields = '__all__'
+        fields = ['id', 'name', 'address', 'nip', 'phone_number', 'email', 'created_at', 'regon']
 
 
 class ServiceRecordSerializer(serializers.ModelSerializer):

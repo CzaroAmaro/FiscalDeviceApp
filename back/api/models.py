@@ -5,12 +5,13 @@ class CustomUser(AbstractUser):
     pass
 
 class Client(models.Model):
-    name = models.CharField(max_length=200, verbose_name="Nazwa firmy/Imię i nazwisko")
+    name = models.CharField(max_length=255, verbose_name="Nazwa firmy/Imię i nazwisko")
     address = models.CharField(max_length=255, verbose_name="Adres")
     nip = models.CharField(max_length=10, unique=True, verbose_name="NIP")
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Numer telefonu")
     email = models.EmailField(max_length=100, blank=True, verbose_name="Adres e-mail")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    regon = models.CharField(max_length=14, blank=True, verbose_name="REGON")
 
     def __str__(self):
         return f"{self.name} (NIP: {self.nip})"

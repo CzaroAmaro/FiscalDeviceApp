@@ -13,12 +13,12 @@
       <v-card-text>
         <v-form ref="form" @submit.prevent="submitForm">
           <v-alert
-            v-if="error"
+            v-if="fetchError"
             type="error"
             density="compact"
             class="mb-4"
           >
-            {{ error }}
+            {{ fetchError }}
           </v-alert>
 
           <v-container>
@@ -31,11 +31,25 @@
                 />
               </v-col>
 
+              <!-- --- ZMIANA: Modyfikujemy pole NIP, aby było interaktywne --- -->
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.nip"
                   :label="t('clients.forms.nipLabel')"
                   :rules="[rules.required, rules.nip]"
+                  :loading="isFetching"
+                  :disabled="isFetching"
+                  append-inner-icon="mdi-cloud-download-outline"
+                  @click:append-inner="fetchCompanyData"
+                  @keydown.enter.prevent="fetchCompanyData"
+                />
+              </v-col>
+
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="formData.regon"
+                  :label="t('clients.forms.regonLabel')"
+                  readonly
                 />
               </v-col>
 
@@ -84,6 +98,7 @@ import { useI18n } from 'vue-i18n'
 import { useClientsStore } from '@/stores/clients'
 import type { Client } from '@/types'
 import type { VForm } from 'vuetify/components'
+import api from '@/api'
 
 const props = defineProps<{
   modelValue: boolean
@@ -102,12 +117,16 @@ const form = ref<VForm | null>(null)
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 
-const initialFormData: Omit<Client, 'id'> = {
+const isFetching = ref(false);
+const fetchError = ref<string | null>(null);
+
+const initialFormData: Omit<Client, 'id' | 'created_at'> = {
   name: '',
   address: '',
   nip: '',
   phone_number: '',
   email: '',
+  regon: '',
 }
 
 const formData = reactive({ ...initialFormData })
@@ -118,6 +137,7 @@ const formTitle = computed(() =>
 )
 
 watchEffect(() => {
+  fetchError.value = null;
   if (!props.modelValue) return
   Object.assign(
     formData,
@@ -135,6 +155,30 @@ const rules = computed(() => ({
   email: (v: string) => !v || /.+@.+\..+/.test(v) || t('validation.email'),
 }))
 
+async function fetchCompanyData() {
+  if (!formData.nip) return;
+
+  isFetching.value = true;
+  fetchError.value = null;
+  try {
+    const cleanNip = formData.nip.replace(/\D/g, '');
+    const response = await api.get(`/company-data/${cleanNip}/`);
+    const data = response.data;
+
+    formData.name = data.name;
+    formData.regon = data.regon;
+    formData.address = data.address;
+
+    // Opcjonalnie: możemy też zaktualizować NIP, jeśli API go sformatowało
+    formData.nip = data.nip;
+
+  } catch (err: any) {
+    fetchError.value = err.response?.data?.detail || t('common.serverError');
+  } finally {
+    isFetching.value = false;
+  }
+}
+
 const closeDialog = () => emit('update:modelValue', false)
 
 async function submitForm() {
@@ -149,9 +193,11 @@ async function submitForm() {
       ? 'clients.forms.editSuccess'
       : 'clients.forms.addSuccess'
 
+    const payload = { ...formData };
+
     const newClient = isEditing.value
-      ? (await clientsStore.updateClient(props.editingClient!.id, formData), undefined)
-      : await clientsStore.addClient(formData)
+      ? (await clientsStore.updateClient(props.editingClient!.id, payload), undefined)
+      : await clientsStore.addClient(payload)
 
     emit('save-success', t(messageKey), newClient)
     closeDialog()

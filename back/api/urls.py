@@ -3,7 +3,7 @@ from .views import (
     ClientListCreateView, ClientDetailView,
     FiscalDeviceListCreateView, FiscalDeviceDetailView,
     ServiceRecordListCreateView,
-    RegisterView
+    RegisterView, FetchCompanyDataView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -16,6 +16,8 @@ urlpatterns = [
     # Endpointy dla Klientów (CRUD)
     path('clients/', ClientListCreateView.as_view(), name='client-list-create'),
     path('clients/<int:pk>/', ClientDetailView.as_view(), name='client-detail'),
+
+    path('company-data/<str:nip>/', FetchCompanyDataView.as_view(), name='fetch-company-data'),
 
     # Endpointy dla Urządzeń Fiskalnych (CRUD)
     path('devices/', FiscalDeviceListCreateView.as_view(), name='device-list-create'),

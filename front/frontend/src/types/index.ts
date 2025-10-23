@@ -31,6 +31,7 @@ export interface Client {
   nip: string;
   phone_number: string;
   email: string;
+  regon: string;
 }
 
 export interface ServiceRecord {
