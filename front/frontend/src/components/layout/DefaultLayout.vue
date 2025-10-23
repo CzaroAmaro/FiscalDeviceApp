@@ -18,7 +18,7 @@
     <v-spacer></v-spacer>
 
     <v-menu location="bottom end" transition="slide-y-transition">
-      <template v-slot:activator="{ props }">
+      <template #activator="{ props }">
         <v-btn v-bind="props" icon>
           <v-avatar color="white" size="36">
             <v-icon color="primary">mdi-account-circle</v-icon>

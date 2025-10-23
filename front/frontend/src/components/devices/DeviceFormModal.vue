@@ -1,16 +1,22 @@
 <template>
-  <v-dialog :model-value="modelValue" @update:model-value="closeDialog" max-width="700px" persistent>
+  <v-dialog :model-value="modelValue" max-width="700px" persistent @update:model-value="closeDialog">
     <v-card>
-      <v-card-title>
-        <span class="text-h5">{{ formTitle }}</span>
-      </v-card-title>
+      <v-card-title><span class="text-h5">{{ formTitle }}</span></v-card-title>
       <v-card-text>
         <v-form ref="form" @submit.prevent="submitForm">
           <v-alert v-if="error" type="error" density="compact" class="mb-4">{{ error }}</v-alert>
           <v-container>
             <v-row>
               <v-col cols="12" sm="6">
-                <v-text-field v-model="formData.brand_name" :label="t('devices.forms.brandLabel')" :rules="[rules.required]" />
+                <v-select
+                  v-model="formData.brand"
+                  :items="manufacturersStore.manufacturers"
+                  item-title="name"
+                  item-value="id"
+                  :label="t('devices.forms.brandLabel')"
+                  :loading="manufacturersStore.isLoading"
+                  :rules="[rules.required]"
+                />
               </v-col>
               <v-col cols="12" sm="6">
                 <v-combobox
@@ -44,7 +50,7 @@
                 >
                   <template #append-inner>
                     <v-tooltip :text="t('devices.forms.addNewClientTooltip')">
-                      <template v-slot:activator="{ props: tooltipProps }">
+                      <template #activator="{ props: tooltipProps }">
                         <v-icon
                           v-bind="tooltipProps"
                           icon="mdi-plus-circle-outline"
@@ -55,12 +61,8 @@
                   </template>
                 </v-select>
               </v-col>
-              <v-col cols="12">
-                <v-textarea v-model="formData.operating_instructions" :label="t('devices.forms.instructionsLabel')" rows="2" />
-              </v-col>
-              <v-col cols="12">
-                <v-textarea v-model="formData.remarks" :label="t('devices.forms.remarksLabel')" rows="2" />
-              </v-col>
+              <v-col cols="12"><v-textarea v-model="formData.operating_instructions" :label="t('devices.forms.instructionsLabel')" rows="2" /></v-col>
+              <v-col cols="12"><v-textarea v-model="formData.remarks" :label="t('devices.forms.remarksLabel')" rows="2" /></v-col>
             </v-row>
           </v-container>
         </v-form>
@@ -68,7 +70,7 @@
       <v-card-actions>
         <v-spacer />
         <v-btn color="grey-darken-1" @click="closeDialog">{{ t('common.cancel') }}</v-btn>
-        <v-btn color="primary" @click="submitForm" :loading="isLoading">{{ t('common.save') }}</v-btn>
+        <v-btn color="primary" :loading="isLoading" @click="submitForm">{{ t('common.save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -77,41 +79,34 @@
 <script setup lang="ts">
 import { ref, reactive, watch, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useDevicesStore } from '@/stores/devices';
+import { useDevicesStore, type DevicePayload } from '@/stores/devices';
 import { useClientsStore } from '@/stores/clients';
+import { useManufacturersStore } from '@/stores/manufacturers';
 import type { FiscalDevice } from '@/types';
 import type { VForm } from 'vuetify/components';
 import { predefinedDeviceModels } from "@/config/deviceModels";
 
-const { t } = useI18n();
-
-// --- PROPS & EMITS ---
-const props = defineProps<{
-  modelValue: boolean;
-  editingDevice: FiscalDevice | null;
-  newlyAddedClientId: number | null;
-}>();
-
+const props = defineProps<{ modelValue: boolean; editingDevice: FiscalDevice | null; newlyAddedClientId: number | null; }>();
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void;
   (e: 'save-success', message: string): void;
   (e: 'request-new-client'): void;
 }>();
 
-// --- STORE'Y ---
+const { t } = useI18n();
 const devicesStore = useDevicesStore();
 const clientsStore = useClientsStore();
+const manufacturersStore = useManufacturersStore();
 
-// --- STAN WEWNĘTRZNY ---
 const form = ref<VForm | null>(null);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
-// Definicja precyzyjnego typu dla danych formularza
-type DeviceFormData = Omit<FiscalDevice, 'id' | 'owner_name' | 'service_history' | 'last_service_date'> & { owner: number | null };
+// Definiujemy typ formularza, który pozwala na `null` dla relacji
+type DeviceFormData = Omit<DevicePayload, 'brand' | 'owner'> & { brand: number | null, owner: number | null };
 
 const initialFormData: DeviceFormData = {
-  brand_name: '',
+  brand: null,
   model_name: '',
   unique_number: '',
   serial_number: '',
@@ -123,10 +118,8 @@ const initialFormData: DeviceFormData = {
 };
 const formData = reactive<DeviceFormData>({ ...initialFormData });
 
-// --- WŁAŚCIWOŚCI COMPUTED ---
 const isEditing = computed(() => !!props.editingDevice);
 const formTitle = computed(() => isEditing.value ? t('devices.forms.editTitle') : t('devices.forms.addTitle'));
-
 const statusOptions = computed(() => [
   { title: t('devices.forms.statusOptions.active'), value: 'active' },
   { title: t('devices.forms.statusOptions.inactive'), value: 'inactive' },
@@ -134,50 +127,46 @@ const statusOptions = computed(() => [
   { title: t('devices.forms.statusOptions.decommissioned'), value: 'decommissioned' },
 ]);
 
+onMounted(() => {
+  clientsStore.fetchClients();
+  manufacturersStore.fetchManufacturers();
+});
+
+watch(() => props.modelValue, (isOpen) => {
+  error.value = null;
+  if (!isOpen) return;
+
+  if (props.editingDevice) {
+    Object.assign(formData, { ...props.editingDevice });
+  } else {
+    Object.assign(formData, initialFormData);
+    if (props.newlyAddedClientId) {
+      formData.owner = props.newlyAddedClientId;
+    }
+  }
+});
+
 const rules = computed(() => ({
   required: (v: any) => !!v || t('validation.required'),
 }));
 
-// --- CYKL ŻYCIA I OBSERWATORY ---
-onMounted(() => {
-  clientsStore.fetchClients();
-});
-
-// JEDEN `watch` do obsługi wszystkich `props`
-watch(props, (newProps) => {
-  // Resetowanie błędów przy każdej zmianie (np. otwarciu modala)
-  error.value = null;
-
-  // Ustawienie właściciela, jeśli został dodany "w locie"
-  if (newProps.newlyAddedClientId) {
-    formData.owner = newProps.newlyAddedClientId;
-  }
-
-  // Wypełnianie formularza w trybie edycji lub resetowanie
-  if (newProps.modelValue) { // Sprawdzamy, czy modal jest otwierany
-    if (newProps.editingDevice) {
-      Object.assign(formData, newProps.editingDevice);
-    } else {
-      // Jeśli jesteśmy w trybie dodawania, ale już mamy ustawionego właściciela, nie resetujmy go
-      if (!newProps.newlyAddedClientId) {
-        Object.assign(formData, initialFormData);
-      }
-    }
-  }
-}, { deep: true });
-
-// --- METODY ---
 const closeDialog = () => emit('update:modelValue', false);
 
 async function submitForm() {
   const { valid } = await form.value!.validate();
   if (!valid) return;
 
+  // Sprawdzenie, czy relacje nie są null, zanim wyślemy dane
+  if (formData.brand === null || formData.owner === null) {
+    error.value = "Marka i właściciel są wymagani."; // TODO: Przenieść do i18n
+    return;
+  }
+
   isLoading.value = true;
   error.value = null;
 
-  // Tworzymy payload, upewniając się, że `owner` nie jest nullem
-  const payload = { ...formData, owner: formData.owner! };
+  // Stworzenie payloadu z pewnością, że brand i owner nie są null
+  const payload: DevicePayload = { ...formData, brand: formData.brand, owner: formData.owner };
 
   try {
     if (isEditing.value) {
@@ -190,15 +179,9 @@ async function submitForm() {
     closeDialog();
   } catch (err: any) {
     const errorData = err.response?.data;
-    if (errorData) {
-      if (errorData.unique_number) {
-        error.value = t('devices.forms.errors.uniqueNumber', { value: errorData.unique_number[0] });
-      } else {
-        error.value = t('common.serverError');
-      }
-    } else {
-      error.value = t('common.serverError');
-    }
+    if (errorData?.unique_number) {
+      error.value = t('devices.forms.errors.uniqueNumber', { value: errorData.unique_number[0] });
+    } else { error.value = t('common.serverError'); }
   } finally {
     isLoading.value = false;
   }

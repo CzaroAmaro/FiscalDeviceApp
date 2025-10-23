@@ -1,14 +1,21 @@
-import type { Composer } from 'vue-i18n';
+import type { VDataTable } from 'vuetify/components';
 
-export const deviceHeaders = [
-  { title: 'Marka', key: 'brand_name', sortable: true },
-  { title: 'Model', key: 'model_name', sortable: true },
-  { title: 'Numer unikatowy', key: 'unique_number', sortable: true },
-  { title: 'Numer seryjny', key: 'serial_number', sortable: true },
-  { title: 'Właściciel', key: 'owner_name', sortable: true },
-  { title: 'Status', key: 'status', sortable: true },
-  { title: 'Data produkcji', key: 'production_date', sortable: false },
-  { title: 'Ostatni serwis', key: 'last_service_date', sortable: true },
-  { title: 'Data sprzedaży', key: 'sale_date', sortable: true },
+type TranslationFunction = (key: string) => string;
 
+type DataTableHeader = {
+  title: string;
+  key: string;
+  sortable?: boolean;
+  align?: 'start' | 'center' | 'end';
+};
+
+// Eksportujemy FUNKCJĘ, która przyjmuje `t` jako argument
+export const getDeviceHeaders = (t: TranslationFunction): DataTableHeader[] => [
+  // Używamy kluczy z plików .json
+  { title: t('devices.headers.brand'), key: 'brand_name' },
+  { title: t('devices.headers.model'), key: 'model_name' },
+  { title: t('devices.headers.uniqueNumber'), key: 'unique_number' },
+  { title: t('devices.headers.owner'), key: 'owner_name' },
+  { title: t('devices.headers.status'), key: 'status' },
+  { title: t('devices.headers.saleDate'), key: 'sale_date' },
 ];

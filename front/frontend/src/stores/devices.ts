@@ -3,18 +3,16 @@ import { defineStore } from 'pinia'
 import api from '@/api'
 import type { FiscalDevice } from '@/types'
 
-type DevicePayload = Pick<FiscalDevice,
+export type DevicePayload = Pick<FiscalDevice,
   'brand' |
   'model_name' |
   'unique_number' |
   'serial_number' |
   'sale_date' |
-  'last_service_date' |
+  'status' |
   'operating_instructions' |
   'remarks' |
-  'status' |
-  'owner'
->
+  'owner'>
 interface DevicesState {
   devices: FiscalDevice[]
   isLoading: boolean

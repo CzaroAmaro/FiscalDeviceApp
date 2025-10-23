@@ -73,14 +73,18 @@
       "delete": "Usuń urządzenie"
     },
     "headers": {
+      "brand": "Marka",
       "model": "Model",
-      "serialNumber": "Numer seryjny",
+      "uniqueNumber": "Numer unikatowy",
       "owner": "Właściciel",
       "status": "Status",
-      "prodDate": "Data produkcji",
-      "lastService": "Ostatni serwis",
-      "actions": "Akcje"
-    },
+      "saleDate": "Data sprzedaży",
+    "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\" (S/N: {serial})?",
+    "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych urządzeń?",
+    "deleteSuccessSingle": "Urządzenie \"{name}\" zostało usunięte.",
+    "deleteSuccessMulti": "{count, plural, one {# urządzenie zostało usunięte} few {# urządzenia zostały usunięte} many {# urządzeń zostało usuniętych} other {# urządzeń zostało usuniętych}}.",
+    "deleteError": "Wystąpił błąd podczas usuwania urządzeń."
+  },
     "forms": {
       "addTitle": "Dodaj nowe urządzenie",
       "editTitle": "Edytuj urządzenie",

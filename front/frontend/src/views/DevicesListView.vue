@@ -4,18 +4,16 @@
       :title="t('devices.title')"
       :selected-count="selectedDevices.length"
       :actions="toolbarActions"
-      @action="handleToolbarAction"
-    />
+      @action="handleToolbarAction" />
 
     <v-card>
       <DataTable
         v-model="selectedDevices"
         :headers="deviceHeaders"
-        :items="devicesStore.devices"
-        :loading="devicesStore.isLoading"
-        :loading-text="t('common.loadingData')"
-        :no-data-text="t('common.noDataFound')"
-      >
+      :items="devicesStore.devices"
+      :loading="devicesStore.isLoading"
+      :loading-text="t('common.loadingData')"
+      :no-data-text="t('common.noDataFound')" >
         <template #item.status="{ item }">
           <DeviceStatusChip :status="item.status" />
         </template>
@@ -23,12 +21,12 @@
     </v-card>
 
     <DeviceFormModal
-    v-model="isDeviceModalOpen"
-    :editing-device="deviceToEdit"
-    :newly-added-client-id="newlyCreatedClientId"
-    @save-success="onDeviceSaveSuccess"
-    @request-new-client="isClientModalOpen = true"/>
-
+      v-model="isDeviceModalOpen"
+      :editing-device="deviceToEdit"
+      :newly-added-client-id="newlyCreatedClientId"
+      @save-success="onDeviceSaveSuccess"
+      @request-new-client="isClientModalOpen = true"
+    />
     <ClientFormModal
       v-model="isClientModalOpen"
       :editing-client="null"
@@ -49,8 +47,8 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
-          <v-btn text @click="isConfirmOpen = false" :disabled="isDeleting">{{ t('common.cancel') }}</v-btn>
-          <v-btn color="error" @click="handleDeleteConfirm" :loading="isDeleting">{{ t('common.delete') }}</v-btn>
+          <v-btn text :disabled="isDeleting" @click="isConfirmOpen = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="error" :loading="isDeleting" @click="handleDeleteConfirm">{{ t('common.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -63,30 +61,27 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed, watch } from 'vue';
-import { useDevicesStore } from '@/stores/devices';
-import type { FiscalDevice } from '@/types';
-import { deviceHeaders } from '@/config/tables/deviceHeaders';
 import { useI18n } from 'vue-i18n';
+import { useDevicesStore } from '@/stores/devices';
+import { useClientsStore } from '@/stores/clients';
+import type { FiscalDevice, Client } from '@/types';
+import { getDeviceHeaders } from '@/config/tables/deviceHeaders'; // Zmieniono import
 
-import type { Client } from '@/types';
-import ClientFormModal from '@/components/clients/ClientFormModal.vue';
-
-import DataTable from '@/components/DataTable.vue';
+import DataTable from '@/components/DataTable.vue'; // Poprawione ścieżki
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
-
 import DeviceFormModal from '@/components/devices/DeviceFormModal.vue';
 import DeviceStatusChip from '@/components/devices/DeviceStatusChip.vue';
+import ClientFormModal from '@/components/clients/ClientFormModal.vue';
 
-const devicesStore = useDevicesStore();
 const { t } = useI18n();
+const devicesStore = useDevicesStore();
+const clientsStore = useClientsStore();
 
 const selectedDevices = ref<FiscalDevice[]>([]);
-const isDeviceModalOpen = ref(false); // Zmieniona nazwa dla jasności
+const isDeviceModalOpen = ref(false);
 const deviceToEdit = ref<FiscalDevice | null>(null);
-
-const isClientModalOpen = ref(false); // Stan dla modala klientów
-const newlyCreatedClientId = ref<number | null>(null); // Przechowuje ID nowego klienta
-
+const isClientModalOpen = ref(false);
+const newlyCreatedClientId = ref<number | null>(null);
 const isConfirmOpen = ref(false);
 const isDeleting = ref(false);
 const snackbar = reactive({ show: false, text: '', color: 'success' });
@@ -94,6 +89,8 @@ const snackbar = reactive({ show: false, text: '', color: 'success' });
 onMounted(() => {
   devicesStore.fetchDevices();
 });
+
+const deviceHeaders = computed(() => getDeviceHeaders(t));
 
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('devices.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
