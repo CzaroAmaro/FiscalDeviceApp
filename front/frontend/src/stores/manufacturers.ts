@@ -24,5 +24,15 @@ export const useManufacturersStore = defineStore('manufacturers', {
         this.isLoading = false;
       }
     },
+    async addManufacturer(name: string) {
+      try {
+        const response = await api.post<Manufacturer>('/manufacturers/', { name });
+        this.manufacturers.push(response.data);
+        return response.data; // Zwróć nowo utworzony obiekt
+      } catch (error) {
+        console.error('Błąd dodawania producenta:', error);
+        throw error;
+      }
+    },
   },
 });

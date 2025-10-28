@@ -1,45 +1,32 @@
-from django.urls import path
-from .views import (
-    ClientListCreateView, ClientDetailView,
-    FiscalDeviceListCreateView, FiscalDeviceDetailView,
-    RegisterView, FetchCompanyDataView,
-    ManufacturerListCreateView,
-    TechnicianListView,
-    CertificationListCreateView,
-    ServiceTicketListCreateView,
-    ServiceTicketDetailView,
-)
+# urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+# Importujemy cały moduł views, aby łatwiej zarządzać ścieżkami
+from . import views
+
+# 1. Tworzymy instancję routera
+router = DefaultRouter()
+
+# 2. Rejestrujemy nasze ViewSety w routerze. Router sam stworzy dla nich URL-e.
+router.register(r'clients', views.ClientViewSet, basename='client')
+router.register(r'manufacturers', views.ManufacturerViewSet, basename='manufacturer')
+router.register(r'devices', views.FiscalDeviceViewSet, basename='device')
+router.register(r'tickets', views.ServiceTicketViewSet, basename='ticket')
+router.register(r'certifications', views.CertificationViewSet, basename='certification')
+
+# 3. Definiujemy główne ścieżki URL
 urlpatterns = [
-    # Autentykacja
-    path('register/', RegisterView.as_view(), name='register'),
+    # Ścieżki autentykacji
+    path('register/', views.RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    # Pomocniczy endpoint
-    path('company-data/<str:nip>/', FetchCompanyDataView.as_view(), name='fetch-company-data'),
+    # Ścieżki niestandardowe (niepasujące do modelu CRUD)
+    path('company-data/<str:nip>/', views.fetch_company_data, name='fetch-company-data'),
+    path('technicians/', views.TechnicianListView.as_view(), name='technician-list'),
 
-    # Klienci
-    path('clients/', ClientListCreateView.as_view(), name='client-list-create'),
-    path('clients/<int:pk>/', ClientDetailView.as_view(), name='client-detail'),
-
-    # Urządzenia Fiskalne
-    path('devices/', FiscalDeviceListCreateView.as_view(), name='device-list-create'),
-    path('devices/<int:pk>/', FiscalDeviceDetailView.as_view(), name='device-detail'),
-
-    # --- NOWE ENDPOINTY ---
-
-    # Producenci (słownik)
-    path('manufacturers/', ManufacturerListCreateView.as_view(), name='manufacturer-list-create'),
-
-    # Serwisanci (tylko lista)
-    path('technicians/', TechnicianListView.as_view(), name='technician-list'),
-
-    # Certyfikaty
-    path('certifications/', CertificationListCreateView.as_view(), name='certification-list-create'),
-
-    # Zgłoszenia Serwisowe (CRUD)
-    path('tickets/', ServiceTicketListCreateView.as_view(), name='ticket-list-create'),
-    path('tickets/<int:pk>/', ServiceTicketDetailView.as_view(), name='ticket-detail'),
+    # Dołączamy wszystkie ścieżki wygenerowane automatycznie przez router
+    path('', include(router.urls)),
 ]

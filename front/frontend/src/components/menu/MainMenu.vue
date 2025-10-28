@@ -9,8 +9,8 @@
         :title="item.title"
         :value="item.value"
         :to="item.to"
-        link
-      ></v-list-item>
+        link>
+      </v-list-item>
     </template>
   </v-list>
 </template>
@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { getMenuItems } from '@/config/menuItems';
+import { getMenuItems } from '@/config/menuItems.ts';
 
 const { t } = useI18n();
 

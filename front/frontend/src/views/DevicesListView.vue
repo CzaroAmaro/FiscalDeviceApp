@@ -2,18 +2,17 @@
   <v-container fluid>
     <TableToolbar
       :title="t('devices.title')"
-      :selected-count="selectedDevices.length"
+      :selected-count="selectedItems.length"
       :actions="toolbarActions"
       @action="handleToolbarAction" />
 
     <v-card>
       <DataTable
-        v-model="selectedDevices"
+        v-model="selectedItems"
         :headers="deviceHeaders"
-      :items="devicesStore.devices"
-      :loading="devicesStore.isLoading"
-      :loading-text="t('common.loadingData')"
-      :no-data-text="t('common.noDataFound')" >
+        :items="items"
+        :loading="isLoading"
+      >
         <template #item.status="{ item }">
           <DeviceStatusChip :status="item.status" />
         </template>
@@ -21,10 +20,10 @@
     </v-card>
 
     <DeviceFormModal
-      v-model="isDeviceModalOpen"
-      :editing-device="deviceToEdit"
+      v-model="isFormOpen"
+      :editing-device="itemToEdit"
       :newly-added-client-id="newlyCreatedClientId"
-      @save-success="onDeviceSaveSuccess"
+      @save-success="handleFormSave"
       @request-new-client="isClientModalOpen = true"
     />
     <ClientFormModal
@@ -37,12 +36,7 @@
       <v-card>
         <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
         <v-card-text>
-          <span v-if="selectedDevices.length === 1">
-            {{ t('devices.deleteConfirm', { name: selectedDevices[0].model_name, serial: selectedDevices[0].serial_number }) }}
-          </span>
-          <span v-else>
-            {{ t('devices.deleteConfirmMulti', { count: selectedDevices.length }) }}
-          </span>
+          {{ confirmMessage }}
           <br>{{ t('common.confirmDeleteMsg') }}
         </v-card-text>
         <v-card-actions>
@@ -52,111 +46,70 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000">
-      {{ snackbar.text }}
-    </v-snackbar>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 import { useDevicesStore } from '@/stores/devices';
-import { useClientsStore } from '@/stores/clients';
+import { useSnackbarStore } from '@/stores/snackbar';
+import { useResourceView } from '@/composables/useResourceView';
+import { getDeviceHeaders } from '@/config/tables/deviceHeaders';
 import type { FiscalDevice, Client } from '@/types';
-import { getDeviceHeaders } from '@/config/tables/deviceHeaders'; // Zmieniono import
 
-import DataTable from '@/components/DataTable.vue'; // Poprawione ścieżki
+import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
 import DeviceFormModal from '@/components/devices/DeviceFormModal.vue';
 import DeviceStatusChip from '@/components/devices/DeviceStatusChip.vue';
 import ClientFormModal from '@/components/clients/ClientFormModal.vue';
 
 const { t } = useI18n();
+const snackbarStore = useSnackbarStore();
 const devicesStore = useDevicesStore();
-const clientsStore = useClientsStore();
 
-const selectedDevices = ref<FiscalDevice[]>([]);
-const isDeviceModalOpen = ref(false);
-const deviceToEdit = ref<FiscalDevice | null>(null);
-const isClientModalOpen = ref(false);
-const newlyCreatedClientId = ref<number | null>(null);
-const isConfirmOpen = ref(false);
-const isDeleting = ref(false);
-const snackbar = reactive({ show: false, text: '', color: 'success' });
+const { devices, isLoading } = storeToRefs(devicesStore);
 
-onMounted(() => {
-  devicesStore.fetchDevices();
+const {
+  selectedItems,
+  itemToEdit,
+  isFormOpen,
+  isConfirmOpen,
+  isDeleting,
+  items,
+  confirmMessage,
+  handleToolbarAction,
+  handleFormSave,
+  handleDeleteConfirm,
+  fetchItems,
+} = useResourceView<FiscalDevice>({
+  resourceName: 'device',
+  items: devices,
+  isLoading: isLoading,
+  fetchItems: devicesStore.fetchDevices,
+  deleteItem: devicesStore.deleteDevice,
 });
 
-const deviceHeaders = computed(() => getDeviceHeaders(t));
+const isClientModalOpen = ref(false);
+const newlyCreatedClientId = ref<number | null>(null);
 
+const deviceHeaders = computed(() => getDeviceHeaders(t));
+// Rozwiązanie błędu z typem `ToolbarAction` przez zapewnienie, że każdy obiekt jest w pełni zgodny
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('devices.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
   { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
 ]);
 
-function handleToolbarAction(actionId: string) {
-  switch (actionId) {
-    case 'add':
-      deviceToEdit.value = null;
-      isDeviceModalOpen.value = true;
-      break;
-    case 'edit':
-      if (selectedDevices.value.length === 1) {
-        deviceToEdit.value = selectedDevices.value[0];
-        isDeviceModalOpen.value = true;
-      }
-      break;
-    case 'delete':
-      isConfirmOpen.value = true;
-      break;
-  }
-}
-
-function onDeviceSaveSuccess(message: string) {
-  selectedDevices.value = [];
-  showSnackbar(message);
-}
-
-watch(isDeviceModalOpen, (isOpen) => {
-  if (!isOpen) {
-    deviceToEdit.value = null;
-  }
-});
-
-async function handleDeleteConfirm() {
-  isDeleting.value = true;
-  try {
-    const deletePromises = selectedDevices.value.map(device => devicesStore.deleteDevice(device.id));
-    await Promise.all(deletePromises);
-
-    const message = selectedDevices.value.length === 1
-      ? t('devices.deleteSuccessSingle', { name: selectedDevices.value[0].model_name })
-      : t('devices.deleteSuccessMulti', { count: selectedDevices.value.length });
-
-    showSnackbar(message, 'info');
-    selectedDevices.value = [];
-  } catch {
-    showSnackbar(t('devices.deleteError'), 'error');
-  } finally {
-    isDeleting.value = false;
-    isConfirmOpen.value = false;
-  }
-}
-
-function showSnackbar(text: string, color = 'success') {
-  snackbar.text = text;
-  snackbar.color = color;
-  snackbar.show = true;
-}
-
 function onClientSaveSuccess(message: string, newClient?: Client) {
-  showSnackbar(message);
+  snackbarStore.showSuccess(message);
   if (newClient) {
     newlyCreatedClientId.value = newClient.id;
+    // Opcjonalnie: odśwież listę klientów w tle, jeśli inne komponenty z niej korzystają
+    // useClientsStore().fetchClients(true);
   }
 }
+
+onMounted(() => fetchItems());
 </script>

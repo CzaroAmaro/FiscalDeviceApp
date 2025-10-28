@@ -8,6 +8,11 @@ export const useTechniciansStore = defineStore('technicians', {
     technicians: [] as Technician[],
     isLoading: false,
   }),
+
+  getters: {
+    technicianCount: (state) => state.technicians.length,
+  },
+
   actions: {
     async fetchTechnicians() {
       if (this.technicians.length > 0) return;

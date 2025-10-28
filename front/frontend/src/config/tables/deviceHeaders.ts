@@ -1,5 +1,3 @@
-import type { VDataTable } from 'vuetify/components';
-
 type TranslationFunction = (key: string) => string;
 
 type DataTableHeader = {

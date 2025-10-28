@@ -11,68 +11,46 @@
       </v-card-title>
 
       <v-card-text>
-        <v-form ref="form" @submit.prevent="submitForm">
-          <v-alert
-            v-if="fetchError"
-            type="error"
-            density="compact"
-            class="mb-4"
-          >
-            {{ fetchError }}
-          </v-alert>
+        <!-- Sekcja do pobierania danych -->
+        <v-alert v-if="fetchError" type="error" density="compact" class="mb-4">{{ fetchError }}</v-alert>
+        <v-text-field
+          v-model="nipToFetch"
+          :label="t('clients.forms.nipToFetchLabel')"
+          :loading="isFetching"
+          :disabled="isFetching || isEditing"
+          :placeholder="t('clients.forms.nipPlaceholder')"
+          append-inner-icon="mdi-cloud-download-outline"
+          class="mb-4"
+          @click:append-inner="fetchCompanyData"
+          @keydown.enter.prevent="fetchCompanyData"
+        >
+          <template #details><div class="text-caption">{{ t('clients.forms.nipFetchHint') }}</div></template>
+        </v-text-field>
 
-          <v-container>
+        <v-divider class="mb-6"></v-divider>
+
+        <!-- Główny formularz -->
+        <v-form ref="form" @submit.prevent="submitForm">
+          <v-alert v-if="formError" type="error" density="compact" class="mb-4">{{ formError }}</v-alert>
+          <v-container class="pa-0">
             <v-row>
               <v-col cols="12">
-                <v-text-field
-                  v-model="formData.name"
-                  :label="t('clients.forms.nameLabel')"
-                  :rules="[rules.required]"
-                />
+                <v-text-field v-model="formData.name" :label="t('clients.forms.nameLabel')" :rules="[rules.required]" />
               </v-col>
-
-              <!-- --- ZMIANA: Modyfikujemy pole NIP, aby było interaktywne --- -->
               <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="formData.nip"
-                  :label="t('clients.forms.nipLabel')"
-                  :rules="[rules.required, rules.nip]"
-                  :loading="isFetching"
-                  :disabled="isFetching"
-                  append-inner-icon="mdi-cloud-download-outline"
-                  @click:append-inner="fetchCompanyData"
-                  @keydown.enter.prevent="fetchCompanyData"
-                />
+                <v-text-field v-model="formData.nip" :label="t('clients.forms.nipLabel')" :rules="[rules.required, rules.nip]" readonly />
               </v-col>
-
               <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="formData.regon"
-                  :label="t('clients.forms.regonLabel')"
-                  readonly
-                />
+                <v-text-field v-model="formData.regon" :label="t('clients.forms.regonLabel')" readonly />
               </v-col>
-
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="formData.phone_number"
-                  :label="t('clients.forms.phoneLabel')"
-                />
-              </v-col>
-
               <v-col cols="12">
-                <v-text-field
-                  v-model="formData.email"
-                  :label="t('clients.forms.emailLabel')"
-                  :rules="[rules.email]"
-                />
+                <v-text-field v-model="formData.address" :label="t('clients.forms.addressLabel')" />
               </v-col>
-
-              <v-col cols="12">
-                <v-text-field
-                  v-model="formData.address"
-                  :label="t('clients.forms.addressLabel')"
-                />
+              <v-col cols="12" sm="6">
+                <v-text-field v-model="formData.phone_number" :label="t('clients.forms.phoneLabel')" />
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field v-model="formData.email" :label="t('clients.forms.emailLabel')" :rules="[rules.email]" />
               </v-col>
             </v-row>
           </v-container>
@@ -81,97 +59,73 @@
 
       <v-card-actions>
         <v-spacer />
-        <v-btn color="grey-darken-1" @click="closeDialog">
-          {{ t('common.cancel') }}
-        </v-btn>
-        <v-btn color="primary" :loading="isLoading" @click="submitForm">
-          {{ t('common.save') }}
-        </v-btn>
+        <v-btn color="grey-darken-1" @click="closeDialog">{{ t('common.cancel') }}</v-btn>
+        <v-btn color="primary" :loading="isSaving" @click="submitForm">{{ t('common.save') }}</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watchEffect } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useClientsStore } from '@/stores/clients'
-import type { Client } from '@/types'
-import type { VForm } from 'vuetify/components'
-import api from '@/api'
+import { ref, reactive, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useClientsStore, type ClientPayload } from '@/stores/clients';
+import api from '@/api';
+import type { Client } from '@/types';
+import type { VForm } from 'vuetify/components';
 
-const props = defineProps<{
-  modelValue: boolean
-  editingClient: Client | null
-}>()
+const props = defineProps<{ modelValue: boolean; editingClient: Client | null; }>();
+const emit = defineEmits<{(e: 'update:modelValue', value: boolean): void; (e: 'save-success', message: string, newClient?: Client): void;}>();
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'save-success', message: string, newClient?: Client): void
-}>()
+const { t } = useI18n();
+const clientsStore = useClientsStore();
+const form = ref<VForm | null>(null);
 
-const { t } = useI18n()
+const isSaving = ref(false);
+const formError = ref<string | null>(null);
 
-const clientsStore = useClientsStore()
-const form = ref<VForm | null>(null)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-
+const nipToFetch = ref('');
 const isFetching = ref(false);
 const fetchError = ref<string | null>(null);
 
-const initialFormData: Omit<Client, 'id' | 'created_at'> = {
-  name: '',
-  address: '',
-  nip: '',
-  phone_number: '',
-  email: '',
-  regon: '',
-}
+const initialFormData: ClientPayload = { name: '', address: '', nip: '', phone_number: '', email: '', regon: '' };
+const formData = reactive<ClientPayload>({ ...initialFormData });
 
-const formData = reactive({ ...initialFormData })
+const isEditing = computed(() => !!props.editingClient);
+const formTitle = computed(() => isEditing.value ? t('clients.forms.editTitle') : t('clients.forms.addTitle'));
 
-const isEditing = computed(() => Boolean(props.editingClient))
-const formTitle = computed(() =>
-  isEditing.value ? t('clients.forms.editTitle') : t('clients.forms.addTitle')
-)
-
-watchEffect(() => {
+watch(() => props.modelValue, (isOpen) => {
+  formError.value = null;
   fetchError.value = null;
-  if (!props.modelValue) return
-  Object.assign(
-    formData,
-    props.editingClient ?? initialFormData
-  )
-})
-
-interface ApiError {
-  response?: { data?: { detail?: string } }
-}
+  nipToFetch.value = '';
+  if (isOpen) {
+    if (props.editingClient) {
+      Object.assign(formData, props.editingClient);
+    } else {
+      Object.assign(formData, initialFormData);
+    }
+  }
+});
 
 const rules = computed(() => ({
   required: (v: string) => !!v || t('validation.required'),
-  nip: (v: string) => /^\d{10}$/.test(v) || t('validation.nip'),
+  nip: (v: string) => !v || /^\d{10}$/.test(v) || t('validation.nip'),
   email: (v: string) => !v || /.+@.+\..+/.test(v) || t('validation.email'),
-}))
+}));
 
 async function fetchCompanyData() {
-  if (!formData.nip) return;
-
+  if (!nipToFetch.value) return;
   isFetching.value = true;
   fetchError.value = null;
   try {
-    const cleanNip = formData.nip.replace(/\D/g, '');
+    const cleanNip = nipToFetch.value.replace(/\D/g, '');
     const response = await api.get(`/company-data/${cleanNip}/`);
     const data = response.data;
-
     formData.name = data.name;
+    formData.nip = data.nip;
     formData.regon = data.regon;
     formData.address = data.address;
-
-    // Opcjonalnie: możemy też zaktualizować NIP, jeśli API go sformatowało
-    formData.nip = data.nip;
-
+    nipToFetch.value = '';
   } catch (err: any) {
     fetchError.value = err.response?.data?.detail || t('common.serverError');
   } finally {
@@ -179,33 +133,33 @@ async function fetchCompanyData() {
   }
 }
 
-const closeDialog = () => emit('update:modelValue', false)
+const closeDialog = () => emit('update:modelValue', false);
 
 async function submitForm() {
-  const { valid } = await form.value?.validate() ?? { valid: false }
-  if (!valid) return
+  const { valid } = await form.value!.validate();
+  if (!valid) return;
 
-  isLoading.value = true
-  error.value = null
-
+  isSaving.value = true;
+  formError.value = null;
   try {
-    const messageKey = isEditing.value
-      ? 'clients.forms.editSuccess'
-      : 'clients.forms.addSuccess'
-
     const payload = { ...formData };
-
-    const newClient = isEditing.value
-      ? (await clientsStore.updateClient(props.editingClient!.id, payload), undefined)
-      : await clientsStore.addClient(payload)
-
-    emit('save-success', t(messageKey), newClient)
-    closeDialog()
-  } catch (err) {
-    const e = err as ApiError
-    error.value = e.response?.data?.detail ?? t('common.serverError')
+    if (isEditing.value) {
+      await clientsStore.updateClient(props.editingClient!.id, payload);
+      emit('save-success', t('clients.forms.editSuccess'));
+    } else {
+      const newClient = await clientsStore.addClient(payload);
+      emit('save-success', t('clients.forms.addSuccess'), newClient);
+    }
+    closeDialog();
+  } catch (err: any) {
+    const errorData = err.response?.data;
+    if (errorData?.nip) {
+      formError.value = `NIP: ${errorData.nip[0]}`;
+    } else {
+      formError.value = errorData?.detail || t('common.serverError');
+    }
   } finally {
-    isLoading.value = false
+    isSaving.value = false;
   }
 }
 </script>

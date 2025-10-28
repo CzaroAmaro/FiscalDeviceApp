@@ -1,61 +1,76 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import { createRouter, createWebHistory } from 'vue-router';
+
+import DefaultLayout from '@/components/layout/DefaultLayout.vue';
+import { useAuthStore } from '@/stores/auth';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // --- Ścieżki publiczne (bez layoutu) ---
     {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
-      meta: { isPublic: true }
-    },
-    {
-      path: '/',
-      name: 'home',
-      component: () => import('../views/HomeView.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/devices',
-      name: 'devices',
-      component: () => import('../views/DevicesListView.vue'),
-      meta: { requiresAuth: true }
+      meta: { isPublic: true },
     },
     {
       path: '/register',
       name: 'register',
       component: () => import('../views/RegisterView.vue'),
-      meta: { isPublic: true }
+      meta: { isPublic: true },
     },
+
+    // --- Ścieżki chronione (renderowane wewnątrz DefaultLayout) ---
     {
-      path: '/clients',
-      name: 'clients',
-      component: () => import('../views/ClientsListView.vue'),
-      meta: {requiresAuth: true}
-    }
-  ]
-})
+      path: '/',
+      component: DefaultLayout,
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '', // Domyślna ścieżka dla '/'
+          name: 'home',
+          component: () => import('../views/HomeView.vue'),
+        },
+        {
+          path: 'clients',
+          name: 'client-list', // <-- TA NAZWA MUSI PASOWAĆ DO MENU
+          component: () => import('../views/ClientsListView.vue'),
+        },
+        {
+          path: 'devices',
+          name: 'device-list', // <-- TA NAZWA MUSI PASOWAĆ DO MENU
+          component: () => import('../views/DevicesListView.vue'),
+        },
+        // PRZYKŁAD: Jak możesz łatwo dodać więcej ścieżek w przyszłości
+        // {
+        //   path: 'tickets',
+        //   name: 'ticket-list',
+        //   component: () => import('../views/TicketsListView.vue'),
+        // },
+      ],
+    },
 
-// --- Tu zaczyna się magia: STRAŻNIK NAWIGACJI ---
+    // Ścieżka "catch-all" dla 404
+    // {
+    //   path: '/:pathMatch(.*)*',
+    //   name: 'not-found',
+    //   component: () => import('../views/NotFoundView.vue'), // Warto stworzyć taki widok
+    // },
+  ],
+});
+
+// === Ulepszony Strażnik Nawigacji ===
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
-  const isAuthenticated = authStore.isAuthenticated
+  const authStore = useAuthStore();
+  const isAuthenticated = authStore.isAuthenticated;
 
-  // Jeśli strona wymaga autoryzacji i użytkownik NIE jest zalogowany
   if (to.meta.requiresAuth && !isAuthenticated) {
-    // Przekieruj na stronę logowania
-    next({ name: 'login' })
+    next({ name: 'login', query: { redirect: to.fullPath } });
+  } else if (isAuthenticated && to.meta.isPublic) {
+    next({ name: 'home' });
+  } else {
+    next();
   }
-  // Jeśli użytkownik jest zalogowany i próbuje wejść na stronę logowania
-  else if (isAuthenticated && to.meta.isPublic) {
-    // Przekieruj go na stronę główną
-    next({ name: 'home' })
-  }
-  else {
-    next()
-  }
-})
-
+});
 
 export default router

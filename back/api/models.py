@@ -1,18 +1,44 @@
+# models.py
 from datetime import date
 
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import AbstractUser
-
 from django.conf import settings
 
+# --- Modele Użytkowników i Profilów ---
 
 class CustomUser(AbstractUser):
+    """
+    Niestandardowy model użytkownika. Na razie pusty, ale stanowi dobrą praktykę
+    na przyszłość, aby łatwo go rozszerzać bez migracji głównego modelu User.
+    """
     pass
+
+class Technician(models.Model):
+    """Profil serwisanta, rozszerzający model użytkownika."""
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="technician_profile",
+        verbose_name="Użytkownik"
+    )
+    phone_number = models.CharField(max_length=20, blank=True, verbose_name="Telefon służbowy")
+    is_active = models.BooleanField(default=True, verbose_name="Aktywny")
+
+    def __str__(self):
+        # Lepsze fallback, jeśli imię i nazwisko nie są ustawione
+        return self.user.get_full_name() or self.user.username
+
+    class Meta:
+        verbose_name = "Serwisant"
+        verbose_name_plural = "Serwisanci"
+
+# --- Modele Słownikowe i Główne ---
 
 class Client(models.Model):
     name = models.CharField(max_length=255, verbose_name="Nazwa firmy/Imię i nazwisko")
     address = models.CharField(max_length=255, verbose_name="Adres")
-    nip = models.CharField(max_length=10, unique=True, verbose_name="NIP")
+    nip = models.CharField(max_length=10, unique=True, verbose_name="NIP") # unique=True automatycznie tworzy indeks
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Numer telefonu")
     email = models.EmailField(max_length=100, blank=True, verbose_name="Adres e-mail")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
@@ -33,92 +59,114 @@ class Manufacturer(models.Model):
     def __str__(self):
         return self.name
 
-class FiscalDevice(models.Model):
-    DEVICE_STATUS_CHOICES = [
-        ('active', 'Aktywna'),
-        ('inactive', 'Niewykorzystywana'),
-        ('serviced', 'W serwisie'),
-        ('decommissioned', 'Wycofana'),
-    ]
-    brand = models.ForeignKey(Manufacturer, on_delete=models.PROTECT, verbose_name="Marka/Producent", null=True)
-    model_name = models.CharField(max_length=100, verbose_name="Model urządzenia")
-    unique_number = models.CharField(max_length=100, unique=True, null=True, verbose_name="Numer unikatowy")
-    serial_number = models.CharField(max_length=100, verbose_name="Numer seryjny")
-    sale_date = models.DateField(verbose_name="Data sprzedaży")
-    last_service_date = models.DateField(null=True, blank=True, verbose_name="Data ostatniego przeglądu")
-    status = models.CharField(max_length=20, choices=DEVICE_STATUS_CHOICES, default='active', verbose_name="Status")
-    operating_instructions = models.TextField(blank=True, verbose_name="Sposób użytkowania")
-    remarks = models.TextField(blank=True, verbose_name="Uwagi")
-
-    owner = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='devices', verbose_name="Właściciel")
-
-    def __str__(self):
-        return f"{self.model_name} - S/N: {self.serial_number}"
-
     class Meta:
-        verbose_name = "Urządzenie fiskalne"
-        verbose_name_plural = "Urządzenia fiskalne"
-        ordering = ['-last_service_date']
-
-
-
-class Technician(models.Model):
-    """Profil serwisanta, rozszerzający model użytkownika."""
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="technician_profile")
-    phone_number = models.CharField(max_length=20, blank=True, verbose_name="Telefon służbowy")
-    is_active = models.BooleanField(default=True, verbose_name="Aktywny")
-
-    def __str__(self):
-        return self.user.get_full_name() or self.user.username
-
-    class Meta:
-        verbose_name = "Serwisant"
-        verbose_name_plural = "Serwisanci"
+        verbose_name = "Producent"
+        verbose_name_plural = "Producenci"
+        ordering = ['name']
 
 class Certification(models.Model):
-    """Reprezentuje certyfikat/legitymację serwisową danego technika od konkretnego producenta."""
+    """Certyfikat serwisowy technika dla danego producenta."""
     technician = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="certifications")
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE, related_name="certified_technicians")
     certificate_number = models.CharField(max_length=100, verbose_name="Numer legitymacji/certyfikatu")
     issue_date = models.DateField(verbose_name="Data wydania")
     expiry_date = models.DateField(verbose_name="Data ważności")
 
-    class Meta:
-        # Gwarantuje, że jeden serwisant nie może mieć dwóch takich samych certyfikatów od tego samego producenta
-        unique_together = ('technician', 'manufacturer', 'certificate_number')
-
     def __str__(self):
         return f"Certyfikat {self.manufacturer.name} dla {self.technician}"
 
+    class Meta:
+        verbose_name = "Certyfikat"
+        verbose_name_plural = "Certyfikaty"
+        # Użycie constraints jest nowocześniejszym podejściem niż unique_together
+        constraints = [
+            models.UniqueConstraint(fields=['technician', 'manufacturer'], name='unique_technician_manufacturer_certification')
+        ]
+
+
+class FiscalDevice(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = 'active', 'Aktywna'
+        INACTIVE = 'inactive', 'Niewykorzystywana'
+        SERVICED = 'serviced', 'W serwisie'
+        DECOMMISSIONED = 'decommissioned', 'Wycofana'
+
+    brand = models.ForeignKey(Manufacturer, on_delete=models.PROTECT, verbose_name="Marka/Producent") # Usunięto null=True, marka powinna być wymagana
+    model_name = models.CharField(max_length=100, verbose_name="Model urządzenia")
+    # Indeks na numerze unikatowym poprawi wydajność wyszukiwania
+    unique_number = models.CharField(max_length=100, unique=True, db_index=True, verbose_name="Numer unikatowy") # Usunięto null=True, powinien być wymagany
+    serial_number = models.CharField(max_length=100, verbose_name="Numer seryjny")
+    sale_date = models.DateField(verbose_name="Data sprzedaży")
+    last_service_date = models.DateField(null=True, blank=True, verbose_name="Data ostatniego przeglądu")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE, verbose_name="Status")
+    operating_instructions = models.TextField(blank=True, verbose_name="Sposób użytkowania")
+    remarks = models.TextField(blank=True, verbose_name="Uwagi")
+    owner = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='devices', verbose_name="Właściciel")
+
+    def __str__(self):
+        return f"{self.brand.name} {self.model_name} (SN: {self.serial_number})"
+
+    class Meta:
+        verbose_name = "Urządzenie fiskalne"
+        verbose_name_plural = "Urządzenia fiskalne"
+        ordering = ['-sale_date']
+
 
 class ServiceTicket(models.Model):
-    """Główny model reprezentujący zlecenie serwisowe."""
-    TICKET_STATUS_CHOICES = [('open', 'Otwarte'), ('in_progress', 'W toku'), ('closed', 'Zamknięte')]
-    TICKET_TYPE_CHOICES = [('service', 'Przegląd'), ('reading', 'Odczyt'), ('repair', 'Naprawa'), ('other', 'Inne')]
+    class Status(models.TextChoices):
+        OPEN = 'open', 'Otwarte'
+        IN_PROGRESS = 'in_progress', 'W toku'
+        CLOSED = 'closed', 'Zamknięte'
 
-    ticket_number = models.CharField(max_length=50, unique=True, blank=True, verbose_name="Numer zgłoszenia")
+    class TicketType(models.TextChoices):
+        SERVICE = 'service', 'Przegląd'
+        READING = 'reading', 'Odczyt'
+        REPAIR = 'repair', 'Naprawa'
+        OTHER = 'other', 'Inne'
+
+    # db_index=True jest kluczowe dla wydajności wyszukiwania po numerze zgłoszenia
+    ticket_number = models.CharField(max_length=50, unique=True, blank=True, db_index=True, verbose_name="Numer zgłoszenia")
     title = models.CharField(max_length=255, verbose_name="Tytuł zgłoszenia")
     description = models.TextField(verbose_name="Opis zgłoszenia")
-    ticket_type = models.CharField(max_length=20, choices=TICKET_TYPE_CHOICES)
-    status = models.CharField(max_length=20, choices=TICKET_STATUS_CHOICES, default='open')
+    ticket_type = models.CharField(max_length=20, choices=TicketType.choices)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN, db_index=True)
     scheduled_for = models.DateTimeField(null=True, blank=True, verbose_name="Zaplanowano na")
     completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Data ukończenia")
 
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name="tickets")
-    device = models.ForeignKey(FiscalDevice, on_delete=models.PROTECT, related_name="tickets")
-    assigned_technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True,
-                                            related_name="tickets")
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name="tickets", verbose_name="Klient")
+    device = models.ForeignKey(FiscalDevice, on_delete=models.PROTECT, related_name="tickets", verbose_name="Urządzenie")
+    assigned_technician = models.ForeignKey(
+        Technician, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="assigned_tickets", verbose_name="Przypisany serwisant" # Zmieniona nazwa related_name na bardziej jednoznaczną
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     resolution_notes = models.TextField(blank=True, verbose_name="Notatki z wykonania / Rozwiązanie")
 
-    # Metoda do auto-generowania numeru, jak w poprzedniej propozycji
     def save(self, *args, **kwargs):
-        if not self.ticket_number:
-            last_ticket = ServiceTicket.objects.order_by('id').last()
-            new_id = (last_ticket.id if last_ticket else 0) + 1
-            self.ticket_number = f"ZGL-{date.today().year}-{new_id:04d}"
+        # Generowanie numeru zgłoszenia tylko przy tworzeniu nowego obiektu
+        if not self.pk and not self.ticket_number:
+            self.ticket_number = self._generate_ticket_number()
         super().save(*args, **kwargs)
+
+    @staticmethod
+    def _generate_ticket_number():
+        """
+        Generuje nowy, unikalny numer zgłoszenia w sposób odporny na race conditions.
+        Używa transakcji i `select_for_update` do zablokowania wiersza.
+        """
+        with transaction.atomic():
+            # Blokujemy tabelę (lub ostatni wiersz) na czas odczytu, aby uniknąć race condition
+            last_ticket = ServiceTicket.objects.select_for_update().order_by('id').last()
+            last_id = last_ticket.id if last_ticket else 0
+            new_id = last_id + 1
+            # Format: ZGL-ROK-0001
+            return f"ZGL-{date.today().year}-{new_id:04d}"
 
     def __str__(self):
         return f"{self.ticket_number}: {self.title}"
+
+    class Meta:
+        verbose_name = "Zgłoszenie serwisowe"
+        verbose_name_plural = "Zgłoszenia serwisowe"
+        ordering = ['-created_at']

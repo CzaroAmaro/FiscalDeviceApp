@@ -1,127 +1,130 @@
+# views.py
 import requests
 from datetime import date
-from rest_framework.views import APIView
+
+from rest_framework import viewsets, status, generics, permissions
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework import status, generics, permissions
 
 from .models import (
     Client, FiscalDevice, ServiceTicket, Manufacturer, Technician, Certification
 )
 from .serializers import (
-    ClientSerializer, FiscalDeviceSerializer, ServiceTicketSerializer,
-    RegisterSerializer, ManufacturerSerializer, TechnicianSerializer,
+    ClientSerializer,
+    FiscalDeviceSerializer, FiscalDeviceWriteSerializer,
+    ServiceTicketSerializer, ServiceTicketWriteSerializer,
+    RegisterSerializer,
+    ManufacturerSerializer,
+    TechnicianSerializer,
     CertificationSerializer
 )
 
-# --- Widoki do zarządzania Klientami ---
-class ClientListCreateView(generics.ListCreateAPIView):
-    queryset = Client.objects.all()
+
+# --- Widoki oparte na ViewSetach (nowoczesne i zgodne z DRY) ---
+
+class ClientViewSet(viewsets.ModelViewSet):
+    """ViewSet do zarządzania klientami (CRUD)."""
+    queryset = Client.objects.all().order_by('name')
     serializer_class = ClientSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class ClientDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Client.objects.all()
-    serializer_class = ClientSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-# --- Widoki do zarządzania Urządzeniami Fiskalnymi ---
-class FiscalDeviceListCreateView(generics.ListCreateAPIView):
-    queryset = FiscalDevice.objects.all()
-    serializer_class = FiscalDeviceSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-class FiscalDeviceDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = FiscalDevice.objects.all()
-    serializer_class = FiscalDeviceSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-# --- NOWE Widoki dla Nowych Modeli ---
-
-class ManufacturerListCreateView(generics.ListCreateAPIView):
-    queryset = Manufacturer.objects.all()
+class ManufacturerViewSet(viewsets.ModelViewSet):
+    """ViewSet do zarządzania producentami (CRUD)."""
+    queryset = Manufacturer.objects.all().order_by('name')
     serializer_class = ManufacturerSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
+class FiscalDeviceViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet do zarządzania urządzeniami.
+    - Używa różnych serializerów do odczytu i zapisu.
+    - Optymalizuje zapytania do bazy danych.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = FiscalDevice.objects.select_related('owner', 'brand').all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return FiscalDeviceWriteSerializer
+        return FiscalDeviceSerializer
+
+
+class ServiceTicketViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet do zarządzania zgłoszeniami serwisowymi.
+    - Używa różnych serializerów do odczytu i zapisu.
+    - Optymalizuje zapytania do bazy danych.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = ServiceTicket.objects.select_related(
+        'client', 'device__brand', 'assigned_technician__user'
+    ).all()
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return ServiceTicketWriteSerializer
+        return ServiceTicketSerializer
+
+
+class CertificationViewSet(viewsets.ModelViewSet):
+    """ViewSet do zarządzania certyfikatami."""
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Certification.objects.select_related('technician__user', 'manufacturer').all()
+    serializer_class = CertificationSerializer
+
+
+# --- Widoki niestandardowe i pomocnicze ---
+
 class TechnicianListView(generics.ListAPIView):
-    queryset = Technician.objects.filter(is_active=True)
+    """Widok tylko do listowania aktywnych serwisantów (read-only)."""
+    queryset = Technician.objects.select_related('user').filter(is_active=True)
     serializer_class = TechnicianSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class CertificationListCreateView(generics.ListCreateAPIView):
-    queryset = Certification.objects.all()
-    serializer_class = CertificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-# --- ZAKTUALIZOWANY Widok dla Zgłoszeń Serwisowych ---
-
-class ServiceTicketListCreateView(generics.ListCreateAPIView):
-    queryset = ServiceTicket.objects.all()
-    serializer_class = ServiceTicketSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    # Można dodać filtrowanie, np. po statusie
-    # filterset_fields = ['status', 'ticket_type', 'assigned_technician']
-
-class ServiceTicketDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ServiceTicket.objects.all()
-    serializer_class = ServiceTicketSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-# --- Widoki Pomocnicze i Autentykacji ---
 
 class RegisterView(generics.CreateAPIView):
+    """Widok do rejestracji nowych użytkowników."""
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
-class FetchCompanyDataView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    def get(self, request, nip, format=None):
-            """
-            Obsługuje żądanie GET.
-            """
-            today = date.today().strftime("%Y-%m-%d")
-            # URL do oficjalnego API Ministerstwa Finansów
-            url = f"https://wl-api.mf.gov.pl/api/search/nip/{nip}?date={today}"
 
-            try:
-                # Używamy sesji, co jest dobrą praktyką do zarządzania połączeniami
-                with requests.Session() as session:
-                    response = session.get(url, timeout=10)  # Timeout na 10 sekund
-                    response.raise_for_status()  # Rzuci błędem dla statusów 4xx/5xx (np. 404, 500)
+# ZASTĄPIENIE FetchCompanyDataView widokiem funkcyjnym - czystsze i rozwiązuje problemy z IDE.
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def fetch_company_data(request, nip):
+    """
+    Widok funkcyjny do pobierania danych o firmie z API Białej Listy.
+    """
+    today = date.today().strftime("%Y-%m-%d")
+    url = f"https://wl-api.mf.gov.pl/api/search/nip/{nip}?date={today}"
 
-                data = response.json()
+    try:
+        with requests.Session() as session:
+            response = session.get(url, timeout=10)
+            response.raise_for_status()
 
-                # Sprawdzanie, czy samo API MF nie zwróciło błędu wewnątrz poprawnej odpowiedzi 200 OK
-                if 'code' in data and data['code'] != '200 OK':
-                    return Response({"detail": data.get('message', 'Błąd API Ministerstwa Finansów.')},
-                                    status=status.HTTP_400_BAD_REQUEST)
+        data = response.json()
 
-                # Wyciągamy interesujące nas dane z zagnieżdżonej struktury
-                subject_data = data.get('result', {}).get('subject')
+        if 'code' in data and 'subject' not in data.get('result', {}):
+             return Response({"detail": data.get('message', "Nie znaleziono firmy lub wystąpił błąd.")},
+                            status=status.HTTP_404_NOT_FOUND)
 
-                if not subject_data:
-                    return Response(
-                        {"detail": "Nie znaleziono firmy o podanym numerze NIP w rejestrze VAT."},
-                        status=status.HTTP_404_NOT_FOUND
-                    )
+        subject_data = data['result']['subject']
+        cleaned_data = {
+            'name': subject_data.get('name', ''),
+            'nip': subject_data.get('nip', ''),
+            'regon': subject_data.get('regon', ''),
+            'address': subject_data.get('workingAddress') or subject_data.get('residenceAddress') or ''
+        }
+        return Response(cleaned_data, status=status.HTTP_200_OK)
 
-                # Przygotowujemy czystą, prostą odpowiedź dla naszego frontendu
-                cleaned_data = {
-                    'name': subject_data.get('name', ''),
-                    'nip': subject_data.get('nip', ''),
-                    'regon': subject_data.get('regon', ''),
-                    'address': subject_data.get('workingAddress') or subject_data.get('residenceAddress') or ''
-                }
-
-                return Response(cleaned_data, status=status.HTTP_200_OK)
-
-            except requests.exceptions.Timeout:
-                # Obsługa błędu, gdy serwer MF nie odpowiada na czas
-                return Response({"detail": "Serwer Ministerstwa Finansów nie odpowiada. Spróbuj ponownie."},
-                                status=status.HTTP_504_GATEWAY_TIMEOUT)
-            except requests.exceptions.RequestException as e:
-                # Obsługa ogólnych błędów sieciowych (np. brak internetu)
-                print(f"Błąd połączenia z API MF: {e}")  # Logowanie błędu na serwerze
-                return Response(
-                    {"detail": "Nie można połączyć się z usługą Białej Listy. Sprawdź połączenie internetowe."},
-                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    except requests.exceptions.Timeout:
+        return Response({"detail": "Serwer Ministerstwa Finansów nie odpowiada. Spróbuj ponownie."},
+                        status=status.HTTP_504_GATEWAY_TIMEOUT)
+    except requests.exceptions.RequestException as e:
+        print(f"Błąd połączenia z API MF: {e}") # Logowanie błędu na serwerze
+        return Response(
+            {"detail": "Nie można połączyć się z usługą Białej Listy. Sprawdź połączenie internetowe."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE)

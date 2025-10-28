@@ -1,18 +1,28 @@
 import { defineStore } from 'pinia';
 
 import api from '@/api';
-import type { ServiceTicket } from '@/types';
+import type { ServiceTicket, ServiceTicketPayload } from '@/types';
 
-type ServiceTicketPayload = Omit<ServiceTicket, 'id' | 'ticket_number' | 'created_at' | 'completed_at' | 'client_name' | 'device_info' | 'technician_name'>;
+interface TicketsState {
+  tickets: ServiceTicket[];
+  isLoading: boolean;
+  error: string | null;
+}
 
 export const useTicketsStore = defineStore('tickets', {
-  state: () => ({
-    tickets: [] as ServiceTicket[],
+  state: (): TicketsState => ({
+    tickets: [],
     isLoading: false,
-    error: null as string | null,
+    error: null,
   }),
+
+  getters: {
+    inProgressCount: (state) => state.tickets.filter(t => t.status === 'W toku').length,
+  },
+
   actions: {
-    async fetchTickets() {
+    async fetchTickets(force = false) {
+      if (this.tickets.length > 0 && !force) return;
       this.isLoading = true;
       this.error = null;
       try {
@@ -25,6 +35,41 @@ export const useTicketsStore = defineStore('tickets', {
         this.isLoading = false;
       }
     },
-    // W przyszłości dodasz tu akcje addTicket, updateTicket, deleteTicket...
+
+    // NOWOŚĆ: Implementacja CRUD dla zgłoszeń
+    async addTicket(payload: ServiceTicketPayload) {
+      try {
+        const response = await api.post<ServiceTicket>('/tickets/', payload);
+        this.tickets.unshift(response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Błąd dodawania zgłoszenia:', error);
+        throw error;
+      }
+    },
+
+    async updateTicket(ticketId: number, payload: ServiceTicketPayload) {
+      try {
+        const response = await api.put<ServiceTicket>(`/tickets/${ticketId}/`, payload);
+        const index = this.tickets.findIndex((t) => t.id === ticketId);
+        if (index !== -1) {
+          this.tickets[index] = response.data;
+        }
+        return response.data;
+      } catch (error) {
+        console.error('Błąd aktualizacji zgłoszenia:', error);
+        throw error;
+      }
+    },
+
+    async deleteTicket(ticketId: number) {
+      try {
+        await api.delete(`/tickets/${ticketId}/`);
+        this.tickets = this.tickets.filter((t) => t.id !== ticketId);
+      } catch (error) {
+        console.error('Błąd usuwania zgłoszenia:', error);
+        throw error;
+      }
+    },
   },
 });

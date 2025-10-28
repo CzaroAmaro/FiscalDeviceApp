@@ -16,7 +16,16 @@
                   :label="t('devices.forms.brandLabel')"
                   :loading="manufacturersStore.isLoading"
                   :rules="[rules.required]"
-                />
+                >
+                  <!-- Opcjonalnie: Przycisk do dodawania nowego producenta w locie -->
+                  <template #append>
+                    <v-tooltip :text="t('devices.forms.addNewManufacturerTooltip')">
+                      <template #activator="{ props: tooltipProps }">
+                        <v-btn v-bind="tooltipProps" variant="text" icon="mdi-plus" @click.stop="promptForNewManufacturer"></v-btn>
+                      </template>
+                    </v-tooltip>
+                  </template>
+                </v-select>
               </v-col>
               <v-col cols="12" sm="6">
                 <v-combobox
@@ -81,10 +90,10 @@ import { ref, reactive, watch, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDevicesStore, type DevicePayload } from '@/stores/devices';
 import { useClientsStore } from '@/stores/clients';
-import { useManufacturersStore } from '@/stores/manufacturers';
 import type { FiscalDevice } from '@/types';
 import type { VForm } from 'vuetify/components';
 import { predefinedDeviceModels } from "@/config/deviceModels";
+import { useManufacturersStore } from '@/stores/manufacturers';
 
 const props = defineProps<{ modelValue: boolean; editingDevice: FiscalDevice | null; newlyAddedClientId: number | null; }>();
 const emit = defineEmits<{
@@ -136,7 +145,8 @@ watch(() => props.modelValue, (isOpen) => {
   error.value = null;
   if (!isOpen) return;
 
-  if (props.editingDevice) {
+  if (isOpen && props.editingDevice) {
+    formData.brand = props.editingDevice.brand;
     Object.assign(formData, { ...props.editingDevice });
   } else {
     Object.assign(formData, initialFormData);
@@ -145,6 +155,21 @@ watch(() => props.modelValue, (isOpen) => {
     }
   }
 });
+
+async function promptForNewManufacturer() {
+  const newManufacturerName = prompt(t('devices.forms.newManufacturerPrompt'));
+
+  if (newManufacturerName && newManufacturerName.trim() !== '') {
+    try {
+      const newManufacturer = await manufacturersStore.addManufacturer(newManufacturerName.trim());
+      // Po pomyślnym dodaniu, od razu ustawiamy go w formularzu
+      formData.brand = newManufacturer.id;
+    } catch (error) {
+      // Można tu wyświetlić błąd w snackbarze, jeśli wystąpi
+      console.error("Nie udało się dodać producenta:", error);
+    }
+  }
+}
 
 const rules = computed(() => ({
   required: (v: any) => !!v || t('validation.required'),
@@ -158,7 +183,7 @@ async function submitForm() {
 
   // Sprawdzenie, czy relacje nie są null, zanim wyślemy dane
   if (formData.brand === null || formData.owner === null) {
-    error.value = "Marka i właściciel są wymagani."; // TODO: Przenieść do i18n
+    error.value = "Marka i właściciel są wymagani.";
     return;
   }
 
