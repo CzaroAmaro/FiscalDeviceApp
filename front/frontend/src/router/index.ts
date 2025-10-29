@@ -1,12 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import DefaultLayout from '@/components/layout/DefaultLayout.vue';
+import DefaultLayout from '@/components/layout/Default.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // --- Ścieżki publiczne (bez layoutu) ---
     {
       path: '/login',
       name: 'login',
@@ -20,7 +19,6 @@ const router = createRouter({
       meta: { isPublic: true },
     },
 
-    // --- Ścieżki chronione (renderowane wewnątrz DefaultLayout) ---
     {
       path: '/',
       component: DefaultLayout,
@@ -41,12 +39,11 @@ const router = createRouter({
           name: 'device-list', // <-- TA NAZWA MUSI PASOWAĆ DO MENU
           component: () => import('../views/DevicesListView.vue'),
         },
-        // PRZYKŁAD: Jak możesz łatwo dodać więcej ścieżek w przyszłości
-        // {
-        //   path: 'tickets',
-        //   name: 'ticket-list',
-        //   component: () => import('../views/TicketsListView.vue'),
-        // },
+        {
+          path: 'manufacturers',
+          name: 'manufacturer-list',
+          component: () => import('../views/ManufacturerListView.vue'),
+        },
       ],
     },
 

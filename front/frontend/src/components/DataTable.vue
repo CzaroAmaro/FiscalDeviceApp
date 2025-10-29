@@ -12,7 +12,7 @@
     density="compact"
     class="elevation-1"
   >
-    <template v-for="(_, slotName) in $slots" v-slot:[slotName]="scope">
+    <template v-for="(_, slotName) in $slots" #[slotName]="scope">
       <slot :name="slotName" v-bind="scope" />
     </template>
   </v-data-table>
@@ -27,7 +27,7 @@ type ReadonlyHeaders = InstanceType<typeof VDataTable>['headers'];
 
 const props = withDefaults(defineProps<{
   modelValue: T[];
-  headers: ReadonlyHeaders; // <-- Naprawiony typ
+  headers: ReadonlyHeaders;
   items: T[];
   loading: boolean;
   loadingText?: string;

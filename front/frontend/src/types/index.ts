@@ -1,4 +1,4 @@
-import type { RouteLocationRaw } from 'vue-router'
+import type { RouteLocationRaw } from 'vue-router';
 
 export interface Client {
   id: number;
@@ -8,12 +8,12 @@ export interface Client {
   phone_number: string;
   email: string;
   regon: string;
-  created_at: string;
+  created_at: string; // ISO datetime (np. "2025-10-27T10:15:00Z")
 }
 
 export interface Manufacturer {
   id: number;
-  name:string;
+  name: string;
 }
 
 export interface FiscalDevice {
@@ -21,15 +21,24 @@ export interface FiscalDevice {
   model_name: string;
   unique_number: string;
   serial_number: string;
-  sale_date: string;
+  sale_date: string; // ISO date (YYYY-MM-DD)
   last_service_date: string | null;
-  status: string; // Np. "Aktywna", "W serwisie" - czytelna nazwa z backendu
+  status: string;
   operating_instructions: string;
   remarks: string;
-  // Zagnieżdżone obiekty dla łatwego wyświetlania
-  owner: { id: number; name: string; nip: string }; // Używamy ClientSummarySerializer
-  brand: { id: number; name: string };             // Używamy ManufacturerSerializer
-  tickets_count: number; // Zastąpiliśmy pełną listę zgłoszeń licznikiem
+
+  owner: {
+    id: number;
+    name: string;
+    nip: string;
+  };
+
+  brand: {
+    id: number;
+    name: string;
+  };
+
+  tickets_count: number;
 }
 
 export interface User {
@@ -45,8 +54,7 @@ export interface Technician {
   user: User;
   phone_number: string;
   is_active: boolean;
-  // DOBRA PRAKTYKA: Dodajmy pole, które backend może łatwo dostarczyć
-  full_name: string; // np. "Jan Kowalski" z `technician.__str__()`
+  full_name: string;
 }
 
 export interface Certification {
@@ -54,7 +62,6 @@ export interface Certification {
   certificate_number: string;
   issue_date: string;
   expiry_date: string;
-  // Zagnieżdżone obiekty dla czytelności
   technician: number;
   technician_name: string;
   manufacturer: number;
@@ -72,14 +79,12 @@ export interface ServiceTicket {
   created_at: string;
   scheduled_for: string | null;
   completed_at: string | null;
-  // Zagnieżdżone obiekty dla czytelności
   client: { id: number; name: string; nip: string };
   device_info: string;
-  device: number; // ID urządzenia nadal jest przydatne
+  device: number;
   assigned_technician: { id: number; full_name: string } | null;
 }
 
-// Interfejs pomocniczy dla menu
 export interface MenuItem {
   title: string;
   value: string;
@@ -88,33 +93,41 @@ export interface MenuItem {
   divider?: boolean;
 }
 
-// =================================================================
-// TYPY DO ZAPISU (Write Models / Payloads) - Używane w żądaniach POST/PUT
-// =================================================================
-
-// Pola wymagane do utworzenia/edycji klienta
-export type ClientPayload = Omit<Client, 'id' | 'created_at'>;
-
-// Pola wymagane do utworzenia/edycji urządzenia (tylko ID dla relacji)
-export type DevicePayload = Pick<
-  FiscalDevice,
-  'model_name' | 'unique_number' | 'serial_number' | 'sale_date' | 'last_service_date' | 'status' | 'operating_instructions' | 'remarks'
-> & {
-  owner: number; // Oczekujemy ID
-  brand: number; // Oczekujemy ID
+export type ClientPayload = Omit<Client, 'id' | 'created_at'> & {
+  regon?: string;
+  phone_number?: string;
+  email?: string;
 };
 
-// Pola wymagane do utworzenia/edycji zgłoszenia (tylko ID dla relacji)
+export type DevicePayload = Pick<
+  FiscalDevice,
+  | 'model_name'
+  | 'unique_number'
+  | 'serial_number'
+  | 'sale_date'
+  | 'last_service_date'
+  | 'status'
+  | 'operating_instructions'
+  | 'remarks'
+> & {
+  owner: number;
+  brand: number;
+};
+
 export type ServiceTicketPayload = Pick<
   ServiceTicket,
-  'title' | 'description' | 'ticket_type' | 'status' | 'scheduled_for' | 'resolution_notes'
+  | 'title'
+  | 'description'
+  | 'ticket_type'
+  | 'status'
+  | 'scheduled_for'
+  | 'resolution_notes'
 > & {
   client: number;
   device: number;
   assigned_technician: number | null;
 };
 
-// Pola do rejestracji
 export interface RegisterCredentials {
   username: string;
   email: string;
