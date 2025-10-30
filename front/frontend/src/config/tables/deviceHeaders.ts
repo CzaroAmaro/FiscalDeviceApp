@@ -9,7 +9,7 @@ type DataTableHeader = {
 
 // Eksportujemy FUNKCJĘ, która przyjmuje `t` jako argument
 export const getDeviceHeaders = (t: TranslationFunction): DataTableHeader[] => [
-  // Używamy kluczy z plików .json
+  { title: ('ID'), key: 'id', sortable: true },
   { title: t('devices.headers.brand'), key: 'brand_name' },
   { title: t('devices.headers.model'), key: 'model_name' },
   { title: t('devices.headers.uniqueNumber'), key: 'unique_number' },

@@ -25,24 +25,29 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {
-          path: '', // Domyślna ścieżka dla '/'
+          path: '',
           name: 'home',
           component: () => import('../views/HomeView.vue'),
         },
         {
           path: 'clients',
-          name: 'client-list', // <-- TA NAZWA MUSI PASOWAĆ DO MENU
+          name: 'client-list',
           component: () => import('../views/ClientsListView.vue'),
         },
         {
           path: 'devices',
-          name: 'device-list', // <-- TA NAZWA MUSI PASOWAĆ DO MENU
+          name: 'device-list',
           component: () => import('../views/DevicesListView.vue'),
         },
         {
           path: 'manufacturers',
           name: 'manufacturer-list',
           component: () => import('../views/ManufacturerListView.vue'),
+        },
+        {
+          path: 'technicians',
+          name: 'technician-list',
+          component: () => import('../views/TechnicianListView.vue'),
         },
       ],
     },

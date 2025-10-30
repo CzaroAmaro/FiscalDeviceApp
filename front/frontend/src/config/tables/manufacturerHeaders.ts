@@ -8,5 +8,6 @@ type DataTableHeader = {
 };
 
 export const getManufacturerHeaders = (t: TranslationFunction): DataTableHeader[] => [
+  { title: ('ID'), key: 'id', sortable: true },
   { title: t('manufacturers.headers.name'), key: 'name', sortable: true },
 ];

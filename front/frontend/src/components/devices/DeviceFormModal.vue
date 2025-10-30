@@ -148,6 +148,7 @@ import { useForm } from '@/composables/useForm';
 import { predefinedDeviceModels } from '@/config/deviceModels';
 import type { FiscalDevice, DevicePayload, Manufacturer } from '@/types';
 import ManufacturerFormModal from '@/components/manufacturers/ManufacturerFormModal.vue';
+import { useSnackbarStore } from '@/stores/snackbar';
 
 /* ==========================
    Props & Emits
@@ -171,7 +172,7 @@ const { t } = useI18n();
 const devicesStore = useDevicesStore();
 const clientsStore = useClientsStore();
 const manufacturersStore = useManufacturersStore();
-const snackbarStore = snackbarStore();
+const snackbarStore = useSnackbarStore();
 const { editingDevice } = toRefs(props);
 
 const isManufacturerModalOpen = ref(false);
