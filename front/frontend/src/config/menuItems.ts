@@ -44,5 +44,11 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     icon: 'mdi-account-hard-hat',
     to: { name: 'technician-list' },
   },
+  {
+    title: ('Zgłoszenia'),
+    value: 'tickets',
+    icon: 'mdi-ticket-confirmation-outline',
+    to: { name: 'ticket-list' },
+  },
   // { divider: true },
 ];
