@@ -3,16 +3,18 @@ import { defineStore } from 'pinia';
 import api from '@/api';
 import type { Manufacturer } from '@/types';
 
-// Przyjmujemy, że payload do aktualizacji to tylko zmiana nazwy
 type ManufacturerPayload = Pick<Manufacturer, 'name'>;
 
 export const useManufacturersStore = defineStore('manufacturers', {
   state: () => ({
     manufacturers: [] as Manufacturer[],
     isLoading: false,
-    // Przechowuje błędy z API, przydatne w formularzach
     error: null as string | null,
   }),
+  getters: {
+    manufacturerCount: (state) => state.manufacturers.length,
+  },
+
   actions: {
     /**
      * Pobiera listę producentów.
@@ -61,7 +63,6 @@ export const useManufacturersStore = defineStore('manufacturers', {
       this.error = null;
       try {
         const response = await api.put<Manufacturer>(`/manufacturers/${id}/`, payload);
-        // Aktualizujemy w lokalnym stanie
         const index = this.manufacturers.findIndex(m => m.id === id);
         if (index !== -1) {
           this.manufacturers[index] = response.data;

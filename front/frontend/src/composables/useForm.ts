@@ -45,13 +45,10 @@ export function useForm<
   }
 
   async function submit(): Promise<TResult> {
-    // walidacja: Vuetify VForm.validate() może zwracać boolean lub Promise<boolean>
     if (!formRef.value) {
       throw new Error('Form ref not found');
     }
 
-    // Bez używania `any` — traktujemy wynik jako unknown i rzutujemy do boolean
-    // (Vuetify ma różne sygnatury w zależności od wersji)
     const rawValidateResult = (formRef.value.validate && formRef.value.validate()) as
       | boolean
       | Promise<boolean>
@@ -73,11 +70,8 @@ export function useForm<
         return await addFn(payload);
       }
     } catch (err: unknown) {
-      // bez `any` — spróbuj rozpoznać strukturę błędu (axios-like)
-      // Bez przyjmowania konkretnej biblioteki: bezpieczne wyciągnięcie pól
       try {
         const anyErr = err as Record<string, unknown>;
-        // najczęstszy przypadek: axios -> err.response.data = { field: ['msg'] }
         const response = anyErr.response as Record<string, unknown> | undefined;
         const data = response?.data as Record<string, unknown> | undefined;
         if (data && typeof data === 'object') {

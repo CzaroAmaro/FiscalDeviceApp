@@ -94,7 +94,6 @@ const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'delete', label: t('tickets.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
 ]);
 
-// Funkcja do mapowania statusu na kolor
 const statusColor = (status: string) => {
   switch (status) {
     case 'Nowe': return 'blue';

@@ -7,7 +7,6 @@ type DataTableHeader = {
   align?: 'start' | 'center' | 'end';
 };
 
-// Eksportujemy FUNKCJĘ, która przyjmuje `t` jako argument
 export const getDeviceHeaders = (t: TranslationFunction): DataTableHeader[] => [
   { title: ('ID'), key: 'id', sortable: true },
   { title: t('devices.headers.brand'), key: 'brand_name' },

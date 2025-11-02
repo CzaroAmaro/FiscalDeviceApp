@@ -6,7 +6,6 @@
       </v-card-title>
 
       <v-card-text>
-        <!-- Błąd przy pobieraniu danych -->
         <v-alert
           v-if="fetchState.error"
           type="error"
@@ -16,7 +15,6 @@
           {{ fetchState.error }}
         </v-alert>
 
-        <!-- Sekcja NIP -->
         <v-text-field
           v-model="nipToFetch"
           :label="t('clients.forms.nipToFetchLabel')"
@@ -30,7 +28,6 @@
 
         <v-divider class="mb-6" />
 
-        <!-- Formularz klienta -->
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
           <v-alert
             v-if="form.state.error"
@@ -112,17 +109,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, toRefs } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useClientsStore } from '@/stores/clients';
-import { useForm } from '@/composables/useForm';
-import api from '@/api';
-import type { Client, ClientPayload } from '@/types';
-import type { AxiosResponse } from 'axios';
+import { ref, reactive, computed, toRefs } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useClientsStore } from '@/stores/clients'
+import { useForm } from '@/composables/useForm'
+import api from '@/api'
+import type { Client, ClientPayload } from '@/types'
+import type { AxiosResponse } from 'axios'
 
-/* =======================
-   Props & Emits
-======================= */
 const props = defineProps<{
   modelValue: boolean;
   editingClient: Client | null;
@@ -131,11 +125,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void;
   (e: 'save-success', message: string, newClient?: Client): void;
-}>();
+}>()
 
-/* =======================
-   Setup
-======================= */
 const { t } = useI18n();
 const clientsStore = useClientsStore();
 
@@ -162,9 +153,6 @@ const form = useForm<ClientPayload, Client | null, Client>(
 
 const { formRef, isEditing } = form;
 
-/* =======================
-   Fetch danych z NIP
-======================= */
 const nipToFetch = ref('');
 const fetchState = reactive({
   isFetching: false,
@@ -180,7 +168,6 @@ async function fetchCompanyData() {
   try {
     const cleanNip = nipToFetch.value.replace(/\D/g, '');
 
-    // ✅ Typuj odpowiedź poprawnie
     const resp = await api.get<ClientPayload, AxiosResponse<ClientPayload>>(
       `/company-data/${cleanNip}/`
     );
@@ -201,9 +188,6 @@ async function fetchCompanyData() {
   }
 }
 
-/* =======================
-   Dialog logic
-======================= */
 const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => {
@@ -222,15 +206,12 @@ const formTitle = computed(() =>
     : t('clients.forms.addTitle')
 );
 
-const rules = computed(() => ({
+const rules = {
   required: (v: string) => !!v || t('validation.required'),
   nip: (v: string) => !v || /^\d{10}$/.test(v) || t('validation.nip'),
   email: (v: string) => !v || /.+@.+\..+/.test(v) || t('validation.email'),
-}));
+}
 
-/* =======================
-   Submit
-======================= */
 async function handleFormSubmit() {
   try {
     const result = await form.submit();

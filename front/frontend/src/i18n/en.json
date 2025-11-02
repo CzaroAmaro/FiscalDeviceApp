@@ -22,7 +22,10 @@
   "menu": {
     "dashboard": "Dashboard",
     "devices": "Devices",
-    "clients": "Clients"
+    "clients": "Clients",
+    "technicians": "Technicians",
+    "tickets": "Tickets",
+    "manufacturers": "Manufacturers"
   },
   "toolbar": {
     "userMenu": "User Menu",
@@ -32,7 +35,10 @@
     "title": "Dashboard",
     "cards": {
       "devices": "All Devices",
-      "clients": "Active Clients"
+      "clients": "Clients",
+      "technicians": "Active Technicians",
+      "ticketsInProgress": "Tickets in Progress",
+      "manufacturers": "Manufacturers"
     }
   },
   "clients": {

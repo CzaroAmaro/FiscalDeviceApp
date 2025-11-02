@@ -1,11 +1,9 @@
-// src/composables/useResourceView.ts
-import type { Ref } from 'vue'; // POPRAWKA: Usunięto 'ComputedRef', ponieważ nie jest potrzebny, a 'Readonly' nie jest importowany z 'vue'
-import { computed,ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import type { Ref } from 'vue'
+import { computed,ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { useSnackbarStore } from '@/stores/snackbar';
 
-// Definicja interfejsu akceptuje teraz dowolny reaktywny typ Ref, co jest poprawne dla storeToRefs
 interface ResourceViewOptions<T> {
   resourceName: string;
   items: Readonly<Ref<T[]>>;
@@ -14,7 +12,6 @@ interface ResourceViewOptions<T> {
   deleteItem: (id: number) => Promise<void>;
 }
 
-// Typ generyczny T został rozszerzony o wszystkie potencjalne pola, aby uniknąć błędów
 type ResourceItem = { id: number; name?: string; model_name?: string; serial_number?: string };
 
 export function useResourceView<T extends ResourceItem>(
@@ -34,7 +31,6 @@ export function useResourceView<T extends ResourceItem>(
   const confirmMessage = computed(() => {
     if (selectedItems.value.length === 1) {
       const item = selectedItems.value[0];
-      // POPRAWKA: Użycie `||` zamiast `??` tworzy poprawny, logiczny łańcuch fallbacków
       const itemName = item.name || (item.model_name && item.serial_number && `${item.model_name} (SN: ${item.serial_number})`) || `ID: ${item.id}`;
       return t(`resources.${options.resourceName}.deleteConfirm`, { name: itemName });
     }

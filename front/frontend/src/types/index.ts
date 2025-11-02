@@ -1,5 +1,3 @@
-import type { RouteLocationRaw } from 'vue-router';
-
 export interface Client {
   id: number;
   name: string;
@@ -83,14 +81,6 @@ export interface ServiceTicket {
   device_info: string;
   device: number;
   assigned_technician: { id: number; full_name: string } | null;
-}
-
-export interface MenuItem {
-  title: string;
-  value: string;
-  icon: string;
-  to: RouteLocationRaw;
-  divider?: boolean;
 }
 
 export type ClientPayload = Omit<Client, 'id' | 'created_at'> & {

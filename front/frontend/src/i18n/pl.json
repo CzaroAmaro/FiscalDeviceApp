@@ -22,7 +22,10 @@
   "menu": {
     "dashboard": "Pulpit",
     "devices": "Urządzenia",
-    "clients": "Klienci"
+    "clients": "Klienci",
+    "technicians": "Serwisanci",
+    "tickets": "Zlecenia",
+    "manufacturers": "Producenci"
   },
   "toolbar": {
     "userMenu": "Menu użytkownika",
@@ -32,7 +35,10 @@
     "title": "Pulpit",
     "cards": {
       "devices": "Wszystkie urządzenia",
-      "clients": "Aktywni klienci"
+      "clients": "Klienci",
+      "technicians": "Aktywni serwisanci",
+      "ticketsInProgress": "Zlecenia w toku",
+      "manufacturers": "Producenci"
     }
   },
   "clients": {
