@@ -39,13 +39,13 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'manufacturer-list' },
   },
   {
-    title: ('Serwisanci'),
+    title: t('menu.technicians'),
     value: 'technicians',
     icon: 'mdi-account-hard-hat',
     to: { name: 'technician-list' },
   },
   {
-    title: ('Zgłoszenia'),
+    title: t('menu.tickets'),
     value: 'tickets',
     icon: 'mdi-ticket-confirmation-outline',
     to: { name: 'ticket-list' },

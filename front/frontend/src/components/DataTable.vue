@@ -19,19 +19,18 @@
 </template>
 
 <script setup lang="ts" generic="T extends { id: number }">
-import { computed } from 'vue';
-import type { VDataTable } from 'vuetify/components';
+import { computed } from 'vue'
+import type { VDataTable } from 'vuetify/components'
 
-// BARDZIEJ PRECYZYJNY TYP DLA NAGŁÓWKÓW
-type ReadonlyHeaders = InstanceType<typeof VDataTable>['headers'];
+type ReadonlyHeaders = InstanceType<typeof VDataTable>['headers']
 
 const props = withDefaults(defineProps<{
-  modelValue: T[];
-  headers: ReadonlyHeaders;
-  items: T[];
-  loading: boolean;
-  loadingText?: string;
-  noDataText?: string;
+  modelValue: T[]
+  headers: ReadonlyHeaders
+  items: T[]
+  loading: boolean
+  loadingText?: string
+  noDataText?: string
 }>(), {
   loadingText: 'Ładowanie danych...',
   noDataText: 'Nie znaleziono danych',

@@ -2,64 +2,26 @@
   "app": {
     "title": "Fiscal Device Manager"
   },
-  "common": {
-    "add": "Add",
-    "edit": "Edit",
-    "delete": "Delete",
-    "save": "Save",
-    "cancel": "Cancel",
-    "confirmDelete": "Confirm Deletion",
-    "confirmDeleteMsg": "This operation is irreversible.",
-    "loadingData": "Loading data...",
-    "noDataFound": "No data found",
-    "serverError": "A server error occurred. Please try again."
-  },
-  "validation": {
-    "required": "Field is required",
-    "nip": "NIP must be 10 digits long",
-    "email": "Invalid e-mail format"
-  },
-  "menu": {
-    "dashboard": "Dashboard",
-    "devices": "Devices",
-    "clients": "Clients",
-    "technicians": "Technicians",
-    "tickets": "Tickets",
-    "manufacturers": "Manufacturers"
-  },
-  "toolbar": {
-    "userMenu": "User Menu",
-    "selected": "Selected: {count}"
-  },
-  "dashboard": {
-    "title": "Dashboard",
-    "cards": {
-      "devices": "All Devices",
-      "clients": "Clients",
-      "technicians": "Active Technicians",
-      "ticketsInProgress": "Tickets in Progress",
-      "manufacturers": "Manufacturers"
-    }
-  },
   "clients": {
     "title": "Clients",
+    "toolbar": {
+      "add": "Add client",
+      "edit": "Edit client",
+      "delete": "Delete client"
+    },
     "headers": {
-      "name": "Company name/Full name",
+      "id": "ID",
+      "name": "Company Name/Full Name",
       "nip": "NIP",
       "phone": "Phone",
       "email": "Email"
-    },
-    "toolbar": {
-      "add": "Add Client",
-      "edit": "Edit Client",
-      "delete": "Delete Client"
     },
     "forms": {
       "addTitle": "Add New Client",
       "editTitle": "Edit Client Details",
       "nipToFetchLabel": "Search company by NIP",
-      "nipFetchHint": "Enter NIP and press the icon or Enter to fetch company data from public registry.",
-      "nameLabel": "Company name/Full name",
+      "nipFetchHint": "Enter NIP and press the icon or Enter to fetch data from the GUS database.",
+      "nameLabel": "Company Name/Full Name",
       "nipLabel": "NIP",
       "regonLabel": "REGON",
       "phoneLabel": "Phone number",
@@ -71,21 +33,43 @@
     "deleteConfirm": "Are you sure you want to delete client \"{name}\"?",
     "deleteConfirmMulti": "Are you sure you want to delete {count} selected clients?"
   },
+  "common": {
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "active": "Active",
+    "inactive": "Inactive",
+    "confirmDelete": "Confirm deletion",
+    "confirmDeleteMsg": "This operation is irreversible.",
+    "loadingData": "Loading data...",
+    "noDataFound": "No data found",
+    "serverError": "A server error occurred. Please try again."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "cards": {
+      "devices": "All Devices",
+      "clients": "Clients",
+      "technicians": "Active Technicians",
+      "ticketsInProgress": "Tickets in Progress"
+    }
+  },
   "devices": {
     "title": "Fiscal Devices",
     "toolbar": {
-      "add": "Add Device",
-      "edit": "Edit Device",
-      "delete": "Delete Device"
+      "add": "Add device",
+      "edit": "Edit device",
+      "delete": "Delete device"
     },
     "headers": {
+      "brand": "Brand",
       "model": "Model",
-      "serialNumber": "Serial number",
+      "uniqueNumber": "Unique Number",
       "owner": "Owner",
       "status": "Status",
-      "prodDate": "Production date",
-      "lastService": "Last service",
-      "actions": "Actions"
+      "saleDate": "Sale Date"
     },
     "forms": {
       "addTitle": "Add New Device",
@@ -97,10 +81,10 @@
       "saleDateLabel": "Sale date",
       "statusLabel": "Status",
       "ownerLabel": "Owner",
-      "instructionsLabel": "Operating instructions",
+      "instructionsLabel": "Instructions for use",
       "remarksLabel": "Remarks",
       "addSuccess": "New device has been successfully added.",
-      "editSuccess": "Device details have been updated.",
+      "editSuccess": "Device data has been updated.",
       "addNewClientTooltip": "Add new client",
       "statusOptions": {
         "active": "Active",
@@ -115,8 +99,108 @@
     "deleteConfirm": "Are you sure you want to delete the device \"{name}\" (S/N: {serial})?",
     "deleteConfirmMulti": "Are you sure you want to delete {count} selected devices?",
     "deleteSuccessSingle": "Device \"{name}\" has been deleted.",
-    "deleteSuccessMulti": "{count} devices have been deleted.",
+    "deleteSuccessMulti": "{count, plural, one {# device has been deleted} other {# devices have been deleted}}.",
     "deleteError": "An error occurred while deleting devices."
+  },
+  "manufacturers": {
+    "title": "Manufacturers",
+    "toolbar": {
+      "add": "Add manufacturer",
+      "edit": "Edit manufacturer",
+      "delete": "Delete manufacturer"
+    },
+    "headers": {
+      "id": "ID",
+      "name": "Manufacturer Name"
+    },
+    "forms": {
+      "addTitle": "Add New Manufacturer",
+      "editTitle": "Edit Manufacturer",
+      "nameLabel": "Manufacturer Name",
+      "addSuccess": "Manufacturer has been successfully added.",
+      "editSuccess": "Manufacturer details have been updated."
+    }
+  },
+  "menu": {
+    "dashboard": "Dashboard",
+    "devices": "Devices",
+    "clients": "Clients",
+    "technicians": "Technicians",
+    "tickets": "Tickets",
+    "manufacturers": "Manufacturers"
+  },
+  "technicians": {
+    "title": "Technicians",
+    "toolbar": {
+      "add": "Add technician",
+      "edit": "Edit technician",
+      "delete": "Delete technician"
+    },
+    "headers": {
+      "id": "ID",
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "email": "Email",
+      "status": "Status"
+    },
+    "forms": {
+      "addTitle": "Add New Technician",
+      "editTitle": "Edit Technician Details",
+      "userIdLabel": "User ID",
+      "phoneLabel": "Phone Number",
+      "activeLabel": "Active",
+      "addSuccess": "New technician has been successfully added.",
+      "editSuccess": "Technician details have been updated."
+    }
+  },
+  "tickets": {
+    "title": "Service Tickets",
+    "toolbar": {
+      "add": "Add ticket",
+      "edit": "Edit ticket",
+      "delete": "Delete ticket"
+    },
+    "headers": {
+      "id": "ID",
+      "ticketNumber": "Ticket Number",
+      "title": "Title",
+      "client": "Client",
+      "status": "Status",
+      "technician": "Technician",
+      "created": "Created"
+    },
+    "forms": {
+      "addTitle": "Add New Ticket",
+      "editTitle": "Edit Ticket",
+      "titleLabel": "Ticket Title",
+      "descriptionLabel": "Description",
+      "clientLabel": "Client",
+      "deviceLabel": "Device",
+      "typeLabel": "Ticket Type",
+      "statusLabel": "Status",
+      "technicianLabel": "Assigned Technician",
+      "scheduledLabel": "Scheduled For",
+      "resolutionLabel": "Resolution Notes",
+      "addSuccess": "New ticket has been successfully added.",
+      "editSuccess": "Ticket details have been updated."
+    },
+    "status": {
+      "new": "New",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "pending_client": "Pending Client"
+    },
+    "types": {
+      "service": "Service",
+      "installation": "Installation",
+      "maintenance": "Maintenance",
+      "other": "Other"
+    }
+  },
+  "toolbar": {
+    "userMenu": "User Menu",
+    "selected": "Selected: {count}"
   },
   "userMenu": {
     "preferences": "Preferences",
@@ -125,5 +209,11 @@
     "logout": "Logout",
     "placeholderName": "John Doe",
     "placeholderEmail": "john.doe@example.com"
+  },
+  "validation": {
+    "required": "This field is required",
+    "isNumber": "This field must be a number",
+    "nip": "NIP must consist of 10 digits",
+    "email": "Invalid e-mail format"
   }
 }

@@ -95,7 +95,6 @@ const isClientModalOpen = ref(false);
 const newlyCreatedClientId = ref<number | null>(null);
 
 const deviceHeaders = computed(() => getDeviceHeaders(t));
-// Rozwiązanie błędu z typem `ToolbarAction` przez zapewnienie, że każdy obiekt jest w pełni zgodny
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('devices.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
   { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
@@ -106,8 +105,6 @@ function onClientSaveSuccess(message: string, newClient?: Client) {
   snackbarStore.showSuccess(message);
   if (newClient) {
     newlyCreatedClientId.value = newClient.id;
-    // Opcjonalnie: odśwież listę klientów w tle, jeśli inne komponenty z niej korzystają
-    // useClientsStore().fetchClients(true);
   }
 }
 

@@ -151,7 +151,6 @@ const toDatetimeLocal = (isoString: string | null | undefined): string => {
   }
 };
 
-// ZMIANA: Usunięto piąty argument z wywołania useForm
 const form = useForm<ServiceTicketPayload, ServiceTicket | null, ServiceTicket>(
   {
     title: '', description: '', ticket_type: 'Serwis', status: 'Nowe',
@@ -161,7 +160,6 @@ const form = useForm<ServiceTicketPayload, ServiceTicket | null, ServiceTicket>(
   editingTicket,
   (payload) => ticketsStore.addTicket(payload),
   (id, payload) => ticketsStore.updateTicket(id, payload)
-  // Funkcja mapująca została usunięta stąd
 );
 
 const { formRef, isEditing } = form;
@@ -172,16 +170,13 @@ onMounted(() => {
   techniciansStore.fetchTechnicians();
 });
 
-// ZMIANA: Dodano hook `watch` do obsługi mapowania danych przy edycji
+
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
-    // Krok 1: Zresetuj formularz. useForm automatycznie skopiuje pasujące pola z editingTicket.
     form.resetForm();
 
-    // Krok 2: Jeśli jesteśmy w trybie edycji, ręcznie zmapuj pola, które tego wymagają.
     if (isEditing.value && props.editingTicket) {
       form.formData.client = props.editingTicket.client.id;
-      // 'device' jest już numerem w typie ServiceTicket, więc jest mapowane automatycznie.
       form.formData.assigned_technician = props.editingTicket.assigned_technician?.id ?? null;
       form.formData.scheduled_for = toDatetimeLocal(props.editingTicket.scheduled_for);
     }

@@ -63,7 +63,6 @@ import { useTechniciansStore } from '@/stores/technicians';
 import { useForm } from '@/composables/useForm';
 import type { Technician } from '@/types';
 
-// Typ Payload jest teraz prostszy
 type TechnicianPayload = {
   user: number | undefined;
   phone_number: string;
@@ -84,11 +83,9 @@ const { t } = useI18n();
 const techniciansStore = useTechniciansStore();
 const { editingTechnician } = toRefs(props);
 
-// `useForm` jest teraz prostszy, bo nie ma zależności od useUsersStore
 const form = useForm<TechnicianPayload, Technician | null, Technician>(
   { user: undefined, phone_number: '', is_active: true },
   editingTechnician,
-  // Zapewniamy, że 'user' nie jest undefined przed wysłaniem
   (payload) => techniciansStore.addTechnician(payload as { user: number; phone_number: string; is_active: boolean; }),
   (id, payload) => techniciansStore.updateTechnician(id, payload as { user: number; phone_number: string; is_active: boolean; })
 );
@@ -106,7 +103,6 @@ const formTitle = computed(() =>
     : t('technicians.forms.addTitle')
 );
 
-// Dodajemy prostą walidację dla pola liczbowego
 const rules = computed(() => ({
   required: (v: any) => !!v || t('validation.required'),
   isNumber: (v: number) => !isNaN(v) || t('validation.isNumber'),

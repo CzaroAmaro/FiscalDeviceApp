@@ -99,7 +99,6 @@ async function handleFormSubmit() {
     const message = isEditing.value
       ? t('manufacturers.forms.editSuccess')
       : t('manufacturers.forms.addSuccess');
-    // Przekazujemy nowo utworzony obiekt, aby można go było od razu wybrać w innym formularzu
     emit('save-success', message, isEditing.value ? undefined : savedItem);
     closeDialog();
   } catch (error) {

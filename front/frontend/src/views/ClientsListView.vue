@@ -10,7 +10,7 @@
     <v-card>
       <DataTable
         v-model="selectedItems"
-        :headers="clientHeaders"
+        :headers="headers"
         :items="items"
         :loading="isLoading"
       />
@@ -44,8 +44,8 @@ import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useClientsStore } from '@/stores/clients';
-import { useResourceView } from '@/composables/useResourceView';
-import { clientHeaders } from '@/config/tables/clientHeaders';
+import { useResourceView } from '@/composables/useResourceView'
+import { getClientHeaders } from '@/config/tables/clientHeaders'
 import type { Client } from '@/types';
 
 import DataTable from "@/components/DataTable.vue";
@@ -54,6 +54,7 @@ import ClientFormModal from '@/components/clients/ClientFormModal.vue';
 
 const { t } = useI18n();
 const clientsStore = useClientsStore();
+const headers = computed(() => getClientHeaders(t));
 
 const { clients, isLoading } = storeToRefs(clientsStore);
 

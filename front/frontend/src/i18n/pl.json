@@ -2,57 +2,19 @@
   "app": {
     "title": "Manager Urządzeń Fiskalnych"
   },
-  "common": {
-    "add": "Dodaj",
-    "edit": "Edytuj",
-    "delete": "Usuń",
-    "save": "Zapisz",
-    "cancel": "Anuluj",
-    "confirmDelete": "Potwierdź usunięcie",
-    "confirmDeleteMsg": "Ta operacja jest nieodwracalna.",
-    "loadingData": "Ładowanie danych...",
-    "noDataFound": "Nie znaleziono danych",
-    "serverError": "Wystąpił błąd serwera. Spróbuj ponownie."
-  },
-  "validation": {
-    "required": "Pole jest wymagane",
-    "nip": "NIP musi składać się z 10 cyfr",
-    "email": "Nieprawidłowy format e-mail"
-  },
-  "menu": {
-    "dashboard": "Pulpit",
-    "devices": "Urządzenia",
-    "clients": "Klienci",
-    "technicians": "Serwisanci",
-    "tickets": "Zlecenia",
-    "manufacturers": "Producenci"
-  },
-  "toolbar": {
-    "userMenu": "Menu użytkownika",
-    "selected": "Zaznaczono: {count}"
-  },
-  "dashboard": {
-    "title": "Pulpit",
-    "cards": {
-      "devices": "Wszystkie urządzenia",
-      "clients": "Klienci",
-      "technicians": "Aktywni serwisanci",
-      "ticketsInProgress": "Zlecenia w toku",
-      "manufacturers": "Producenci"
-    }
-  },
   "clients": {
     "title": "Klienci",
-    "headers": {
-      "name": "Nazwa firmy/Imię i nazwisko",
-      "nip": "NIP",
-      "phone": "Telefon",
-      "email": "Email"
-    },
     "toolbar": {
       "add": "Dodaj klienta",
       "edit": "Edytuj klienta",
       "delete": "Usuń klienta"
+    },
+    "headers": {
+      "id": "ID",
+      "name": "Nazwa firmy/Imię i nazwisko",
+      "nip": "NIP",
+      "phone": "Telefon",
+      "email": "Email"
     },
     "forms": {
       "addTitle": "Dodaj nowego klienta",
@@ -71,6 +33,29 @@
     "deleteConfirm": "Czy na pewno chcesz usunąć klienta \"{name}\"?",
     "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych klientów?"
   },
+  "common": {
+    "add": "Dodaj",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "active": "Aktywny",
+    "inactive": "Nieaktywny",
+    "confirmDelete": "Potwierdź usunięcie",
+    "confirmDeleteMsg": "Ta operacja jest nieodwracalna.",
+    "loadingData": "Ładowanie danych...",
+    "noDataFound": "Nie znaleziono danych",
+    "serverError": "Wystąpił błąd serwera. Spróbuj ponownie."
+  },
+  "dashboard": {
+    "title": "Pulpit",
+    "cards": {
+      "devices": "Wszystkie urządzenia",
+      "clients": "Klienci",
+      "technicians": "Aktywni serwisanci",
+      "ticketsInProgress": "Zlecenia w toku"
+    }
+  },
   "devices": {
     "title": "Urządzenia Fiskalne",
     "toolbar": {
@@ -84,13 +69,8 @@
       "uniqueNumber": "Numer unikatowy",
       "owner": "Właściciel",
       "status": "Status",
-      "saleDate": "Data sprzedaży",
-    "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\" (S/N: {serial})?",
-    "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych urządzeń?",
-    "deleteSuccessSingle": "Urządzenie \"{name}\" zostało usunięte.",
-    "deleteSuccessMulti": "{count, plural, one {# urządzenie zostało usunięte} few {# urządzenia zostały usunięte} many {# urządzeń zostało usuniętych} other {# urządzeń zostało usuniętych}}.",
-    "deleteError": "Wystąpił błąd podczas usuwania urządzeń."
-  },
+      "saleDate": "Data sprzedaży"
+    },
     "forms": {
       "addTitle": "Dodaj nowe urządzenie",
       "editTitle": "Edytuj urządzenie",
@@ -119,8 +99,108 @@
     "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\" (S/N: {serial})?",
     "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych urządzeń?",
     "deleteSuccessSingle": "Urządzenie \"{name}\" zostało usunięte.",
-    "deleteSuccessMulti": "{count} urządzeń zostało usuniętych.",
+    "deleteSuccessMulti": "{count, plural, one {# urządzenie zostało usunięte} few {# urządzenia zostały usunięte} many {# urządzeń zostało usuniętych} other {# urządzeń zostało usuniętych}}.",
     "deleteError": "Wystąpił błąd podczas usuwania urządzeń."
+  },
+  "manufacturers": {
+    "title": "Producenci",
+    "toolbar": {
+      "add": "Dodaj producenta",
+      "edit": "Edytuj producenta",
+      "delete": "Usuń producenta"
+    },
+    "headers": {
+      "id": "ID",
+      "name": "Nazwa producenta"
+    },
+    "forms": {
+      "addTitle": "Dodaj nowego producenta",
+      "editTitle": "Edytuj producenta",
+      "nameLabel": "Nazwa producenta",
+      "addSuccess": "Producent został pomyślnie dodany.",
+      "editSuccess": "Dane producenta zostały zaktualizowane."
+    }
+  },
+  "menu": {
+    "dashboard": "Pulpit",
+    "devices": "Urządzenia",
+    "clients": "Klienci",
+    "technicians": "Serwisanci",
+    "tickets": "Zlecenia",
+    "manufacturers": "Producenci"
+  },
+  "technicians": {
+    "title": "Serwisanci",
+    "toolbar": {
+      "add": "Dodaj serwisanta",
+      "edit": "Edytuj serwisanta",
+      "delete": "Usuń serwisanta"
+    },
+    "headers": {
+      "id": "ID",
+      "fullName": "Imię i nazwisko",
+      "phone": "Telefon",
+      "email": "Email",
+      "status": "Status"
+    },
+    "forms": {
+      "addTitle": "Dodaj nowego serwisanta",
+      "editTitle": "Edytuj dane serwisanta",
+      "userIdLabel": "ID Użytkownika",
+      "phoneLabel": "Numer telefonu",
+      "activeLabel": "Aktywny",
+      "addSuccess": "Nowy serwisant został pomyślnie dodany.",
+      "editSuccess": "Dane serwisanta zostały zaktualizowane."
+    }
+  },
+  "tickets": {
+    "title": "Zlecenia serwisowe",
+    "toolbar": {
+      "add": "Dodaj zlecenie",
+      "edit": "Edytuj zlecenie",
+      "delete": "Usuń zlecenie"
+    },
+    "headers": {
+      "id": "ID",
+      "ticketNumber": "Numer zlecenia",
+      "title": "Tytuł",
+      "client": "Klient",
+      "status": "Status",
+      "technician": "Serwisant",
+      "created": "Utworzono"
+    },
+    "forms": {
+      "addTitle": "Dodaj nowe zlecenie",
+      "editTitle": "Edytuj zlecenie",
+      "titleLabel": "Tytuł zlecenia",
+      "descriptionLabel": "Opis",
+      "clientLabel": "Klient",
+      "deviceLabel": "Urządzenie",
+      "typeLabel": "Typ zlecenia",
+      "statusLabel": "Status",
+      "technicianLabel": "Przypisany serwisant",
+      "scheduledLabel": "Zaplanowano na",
+      "resolutionLabel": "Notatki z rozwiązania",
+      "addSuccess": "Nowe zlecenie zostało pomyślnie dodane.",
+      "editSuccess": "Zlecenie zostało zaktualizowane."
+    },
+    "status": {
+      "new": "Nowe",
+      "in_progress": "W toku",
+      "completed": "Zakończone",
+      "cancelled": "Anulowane",
+      "pending_client": "Oczekujące na klienta"
+    },
+    "types": {
+      "service": "Serwis",
+      "installation": "Instalacja",
+      "maintenance": "Przegląd",
+      "other": "Inne"
+    }
+  },
+  "toolbar": {
+    "userMenu": "Menu użytkownika",
+    "selected": "Zaznaczono: {count}"
   },
   "userMenu": {
     "preferences": "Preferencje",
@@ -129,5 +209,11 @@
     "logout": "Wyloguj",
     "placeholderName": "Jan Kowalski",
     "placeholderEmail": "jan.kowalski@example.com"
+  },
+  "validation": {
+    "required": "Pole jest wymagane",
+    "isNumber": "Pole musi być liczbą",
+    "nip": "NIP musi składać się z 10 cyfr",
+    "email": "Nieprawidłowy format e-mail"
   }
 }
