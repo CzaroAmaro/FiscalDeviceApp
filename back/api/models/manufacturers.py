@@ -1,10 +1,10 @@
-# api/models/manufacturers.py
 from django.db import models
-from .users import Technician
+from .users import Technician, Company
 
 
 class Manufacturer(models.Model):
-    """Słownik producentów urządzeń (np. Novitus, Elzab)."""
+    """Słownik producentów urządzeń."""
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='manufacturers')
     name = models.CharField(max_length=100, unique=True, verbose_name="Nazwa producenta")
 
     def __str__(self):
@@ -18,6 +18,7 @@ class Manufacturer(models.Model):
 
 class Certification(models.Model):
     """Certyfikat serwisowy technika dla danego producenta."""
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='certifications')
     technician = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="certifications")
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE, related_name="certified_technicians")
     certificate_number = models.CharField(max_length=100, verbose_name="Numer legitymacji/certyfikatu")

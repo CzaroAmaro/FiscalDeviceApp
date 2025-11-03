@@ -1,8 +1,10 @@
 from django.db import models
+from .users import Company
 
 
 class Client(models.Model):
     """Model przechowujący dane klienta (firma lub osoba)."""
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='clients')
     name = models.CharField(max_length=255, verbose_name="Nazwa firmy/Imię i nazwisko")
     address = models.CharField(max_length=255, verbose_name="Adres")
     nip = models.CharField(max_length=10, unique=True, verbose_name="NIP")

@@ -1,4 +1,3 @@
-# api/models/tickets.py
 from datetime import date
 from django.db import models, transaction
 from .clients import Client
@@ -20,6 +19,7 @@ class ServiceTicket(models.Model):
         REPAIR = 'repair', 'Naprawa'
         OTHER = 'other', 'Inne'
 
+    company = models.ForeignKey('users.Company', on_delete=models.CASCADE, related_name='tickets')
     ticket_number = models.CharField(max_length=50, unique=True, blank=True, db_index=True, verbose_name="Numer zgłoszenia")
     title = models.CharField(max_length=255, verbose_name="Tytuł zgłoszenia")
     description = models.TextField(verbose_name="Opis zgłoszenia")

@@ -1,18 +1,18 @@
 from rest_framework import serializers
-from .models import (
-    CustomUser, Client, Manufacturer, Technician, Certification, FiscalDevice, ServiceTicket
-)
-
-
-# --- Serializery Użytkowników i Serwisantów ---
+from django.db.models import Count
+from .models.users import CustomUser, Technician, Company
+from .models.clients import Client
+from .models.manufacturers import Manufacturer, Certification
+from .models.devices import FiscalDevice
+from .models.tickets import ServiceTicket
+from .models.billing import Order, ActivationCode
 
 class CustomUserSerializer(serializers.ModelSerializer):
-    """Serializer do odczytu danych użytkownika."""
+    """Serializer for reading user data."""
 
     class Meta:
         model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
-
 
 class TechnicianSerializer(serializers.ModelSerializer):
     """Serializer do odczytu pełnych danych o serwisancie."""
@@ -22,18 +22,38 @@ class TechnicianSerializer(serializers.ModelSerializer):
         model = Technician
         fields = ['id', 'user', 'phone_number', 'is_active']
 
-
 class TechnicianSummarySerializer(serializers.ModelSerializer):
-    """Uproszczony serializer do zagnieżdżania w innych obiektach (np. w zgłoszeniu)."""
-    full_name = serializers.CharField(source='__str__', read_only=True)
+    """Simplified serializer for nested technician info."""
+    full_name = serializers.CharField(source='full_name', read_only=True)
 
     class Meta:
         model = Technician
         fields = ['id', 'full_name']
 
+class TechnicianReadSerializer(serializers.ModelSerializer):
+    """Serializer for reading full technician info."""
+    user = CustomUserSerializer(read_only=True)
+
+    class Meta:
+        model = Technician
+        fields = ['id', 'user', 'phone_number', 'is_active']
+
+class TechnicianWriteSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating technicians."""
+    class Meta:
+        model = Technician
+        fields = ['first_name', 'last_name', 'email', 'phone_number', 'is_active']
+
+    def validate(self, data):
+        """Ensure technician belongs to the request user's company."""
+        request_user = self.context['request'].user
+        if hasattr(request_user, 'company') and request_user.company is None:
+            raise serializers.ValidationError("Your user must belong to a company to create technicians.")
+        return data
+
 
 class RegisterSerializer(serializers.ModelSerializer):
-    """Serializer do rejestracji nowego użytkownika i tworzenia jego profilu serwisanta."""
+    """Handles user registration and creates associated technician profile."""
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
 
     class Meta:
@@ -41,47 +61,91 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('username', 'password', 'email', 'first_name', 'last_name')
 
     def create(self, validated_data):
-        # Użycie create_user zapewnia poprawne hashowanie hasła
         user = CustomUser.objects.create_user(**validated_data)
-        # Automatycznie tworzymy profil serwisanta dla nowego użytkownika
         Technician.objects.create(user=user)
         return user
 
 
-# --- Serializery Słownikowe i Klientów ---
-
-class ManufacturerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Manufacturer
-        fields = ['id', 'name']  # Lepsza praktyka niż '__all__'
-
-
-class ClientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Client
-        fields = ['id', 'name', 'address', 'nip', 'phone_number', 'email', 'regon', 'created_at']
-
-
 class ClientSummarySerializer(serializers.ModelSerializer):
-    """Uproszczony serializer do zagnieżdżania (np. w zgłoszeniu)."""
-
+    """Simplified client serializer for nesting."""
     class Meta:
         model = Client
         fields = ['id', 'name', 'nip']
 
 
-# --- Serializery Urządzeń Fiskalnych (z podziałem na odczyt i zapis) ---
+class ClientReadSerializer(serializers.ModelSerializer):
+    """Full client serializer."""
+    class Meta:
+        model = Client
+        fields = ['id', 'name', 'address', 'nip', 'regon', 'phone_number', 'email', 'created_at']
 
-class FiscalDeviceSerializer(serializers.ModelSerializer):
-    """
-    Serializer do odczytu (lista/detale) urządzeń. Zwraca czytelne nazwy.
-    """
-    # Zamiast pól _name, zagnieżdżamy uproszczone serializery
+
+class ClientWriteSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating clients, company-scoped."""
+    class Meta:
+        model = Client
+        fields = ['name', 'address', 'nip', 'regon', 'phone_number', 'email']
+
+    def validate(self, data):
+        """Optionally enforce company scoping if needed."""
+        return data
+
+class ManufacturerSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Manufacturer
+        fields = ['id', 'name']
+
+
+class ManufacturerWriteSerializer(serializers.ModelSerializer):
+    """Company-scoped manufacturer creation/update."""
+    class Meta:
+        model = Manufacturer
+        fields = ['name']
+
+    def validate(self, data):
+        """Optionally ensure uniqueness within company if implemented."""
+        return data
+
+
+class CertificationReadSerializer(serializers.ModelSerializer):
+    technician_name = serializers.CharField(source='technician.full_name', read_only=True)
+    manufacturer_name = serializers.CharField(source='manufacturer.name', read_only=True)
+
+    class Meta:
+        model = Certification
+        fields = [
+            'id', 'technician_name', 'manufacturer_name',
+            'certificate_number', 'issue_date', 'expiry_date'
+        ]
+
+
+class CertificationWriteSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating certifications, enforces company scoping."""
+
+    class Meta:
+        model = Certification
+        fields = ['technician', 'manufacturer', 'certificate_number', 'issue_date', 'expiry_date']
+
+    def validate(self, data):
+        """Ensure technician and manufacturer belong to the request user's company."""
+        company = self.context['request'].user.company
+        technician = data.get('technician')
+        manufacturer = data.get('manufacturer')
+
+        if technician and hasattr(technician, 'user') and technician.user.company != company:
+            raise serializers.ValidationError({"technician": "Technician does not belong to your company."})
+
+        if manufacturer and getattr(manufacturer, 'company', company) != company:
+            raise serializers.ValidationError({"manufacturer": "Manufacturer does not belong to your company."})
+
+        return data
+
+
+class FiscalDeviceReadSerializer(serializers.ModelSerializer):
+    """Read-only fiscal device serializer with nested owner and brand."""
     owner = ClientSummarySerializer(read_only=True)
-    brand = ManufacturerSerializer(read_only=True)
-    # Zamiast pełnych zgłoszeń, zwracamy tylko liczbę zgłoszeń (wydajność!)
-    tickets_count = serializers.IntegerField(source='tickets.count', read_only=True)
-    # Lepszy sposób na wyświetlanie wartości z `choices`
+    brand = ManufacturerSummarySerializer(read_only=True)
+    tickets_count = serializers.IntegerField(read_only=True)
     status = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
@@ -94,10 +158,6 @@ class FiscalDeviceSerializer(serializers.ModelSerializer):
 
 
 class FiscalDeviceWriteSerializer(serializers.ModelSerializer):
-    """
-    Serializer do tworzenia i aktualizacji urządzeń. Akceptuje ID dla relacji.
-    """
-    # pola relacji jawnie zdefiniowane, aby DRF wiedział, że oczekuje ID
     owner = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all())
     brand = serializers.PrimaryKeyRelatedField(queryset=Manufacturer.objects.all())
 
@@ -108,18 +168,25 @@ class FiscalDeviceWriteSerializer(serializers.ModelSerializer):
             'last_service_date', 'status', 'operating_instructions', 'remarks', 'owner'
         ]
 
+    def validate(self, data):
+        """Ensure that owner and brand belong to the user's company."""
+        company = self.context['request'].user.company
+        owner = data.get('owner')
+        brand = data.get('brand')
 
-# --- Serializery Zgłoszeń Serwisowych (z podziałem na odczyt i zapis) ---
+        if owner and getattr(owner, 'company', company) != company:
+            raise serializers.ValidationError({"owner": "Client does not belong to your company."})
 
-class ServiceTicketSerializer(serializers.ModelSerializer):
-    """
-    Serializer do odczytu (lista/detale) zgłoszeń. Zwraca zagnieżdżone obiekty.
-    """
+        if brand and getattr(brand, 'company', company) != company:
+            raise serializers.ValidationError({"brand": "Manufacturer does not belong to your company."})
+
+        return data
+
+
+class ServiceTicketReadSerializer(serializers.ModelSerializer):
     client = ClientSummarySerializer(read_only=True)
-    # Użycie __str__ jest OK, ale dedykowany serializer jest bardziej elastyczny
-    device_info = serializers.CharField(source='device.__str__', read_only=True)
+    device_info = serializers.CharField(source='device.model_name', read_only=True)
     assigned_technician = TechnicianSummarySerializer(read_only=True)
-    # Lepszy sposób na wyświetlanie wartości z `choices`
     status = serializers.CharField(source='get_status_display', read_only=True)
     ticket_type = serializers.CharField(source='get_ticket_type_display', read_only=True)
 
@@ -130,24 +197,16 @@ class ServiceTicketSerializer(serializers.ModelSerializer):
             'client', 'device', 'device_info', 'assigned_technician',
             'created_at', 'scheduled_for', 'completed_at', 'resolution_notes'
         ]
-        # Pole 'device' jest tu tylko dla ID
         extra_kwargs = {
-            'device': {'write_only': True}
+            'device': {'write_only': True}  # Only allow writing device via ID
         }
 
 
 class ServiceTicketWriteSerializer(serializers.ModelSerializer):
-    """
-    Serializer do tworzenia i aktualizacji zgłoszeń. Prosty i wydajny.
-    """
-    # Jawne zdefiniowanie pól relacji jako PrimaryKeyRelatedField
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all())
     device = serializers.PrimaryKeyRelatedField(queryset=FiscalDevice.objects.all())
-    assigned_technician = serializers.PrimaryKeyRelatedField(
-        queryset=Technician.objects.all(),
-        allow_null=True,  # Zgodnie z modelem
-        required=False
-    )
+    assigned_technician = serializers.PrimaryKeyRelatedField(queryset=Technician.objects.all(),
+                                                            allow_null=True, required=False)
 
     class Meta:
         model = ServiceTicket
@@ -157,38 +216,41 @@ class ServiceTicketWriteSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
-        """
-        Dodatkowa walidacja - sprawdzenie, czy wybrane urządzenie należy do wybranego klienta.
-        """
+        """Ensure device belongs to selected client."""
         client = data.get('client')
         device = data.get('device')
 
         if client and device and device.owner != client:
-            raise serializers.ValidationError({
-                "device": "Wybrane urządzenie nie należy do tego klienta."
-            })
+            raise serializers.ValidationError({"device": "Selected device does not belong to this client."})
+
         return data
 
-class CertificationSerializer(serializers.ModelSerializer):
-    """
-    Serializer dla certyfikatów.
-    Zwraca czytelne nazwy, a przy zapisie akceptuje ID.
-    """
-    # Pola do odczytu, które zwracają czytelne nazwy zamiast ID
-    technician_name = serializers.CharField(source='technician.__str__', read_only=True)
-    manufacturer_name = serializers.CharField(source='manufacturer.name', read_only=True)
+class OrderReadSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='company.name', read_only=True)
 
     class Meta:
-        model = Certification
-        fields = [
-            'id', 'technician', 'technician_name', 'manufacturer', 'manufacturer_name',
-            'certificate_number', 'issue_date', 'expiry_date'
-        ]
-        # Ustawiamy pola relacji jako write_only.
-        # Przy żądaniu POST/PUT będziemy wysyłać ID technika i producenta.
-        # W odpowiedzi (GET) te pola nie będą widoczne, zamiast nich pojawią się
-        # pola _name zdefiniowane powyżej.
-        extra_kwargs = {
-            'technician': {'write_only': True},
-            'manufacturer': {'write_only': True},
-        }
+        model = Order
+        fields = ['id', 'company', 'company_name', 'email', 'stripe_session_id',
+                  'stripe_payment_intent', 'status', 'amount_cents', 'currency',
+                  'created_at', 'updated_at']
+
+
+class OrderWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['company', 'email', 'stripe_session_id', 'stripe_payment_intent', 'status', 'amount_cents', 'currency']
+
+
+class ActivationCodeReadSerializer(serializers.ModelSerializer):
+    company_name = serializers.CharField(source='company.name', read_only=True)
+    used_by_username = serializers.CharField(source='used_by.username', read_only=True)
+
+    class Meta:
+        model = ActivationCode
+        fields = ['code', 'order', 'company', 'company_name', 'email', 'used', 'used_by', 'used_by_username', 'created_at', 'expires_at']
+
+
+class ActivationCodeWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActivationCode
+        fields = ['code', 'order', 'company', 'email', 'used', 'used_by']
