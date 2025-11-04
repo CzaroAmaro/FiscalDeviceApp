@@ -1,13 +1,23 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from stdnum.pl import nip as std_nip
 from .users import Company
 
 
+def validate_nip(value):
+    if value:
+        try:
+            std_nip.validate(value)
+        except Exception:
+            raise ValidationError("Niepoprawny numer NIP.")
+
+
 class Client(models.Model):
-    """Model przechowujący dane klienta (firma lub osoba)."""
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='clients')
+    """Client (customer) of the service provider company."""
+    company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='clients')
     name = models.CharField(max_length=255, verbose_name="Nazwa firmy/Imię i nazwisko")
     address = models.CharField(max_length=255, verbose_name="Adres")
-    nip = models.CharField(max_length=10, unique=True, verbose_name="NIP")
+    nip = models.CharField(max_length=10, verbose_name="NIP", validators=[validate_nip])
     regon = models.CharField(max_length=14, blank=True, verbose_name="REGON")
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Numer telefonu")
     email = models.EmailField(max_length=100, blank=True, verbose_name="Adres e-mail")
@@ -20,3 +30,10 @@ class Client(models.Model):
         verbose_name = "Klient"
         verbose_name_plural = "Klienci"
         ordering = ['name']
+        constraints = [
+            models.UniqueConstraint(fields=['company', 'nip'], name='unique_company_client_nip')
+        ]
+        indexes = [
+            models.Index(fields=['company', 'nip']),
+            models.Index(fields=['company', 'name']),
+        ]

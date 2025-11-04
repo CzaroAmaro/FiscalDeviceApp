@@ -2,17 +2,13 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
-
 class CustomUser(AbstractUser):
-    """
-    Rozszerzony model użytkownika.
-    Pozostawiony pusty, aby w przyszłości łatwo go było rozbudować.
-    """
+    """Extended user model (placeholder for future fields)."""
     pass
 
 
 class Company(models.Model):
-    """Model przechowujący dane firmy serwisowej."""
+    """Service provider company (owns clients, devices, etc.)."""
     name = models.CharField(max_length=255, verbose_name="Nazwa firmy")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -21,10 +17,13 @@ class Company(models.Model):
 
 
 class Technician(models.Model):
-    """Profil serwisanta, rozszerzający model użytkownika."""
+    """
+    Technician profile. Deleting the user will delete the profile as well (CASCADE).
+    A technician is associated with a Company and can be marked as company admin.
+    """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="technician_profile",
         verbose_name="Konto użytkownika",
         null=True,
@@ -36,6 +35,7 @@ class Technician(models.Model):
     email = models.EmailField(max_length=254, blank=True, verbose_name="Adres e-mail")
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Telefon służbowy")
     is_active = models.BooleanField(default=True, verbose_name="Aktywny")
+    is_company_admin = models.BooleanField(default=False, verbose_name="Admin firmy")
 
     @property
     def full_name(self):
@@ -47,3 +47,6 @@ class Technician(models.Model):
     class Meta:
         verbose_name = "Serwisant"
         verbose_name_plural = "Serwisanci"
+        indexes = [
+            models.Index(fields=['company']),
+        ]

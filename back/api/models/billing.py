@@ -6,8 +6,8 @@ import secrets
 import uuid
 from .users import Company
 
+
 class Order(models.Model):
-    """Zamówienie Stripe powiązane z firmą."""
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('paid', 'Paid'),
@@ -31,15 +31,13 @@ class Order(models.Model):
             models.Index(fields=['stripe_payment_intent']),
         ]
 
-    def __str__(self):
-        return f"Order {self.id} - {self.company.name} ({self.status})"
-
 
 class ActivationCode(models.Model):
-    """Jednorazowy kod aktywacyjny powiązany z firmą i zamówieniem."""
+    """
+    One-time activation code. Company is accessible as activation.order.company.
+    """
     code = models.CharField(max_length=64, unique=True, db_index=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='activation_codes')
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='activation_codes')
     email = models.EmailField(null=True, blank=True)
     used = models.BooleanField(default=False, db_index=True)
     used_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
@@ -48,7 +46,7 @@ class ActivationCode(models.Model):
 
     def __str__(self):
         status = "used" if self.used else "active"
-        return f"{self.code} ({status}) - {self.company.name}"
+        return f"{self.code} ({status}) - {self.order.company.name if self.order and self.order.company else 'N/A'}"
 
     @classmethod
     def create_for_order(cls, order, email=None, lifetime_hours=48):
@@ -57,7 +55,6 @@ class ActivationCode(models.Model):
         return cls.objects.create(
             code=code,
             order=order,
-            company=order.company,
             email=email,
             expires_at=expires
         )
