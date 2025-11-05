@@ -15,6 +15,18 @@
 
       <v-divider></v-divider>
 
+      <v-list-item
+        prepend-icon="mdi-credit-card-outline"
+        title="Kup licencję"
+        subtitle="Odblokuj pełny dostęp"
+        class="text-primary"
+        :loading="isPurchasing"
+      :disabled="isPurchasing"
+      @click="startPurchase"
+      ></v-list-item>
+
+      <v-divider></v-divider>
+
       <v-list-group value="Preferences">
         <template #activator="{ props }">
           <v-list-item
@@ -45,6 +57,18 @@
       </v-list-group>
 
       <v-divider/>
+      <v-list-item
+        prepend-icon="mdi-cog-outline"
+        title="Ustawienia"
+        :to="{ name: 'settings' }"
+      ></v-list-item>
+
+      <v-list-item
+        prepend-icon="mdi-credit-card-outline"
+        title="Kup licencję"
+        @click="startPurchase"
+      ></v-list-item>
+      <v-divider/>
 
       <v-list-item
         :title="t('userMenu.logout')"
@@ -57,22 +81,42 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import LanguageSelect from "@/components/languageSelect/LanguageSelect.vue";
-import { useThemeStore } from '@/stores/theme';
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import LanguageSelect from "@/components/languageSelect/LanguageSelect.vue"
+import { useThemeStore } from '@/stores/theme'
+import { createCheckoutSession } from '@/api/payments.ts'
 
-const emit = defineEmits<{
-  (e: 'logout'): void }>();
-const { t } = useI18n();
-const themeStore = useThemeStore();
+
+const emit = defineEmits<{ (e: 'logout'): void }>()
+
+const { t } = useI18n()
+const themeStore = useThemeStore()
+
+const isPurchasing = ref(false)
+
+const startPurchase = async () => {
+  isPurchasing.value = true;
+  try {
+    const response = await createCheckoutSession();
+    if (response.url) {
+      window.location.href = response.url;
+    } else {
+      console.error("Błąd: Nie otrzymano adresu URL od Stripe.", response.error);
+    }
+  } catch (error) {
+    console.error("Nie udało się zainicjować płatności:", error);
+  } finally {
+    isPurchasing.value = false;
+  }
+}
 
 const isDarkMode = computed({
   get: () => themeStore.currentThemeName === 'dark',
   set: () => themeStore.toggleTheme(),
-});
+})
 
 const onLogout = () => {
-  emit('logout');
-};
+  emit('logout')
+}
 </script>

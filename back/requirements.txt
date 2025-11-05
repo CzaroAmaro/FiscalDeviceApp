@@ -27,3 +27,4 @@ views==0.3
 
 python-stdnum~=2.1
 django-filter~=25.2
+stripe~=13.1.2

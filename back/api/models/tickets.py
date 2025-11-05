@@ -30,7 +30,7 @@ class ServiceTicket(models.Model):
     client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name="tickets", verbose_name="Klient")
     device = models.ForeignKey(FiscalDevice, on_delete=models.PROTECT, related_name="tickets", verbose_name="Urządzenie")
     assigned_technician = models.ForeignKey(
-        'users.Technician', on_delete=models.SET_NULL, null=True, blank=True,
+        'api.Technician', on_delete=models.SET_NULL, null=True, blank=True,
         related_name="assigned_tickets", verbose_name="Przypisany serwisant"
     )
 

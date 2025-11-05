@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models.users import CustomUser, Technician
+from .models.users import CustomUser, Technician, Company
 from .models.clients import Client
 from .models.manufacturers import Manufacturer, Certification
 from .models.devices import FiscalDevice
@@ -10,6 +10,15 @@ from .models.billing import Order, ActivationCode
 # -----------------------------
 # Users / Technicians
 # -----------------------------
+
+class CompanySerializer(serializers.ModelSerializer):
+    """
+    Serializer do odczytu i aktualizacji danych firmy.
+    """
+    class Meta:
+        model = Company
+        fields = ['id', 'name', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 class CustomUserSerializer(serializers.ModelSerializer):
     """Serializer for reading user data."""
@@ -61,6 +70,14 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('username', 'password', 'email', 'first_name', 'last_name')
+
+    def validate_email(self, value):
+        """
+        Sprawdza, czy e-mail już istnieje w bazie danych.
+        """
+        if CustomUser.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Użytkownik z tym adresem e-mail już istnieje.")
+        return value
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(**validated_data)

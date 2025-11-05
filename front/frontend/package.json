@@ -19,6 +19,7 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.3.0",
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "eslint-config-prettier": "^10.1.8",

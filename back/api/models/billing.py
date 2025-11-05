@@ -15,7 +15,7 @@ class Order(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='orders')
+    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     email = models.EmailField()
     stripe_session_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     stripe_payment_intent = models.CharField(max_length=255, blank=True, null=True, db_index=True)
