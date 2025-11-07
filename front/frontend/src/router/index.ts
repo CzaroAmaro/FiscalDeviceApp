@@ -28,6 +28,7 @@ const router = createRouter({
           path: '',
           name: 'home',
           component: () => import('../views/HomeView.vue'),
+          meta: { requiresActivation: true },
         },
         {
           path: 'clients',
@@ -55,11 +56,6 @@ const router = createRouter({
           component: () => import('../views/TicketListView.vue'),
         },
         {
-          path: 'purchase',
-          name: 'purchase',
-          component: () => import('@/views/PurchaseView.vue'),
-        },
-        {
           path: 'redeem',
           name: 'redeem-code',
           component: () => import('@/views/RedeemCodeView.vue'),
@@ -83,24 +79,15 @@ const router = createRouter({
       component: () => import('@/views/PaymentCancelView.vue'),
       meta: { isPublic: true }
     },
-
-    // Ścieżka "catch-all" dla 404
-    // {
-    //   path: '/:pathMatch(.*)*',
-    //   name: 'not-found',
-    //   component: () => import('../views/NotFoundView.vue'), // Warto stworzyć taki widok
-    // },
   ],
 });
 
-// === Ulepszony Strażnik Nawigacji ===
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   const isAuthenticated = authStore.isAuthenticated;
 
   const isAuthRoute = to.name === 'login' || to.name === 'register';
 
-  // 1. Jeśli użytkownik jest zalogowany i próbuje wejść na stronę logowania/rejestracji
   if (isAuthenticated && isAuthRoute) {
     return next({ name: 'home' });
   }

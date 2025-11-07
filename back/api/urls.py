@@ -19,6 +19,7 @@ router.register(r'activation-codes', views.ActivationCodeViewSet, basename='acti
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('users/me/', views.UserProfileView.as_view(), name='user-profile'),
     path('company/me/', views.ManageCompanyView.as_view(), name='manage-company'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),

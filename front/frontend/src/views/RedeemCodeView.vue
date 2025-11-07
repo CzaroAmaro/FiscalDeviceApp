@@ -32,11 +32,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { redeemActivationCode } from '@/api/payments';
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter();
 const code = ref('');
 const isLoading = ref(false);
 const error = ref<string | null>(null);
+const authStore = useAuthStore();
 
 const handleRedeem = async () => {
   if (!code.value) {
@@ -48,14 +50,13 @@ const handleRedeem = async () => {
   error.value = null;
 
   try {
-    const response = await redeemActivationCode(code.value);
-    console.log('Odpowiedź z aktywacji:', response);
+    await redeemActivationCode(code.value);
+
+    await authStore.refreshUserStatus();
 
     await router.push({ name: 'home' });
-    window.location.reload();
-
   } catch (e: any) {
-    error.value = e.response?.data?.error || 'Wystąpił nieoczekiwany błąd podczas aktywacji kodu.';
+    error.value = e.response?.data?.error || 'Wystąpił błąd.';
   } finally {
     isLoading.value = false;
   }

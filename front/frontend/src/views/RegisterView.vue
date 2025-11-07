@@ -1,4 +1,3 @@
-<!-- src/views/RegisterView.vue -->
 <template>
   <v-container class="fill-height d-flex justify-center align-center">
     <v-card width="450" class="pa-5">
@@ -7,7 +6,6 @@
       </v-card-title>
       <v-card-text>
         <v-form @submit.prevent="handleRegister">
-          <!-- Generyczny błąd, jeśli wystąpi -->
           <v-alert v-if="errors.detail" type="error" density="compact" class="mb-4">
             {{ errors.detail }}
           </v-alert>
@@ -87,16 +85,12 @@ const formData = reactive({
   passwordConfirm: '',
 })
 
-// Używamy `reactive` do przechowywania błędów z backendu.
-// Klucze będą odpowiadać nazwom pól (np. 'username', 'email').
 const errors = reactive<Record<string, any>>({})
 const isLoading = ref(false)
 
 const handleRegister = async () => {
-  // Resetowanie błędów przed każdą próbą
   Object.keys(errors).forEach(key => delete errors[key]);
 
-  // Prosta walidacja po stronie klienta
   if (formData.password !== formData.passwordConfirm) {
     errors.passwordConfirm = 'Hasła nie są zgodne.'
     return;
@@ -104,18 +98,13 @@ const handleRegister = async () => {
 
   isLoading.value = true
   try {
-    // Wywołujemy akcję ze store'a, przekazując dane bez `passwordConfirm`
     await authStore.register({
       username: formData.username,
       email: formData.email,
       password: formData.password,
     })
-    // Przekierowanie jest już w akcji store'a
   } catch (err: any) {
-    // Przechwytujemy błąd rzucony przez store
     if (err.response && err.response.data) {
-      // Przypisujemy błędy zwrócone przez Django do naszego obiektu `errors`
-      // To automatycznie wyświetli je pod odpowiednimi polami formularza
       Object.assign(errors, err.response.data);
     } else {
       errors.detail = "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.";

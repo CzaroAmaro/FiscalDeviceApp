@@ -20,6 +20,32 @@
       </v-app-bar>
 
       <v-main>
+        <v-container v-if="showActivationBanner" fluid class="pa-0">
+          <v-alert type="warning" variant="tonal" prominent tile class="ma-0">
+            <div class="d-flex align-center justify-space-between flex-wrap">
+              <div>
+                <h3 class="mb-1">Twoje konto nie jest aktywne</h3>
+                <p>Aby uzyskać pełny dostęp do wszystkich funkcji aplikacji, kup lub aktywuj swoją licencję.</p>
+              </div>
+              <v-btn
+                color="warning"
+                variant="flat"
+                :loading="paymentStore.isPurchasing"
+                :disabled="paymentStore.isPurchasing"
+                @click="paymentStore.startPurchase"
+              >
+                Kup teraz
+              </v-btn>
+              <v-btn
+                color="warning"
+                variant="flat"
+                :to="{ name: 'redeem-code' }"
+              >
+                Aktywuj teraz
+              </v-btn>
+            </div>
+          </v-alert>
+        </v-container>
         <v-container fluid>
           <RouterView />
         </v-container>
@@ -29,10 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'; // ref i computed są potrzebne
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RouterView } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { usePaymentStore } from '@/stores/payment';
 
 import MainMenu from '@/components/menu/MainMenu.vue';
 import UserMenu from '@/components/user/UserMenu.vue';
@@ -41,12 +68,17 @@ import { getMenuItems } from '@/config/menuItems';
 
 const { t } = useI18n();
 const authStore = useAuthStore();
+const paymentStore = usePaymentStore();
 
-// Prostsza definicja stanu menu, bez zapisu do localStorage
-const isMenuMini = ref(false); // Domyślnie menu jest rozwinięte
+const isPurchasing = computed(() => paymentStore.isPurchasing);
+const startPurchase = () => paymentStore.startPurchase();
 
-// Pobieramy menu z zewnętrznego pliku, tak jak chciałeś.
-// Ta właściwość będzie automatycznie przeliczona, gdy zmieni się język.
+const showActivationBanner = computed(() => {
+  return authStore.isAuthenticated && !authStore.isActivated;
+})
+
+const isMenuMini = ref(false);
+
 const menuItems = computed(() => getMenuItems(t));
 
 const handleLogout = () => {

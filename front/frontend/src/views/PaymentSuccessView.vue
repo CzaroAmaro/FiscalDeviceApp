@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { handlePaymentSuccess } from '@/api/payments'; // Upewnij się, że ta ścieżka jest poprawna
+import { handlePaymentSuccess } from '@/api/payments';
 
 const route = useRoute();
 const isLoading = ref(true);
@@ -59,8 +59,6 @@ onMounted(async () => {
   }
 
   try {
-    // Wołamy backend, aby "na szybko" pobrać kod.
-    // Webhook działa w tle, ale ten endpoint daje natychmiastowy feedback.
     const response = await handlePaymentSuccess(sessionId);
     if (response.code) {
       activationCode.value = response.code;
@@ -78,7 +76,6 @@ const copyCode = async () => {
   if (activationCode.value) {
     try {
       await navigator.clipboard.writeText(activationCode.value);
-      // Możesz dodać tu snackbar z informacją "Skopiowano!"
       console.log('Kod skopiowany do schowka!');
     } catch (err) {
       console.error('Nie udało się skopiować kodu: ', err);

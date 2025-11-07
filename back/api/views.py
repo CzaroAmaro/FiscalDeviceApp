@@ -31,7 +31,7 @@ from .serializers import (
     FiscalDeviceReadSerializer, FiscalDeviceWriteSerializer,
     ServiceTicketReadSerializer, ServiceTicketWriteSerializer,
     OrderReadSerializer, OrderWriteSerializer,
-    ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer
+    ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer
 )
 
 
@@ -90,6 +90,19 @@ class ManageCompanyView(generics.RetrieveUpdateAPIView):
         return technician_profile.company
 
 
+
+class UserProfileView(generics.RetrieveAPIView):
+    """
+    Widok do pobierania danych zalogowanego użytkownika.
+    Zwraca dane zgodne z typem UserProfile na frontendzie.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        # Zawsze zwracaj obiekt zalogowanego użytkownika
+        return self.request.user
 # -------------------------
 # Registration
 # -------------------------

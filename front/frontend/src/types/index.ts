@@ -125,3 +125,16 @@ export interface RegisterCredentials {
   first_name?: string;
   last_name?: string;
 }
+export interface NestedTechnicianProfile {
+  id: number;
+  company: number;
+}
+
+export interface UserProfile {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  technician_profile: NestedTechnicianProfile | null
+}

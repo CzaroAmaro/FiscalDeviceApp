@@ -63,6 +63,29 @@ class TechnicianWriteSerializer(serializers.ModelSerializer):
         return data
 
 
+class NestedTechnicianProfileSerializer(serializers.ModelSerializer):
+    """
+    Prosty, zagnieżdżony serializer dla profilu technika,
+    zwracający tylko ID i ID firmy.
+    """
+    class Meta:
+        model = Technician
+        fields = ['id', 'company']
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer dla endpointu /users/me/, który zwraca dane użytkownika
+    oraz zagnieżdżony profil technika (jeśli istnieje).
+    """
+    # 'technician_profile' to domyślna nazwa relacji zwrotnej z CustomUser do Technician
+    # Jeśli ustawiłeś inną 'related_name' w modelu Technician, użyj tej nazwy.
+    technician_profile = NestedTechnicianProfileSerializer(read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'technician_profile']
+
+
 class RegisterSerializer(serializers.ModelSerializer):
     """Handles user registration and creates associated technician profile."""
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})

@@ -6,23 +6,24 @@
           <v-avatar color="primary" icon="mdi-account-circle"></v-avatar>
         </template>
         <v-list-item-title class="font-weight-bold">
-          Jan Kowalski
+          {{ displayName }}
         </v-list-item-title>
         <v-list-item-subtitle>
-          jan.kowalski@example.com
+          {{ userEmail }}
         </v-list-item-subtitle>
       </v-list-item>
 
       <v-divider></v-divider>
 
       <v-list-item
+        v-if="!authStore.isActivated"
         prepend-icon="mdi-credit-card-outline"
         title="Kup licencję"
         subtitle="Odblokuj pełny dostęp"
         class="text-primary"
         :loading="isPurchasing"
-      :disabled="isPurchasing"
-      @click="startPurchase"
+        :disabled="isPurchasing"
+        @click="startPurchase"
       ></v-list-item>
 
       <v-divider></v-divider>
@@ -81,20 +82,40 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LanguageSelect from "@/components/languageSelect/LanguageSelect.vue"
 import { useThemeStore } from '@/stores/theme'
 import { createCheckoutSession } from '@/api/payments.ts'
+import { useAuthStore } from '@/stores/auth'
+import { useCompanyStore } from '@/stores/company'
+import { usePaymentStore } from '@/stores/payment'
 
 
 const emit = defineEmits<{ (e: 'logout'): void }>()
 
 const { t } = useI18n()
 const themeStore = useThemeStore()
+const paymentStore = usePaymentStore();
 
-const isPurchasing = ref(false)
+const authStore = useAuthStore();
+const companyStore = useCompanyStore();
 
+const displayName = computed(() => {
+  if (authStore.isActivated) {
+    // Jeśli konto jest aktywne, pokaż nazwę firmy
+    return companyStore.companyName;
+  }
+  // Jeśli nie, pokaż nazwę użytkownika
+  return authStore.user?.username || 'Użytkownik';
+});
+
+const userEmail = computed(() => {
+  return authStore.user?.email || 'Brak e-maila';
+});
+
+
+const isPurchasing = ref(false);
 const startPurchase = async () => {
   isPurchasing.value = true;
   try {
@@ -119,4 +140,10 @@ const isDarkMode = computed({
 const onLogout = () => {
   emit('logout')
 }
+
+onMounted(() => {
+  if (authStore.isActivated) {
+    companyStore.fetchCompanyName();
+  }
+});
 </script>

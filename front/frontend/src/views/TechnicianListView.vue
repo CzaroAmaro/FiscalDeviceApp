@@ -13,7 +13,6 @@
         :items="items"
         :loading="isLoading"
       >
-        <!-- Logika StatusChip zaimplementowana bezpośrednio tutaj -->
         <template #item.is_active="{ item }">
           <v-chip
             :color="item.is_active ? 'success' : 'grey'"
@@ -33,7 +32,6 @@
       @save-success="handleFormSave"
     />
 
-    <!-- Dialog potwierdzenia usunięcia bez zmian -->
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
         <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
@@ -63,7 +61,6 @@ import type { Technician } from '@/types';
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
 import TechnicianFormModal from '@/components/technicians/TechnicianFormModal.vue';
-// Import StatusChip.vue został usunięty
 
 const { t } = useI18n();
 const techniciansStore = useTechniciansStore();
