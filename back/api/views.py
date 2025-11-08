@@ -275,6 +275,21 @@ class FiscalDeviceViewSet(viewsets.ModelViewSet):
             return FiscalDeviceWriteSerializer
         return FiscalDeviceReadSerializer
 
+    def create(self, request, *args, **kwargs):
+        """
+        Nadpisana metoda create, aby zwrócić pełne dane obiektu
+        używając serializera do odczytu (FiscalDeviceReadSerializer).
+        """
+        write_serializer = self.get_serializer(data=request.data)
+        write_serializer.is_valid(raise_exception=True)
+        self.perform_create(write_serializer)
+
+        instance = write_serializer.instance
+        read_serializer = FiscalDeviceReadSerializer(instance, context=self.get_serializer_context())
+
+        headers = self.get_success_headers(write_serializer.data)
+        return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class ServiceTicketViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCompanyMember]

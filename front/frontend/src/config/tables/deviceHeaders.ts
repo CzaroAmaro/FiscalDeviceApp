@@ -9,10 +9,10 @@ type DataTableHeader = {
 
 export const getDeviceHeaders = (t: TranslationFunction): DataTableHeader[] => [
   { title: ('ID'), key: 'id', sortable: true },
-  { title: t('devices.headers.brand'), key: 'brand_name' },
+  { title: t('devices.headers.brand'), key: 'brand.name' },
   { title: t('devices.headers.model'), key: 'model_name' },
   { title: t('devices.headers.uniqueNumber'), key: 'unique_number' },
-  { title: t('devices.headers.owner'), key: 'owner_name' },
+  { title: t('devices.headers.owner'), key: 'owner.name' },
   { title: t('devices.headers.status'), key: 'status' },
   { title: t('devices.headers.saleDate'), key: 'sale_date' },
 ];
