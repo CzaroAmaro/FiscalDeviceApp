@@ -35,14 +35,26 @@ class Technician(models.Model):
     email = models.EmailField(max_length=254, blank=True, verbose_name="Adres e-mail")
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Telefon służbowy")
     is_active = models.BooleanField(default=True, verbose_name="Aktywny")
-    is_company_admin = models.BooleanField(default=False, verbose_name="Admin firmy")
+
+    ROLE_ADMIN = 'admin'
+    ROLE_TECHNICIAN = 'technician'
+    ROLE_CHOICES = [
+        (ROLE_ADMIN, 'Administrator Firmy'),
+        (ROLE_TECHNICIAN, 'Serwisant'),
+    ]
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=ROLE_TECHNICIAN,
+        verbose_name="Rola w firmie"
+    )
 
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
     def __str__(self):
-        return self.full_name
+        return self.full_name or self.user.username
 
     class Meta:
         verbose_name = "Serwisant"

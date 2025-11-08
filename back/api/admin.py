@@ -32,10 +32,28 @@ class CompanyAdmin(admin.ModelAdmin):
 @admin.register(Technician)
 class TechnicianAdmin(admin.ModelAdmin):
     """Panel dla bezpośredniej edycji serwisantów."""
-    list_display = ('full_name', 'company', 'email', 'is_active', 'is_company_admin')
-    list_filter = ('company', 'is_active', 'is_company_admin')
+    list_display = ('full_name', 'email', 'company', 'role', 'is_active', 'has_user_account')
+    list_filter = ('company', 'role', 'is_active')
     search_fields = ('first_name', 'last_name', 'email', 'user__username')
-    autocomplete_fields = ['user', 'company']
+    fieldsets = (
+        ('Dane Osobowe (Profil Serwisanta)', {
+            'fields': ('first_name', 'last_name', 'email', 'phone_number')
+        }),
+        ('Przynależność i Rola', {
+            'fields': ('company', 'role', 'is_active')
+        }),
+        ('Konto w Aplikacji (opcjonalne)', {
+            'fields': ('user',)
+        }),
+    )
+
+    autocomplete_fields = ('user',)
+
+    # Metoda do wyświetlania statusu konta użytkownika w liście
+    @admin.display(description='Posiada konto', boolean=True)
+    def has_user_account(self, obj):
+        return obj.user is not None
+
 
 # --- Konfiguracja Klientów, Producentów i Urządzeń ---
 
