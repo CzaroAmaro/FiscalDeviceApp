@@ -21,6 +21,9 @@ export const useAuthStore = defineStore('auth', {
     isActivated: (state) => !!state.user?.technician_profile,
   },
   actions: {
+    setUser(user: UserProfile) {
+      this.user = user;
+    },
     async fetchUser() {
       if (!this.accessToken) return;
       try {

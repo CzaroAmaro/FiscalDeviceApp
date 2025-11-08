@@ -12,13 +12,14 @@
 </template>
 
 <script lang="ts" setup>
-import type { MenuItem } from '@/config/menuItems';
-import { useAuthStore } from '@/stores/auth';
+import type { MenuItem } from '@/config/menuItems'
+import { useAuthStore } from '@/stores/auth'
+import { computed } from 'vue'
 
 defineProps<{
   item: MenuItem;
 }>();
 
 const authStore = useAuthStore();
-const isActivated = authStore.isActivated;
+const isActivated = computed(() => authStore.isActivated)
 </script>

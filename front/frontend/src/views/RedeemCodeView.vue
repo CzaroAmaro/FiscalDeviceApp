@@ -50,7 +50,10 @@ const handleRedeem = async () => {
   error.value = null;
 
   try {
-    await redeemActivationCode(code.value);
+    const response = await redeemActivationCode(code.value);
+    if (response.user) {
+      authStore.setUser(response.user)
+    }
 
     await authStore.refreshUserStatus();
 

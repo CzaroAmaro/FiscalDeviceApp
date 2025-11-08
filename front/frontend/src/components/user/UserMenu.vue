@@ -64,12 +64,19 @@
         :to="{ name: 'settings' }"
       ></v-list-item>
 
-      <v-list-item
-        prepend-icon="mdi-credit-card-outline"
-        title="Kup licencję"
-        @click="startPurchase"
-      ></v-list-item>
-      <v-divider/>
+      <v-list-item disabled>
+        <template #prepend>
+          <v-icon
+            :icon="authStore.isActivated ? 'mdi-check-circle-outline' : 'mdi-close-circle-outline'"
+            :color="authStore.isActivated ? 'success' : 'error'"
+          ></v-icon>
+        </template>
+        <v-list-item-title
+          :class="authStore.isActivated ? 'text-success' : 'text-error'"
+        >
+          {{ authStore.isActivated ? 'Licencja aktywna' : 'Licencja nieaktywna' }}
+        </v-list-item-title>
+      </v-list-item>
 
       <v-list-item
         :title="t('userMenu.logout')"
@@ -89,24 +96,20 @@ import { useThemeStore } from '@/stores/theme'
 import { createCheckoutSession } from '@/api/payments.ts'
 import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
-import { usePaymentStore } from '@/stores/payment'
 
 
 const emit = defineEmits<{ (e: 'logout'): void }>()
 
 const { t } = useI18n()
 const themeStore = useThemeStore()
-const paymentStore = usePaymentStore();
 
 const authStore = useAuthStore();
 const companyStore = useCompanyStore();
 
 const displayName = computed(() => {
   if (authStore.isActivated) {
-    // Jeśli konto jest aktywne, pokaż nazwę firmy
     return companyStore.companyName;
   }
-  // Jeśli nie, pokaż nazwę użytkownika
   return authStore.user?.username || 'Użytkownik';
 });
 

@@ -207,6 +207,24 @@ class ManufacturerViewSet(CompanyScopedViewSet):
             return ManufacturerWriteSerializer
         return ManufacturerSummarySerializer  # lub pełny ReadSerializer jeśli istnieje
 
+    def create(self, request, *args, **kwargs):
+        """
+        Nadpisana metoda create, aby użyć innego serializera dla odpowiedzi.
+        """
+        # 1. Użyj serializera do zapisu (Write) do walidacji i utworzenia obiektu
+        write_serializer = self.get_serializer(data=request.data)
+        write_serializer.is_valid(raise_exception=True)
+        self.perform_create(write_serializer)
+
+        # 2. Utwórz odpowiedź używając serializera do odczytu (Read)
+        # Pobieramy nowo utworzoną instancję
+        instance = write_serializer.instance
+        # Tworzymy serializer do odczytu na tej instancji
+        read_serializer = ManufacturerSummarySerializer(instance, context=self.get_serializer_context())
+
+        headers = self.get_success_headers(write_serializer.data)
+        return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 # -------------------------
 # Certifications, Devices, Tickets (wymagają bardziej złożonego filtrowania)
@@ -405,6 +423,11 @@ def create_checkout_session(request):
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
     user = request.user
+    if hasattr(user, 'technician_profile'):
+        return Response(
+            {'error': 'Twoje konto jest już aktywne i nie możesz rozpocząć nowej sesji płatności.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     email = user.email or ''
     amount_cents = request.data.get('amount_cents')  # opcjonalne, jeśli korzystasz z dynamicznych kwot
 
@@ -670,4 +693,9 @@ def redeem_activation_code(request):
         )
         activation.redeem(request.user)
 
-    return Response({'detail': 'Kod zrealizowany, profil serwisanta utworzony.'}, status=status.HTTP_200_OK)
+    request.user.refresh_from_db()
+    user_data = UserProfileSerializer(request.user, context={'request': request}).data
+    return Response({
+        'detail': 'Kod zrealizowany, profil serwisanta utworzony.',
+        'user': user_data
+    }, status=status.HTTP_200_OK)

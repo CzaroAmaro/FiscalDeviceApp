@@ -155,7 +155,7 @@ class ManufacturerWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context['request']
-        company = request.user.company
+        company = request.user.technician_profile.company
         name = data.get('name')
         if Manufacturer.objects.filter(company=company, name__iexact=name).exists():
             raise serializers.ValidationError({"name": "Manufacturer with this name already exists in your company."})

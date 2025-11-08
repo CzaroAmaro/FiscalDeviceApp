@@ -15,19 +15,6 @@
           {{ fetchState.error }}
         </v-alert>
 
-        <v-text-field
-          v-model="nipToFetch"
-          :label="t('clients.forms.nipToFetchLabel')"
-          :loading="fetchState.isFetching"
-          :disabled="fetchState.isFetching || isEditing"
-          append-inner-icon="mdi-cloud-download-outline"
-          class="mb-4"
-          @click:append-inner="fetchCompanyData"
-          @keydown.enter.prevent="fetchCompanyData"
-        />
-
-        <v-divider class="mb-6" />
-
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
           <v-alert
             v-if="form.state.error"
@@ -53,7 +40,11 @@
                   v-model="form.formData.nip"
                   :label="t('clients.forms.nipLabel')"
                   :rules="[rules.required, rules.nip]"
-                  readonly
+                  :loading="fetchState.isFetching"
+                  :disabled="fetchState.isFetching || isEditing"
+                  append-inner-icon="mdi-cloud-download-outline"
+                  @click:append-inner="fetchCompanyData"
+                  @keydown.enter.prevent="fetchCompanyData"
                 />
               </v-col>
 
@@ -109,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, toRefs } from 'vue'
+import { reactive, computed, toRefs } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useClientsStore } from '@/stores/clients'
 import { useForm } from '@/composables/useForm'
@@ -153,29 +144,54 @@ const form = useForm<ClientPayload, Client | null, Client>(
 
 const { formRef, isEditing } = form;
 
-const nipToFetch = ref('');
 const fetchState = reactive({
   isFetching: false,
   error: null as string | null,
 });
 
+function isFormPartiallyFilled(): boolean {
+  return !!form.formData.name || !!form.formData.address;
+}
+
 async function fetchCompanyData() {
-  if (!nipToFetch.value) return;
+  const nip = form.formData.nip;
+  if (!nip) return;
+
+  // Logika ostrzeżenia przed nadpisaniem
+  if (isFormPartiallyFilled()) {
+    // Używamy natywnego `confirm` dla prostoty. W realnej aplikacji
+    // można by użyć ładniejszego modala z Vuetify.
+    const confirmed = window.confirm(
+      'Formularz zawiera już dane. Czy na pewno chcesz je nadpisać danymi z API?'
+    );
+    if (!confirmed) {
+      return; // Użytkownik anulował
+    }
+  }
 
   fetchState.isFetching = true;
   fetchState.error = null;
 
   try {
-    const cleanNip = nipToFetch.value.replace(/\D/g, '');
+    const cleanNip = nip.replace(/\D/g, '');
 
     const resp = await api.get<ClientPayload, AxiosResponse<ClientPayload>>(
-      `/company-data/${cleanNip}/`
+      `/external/company-data/${cleanNip}/`
     );
 
     if (resp.data) {
-      Object.assign(form.formData, resp.data);
+      const pristineFormData = {
+        name: '',
+        address: '',
+        nip: '',
+        phone_number: '',
+        email: '',
+        regon: '',
+      };
+      const newFormData = { ...pristineFormData, ...resp.data };
+
+      Object.assign(form.formData, newFormData);
     }
-    nipToFetch.value = '';
   } catch (err: unknown) {
     const error = err as {
       response?: { data?: { detail?: string } };
@@ -192,12 +208,13 @@ const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => {
     emit('update:modelValue', val);
-    if (val) {
-      form.resetForm();
-      fetchState.error = null;
-      nipToFetch.value = '';
+    if (!val) {
+      setTimeout(() => {
+        form.resetForm();
+        fetchState.error = null;
+      }, 300);
     }
-  },
+  }
 });
 
 const formTitle = computed(() =>
