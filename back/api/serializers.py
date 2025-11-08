@@ -1,3 +1,5 @@
+from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 from rest_framework import serializers
 from .models.users import CustomUser, Technician, Company
 from .models.clients import Client
@@ -40,27 +42,85 @@ class TechnicianSummarySerializer(serializers.ModelSerializer):
 class TechnicianReadSerializer(serializers.ModelSerializer):
     """Serializer for reading full technician info."""
     user = CustomUserSerializer(read_only=True)
-    company_name = serializers.CharField(source='company.name', read_only=True)
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
+    full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = Technician
-        fields = ['id', 'user', 'company', 'company_name', 'first_name', 'last_name', 'phone_number', 'is_active', 'is_company_admin']
+        fields = ['id', 'user', 'first_name', 'last_name', 'email', 'phone_number', 'is_active', 'role', 'role_display','full_name']
 
 
 class TechnicianWriteSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating technicians."""
+    create_user_account = serializers.BooleanField(write_only=True, default=False)
+    username = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True,style={'input_type': 'password'})
+
     class Meta:
         model = Technician
-        fields = ['first_name', 'last_name', 'email', 'phone_number', 'is_active', 'is_company_admin']
+        fields = (
+            'id', 'first_name', 'last_name', 'email', 'phone_number', 'is_active', 'role', 'create_user_account', 'username', 'password')
+        read_only_fields = ('id',)
 
     def validate(self, data):
-        user = self.context['request'].user
-
-        if not hasattr(user, 'technician_profile'):
-            raise serializers.ValidationError(
-                "Twoje konto musi być powiązane z profilem technika w firmie, aby wykonać tę akcję."
-            )
+        # Ta walidacja pozostaje taka sama jak w mojej poprzedniej propozycji
+        if self.context['request'].method == 'POST' and data.get('create_user_account'):
+            if not data.get('username'):
+                raise serializers.ValidationError({"username": "Nazwa użytkownika jest wymagana."})
+            if not data.get('password'):
+                raise serializers.ValidationError({"password": "Hasło jest wymagane."})
+            if CustomUser.objects.filter(username=data['username']).exists():
+                raise serializers.ValidationError({"username": "Użytkownik o tej nazwie już istnieje."})
+            if CustomUser.objects.filter(email=data['email']).exists():
+                raise serializers.ValidationError({"email": "Użytkownik z tym adresem e-mail już istnieje."})
+            try:
+                validate_password(data['password'])
+            except Exception as e:
+                raise serializers.ValidationError({"password": list(e.messages)})
         return data
+
+    @transaction.atomic
+    def create(self, validated_data):
+        admin_user = self.context['request'].user
+        company = admin_user.technician_profile.company
+
+        create_account = validated_data.pop('create_user_account', False)
+        username = validated_data.pop('username', None)
+        password = validated_data.pop('password', None)
+
+        user_obj = None
+        if create_account:
+            user_obj = CustomUser.objects.create_user(
+                username=username,
+                email=validated_data.get('email'),
+                password=password,
+                first_name=validated_data.get('first_name', ''),
+                last_name=validated_data.get('last_name', ''),
+            )
+
+        technician = Technician.objects.create(user=user_obj, company=company, **validated_data)
+        return technician
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        # Logika aktualizacji jest prostsza
+        # Nie pozwalamy na zmianę powiązanego użytkownika, ale pozwalamy na edycję danych profilu
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.email = validated_data.get('email', instance.email)
+        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
+        instance.is_active = validated_data.get('is_active', instance.is_active)
+        instance.role = validated_data.get('role', instance.role)
+        instance.save()
+
+        # Jeśli jest powiązany użytkownik, zsynchronizuj jego dane
+        if instance.user:
+            instance.user.first_name = instance.first_name
+            instance.user.last_name = instance.last_name
+            instance.user.email = instance.email
+            instance.user.save()
+
+        return instance
 
 
 class NestedTechnicianProfileSerializer(serializers.ModelSerializer):
@@ -180,7 +240,9 @@ class CertificationWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context['request']
-        company = request.user.company
+        if not hasattr(request.user, 'technician_profile'):
+            raise serializers.ValidationError("Użytkownik nie jest przypisany do żadnej firmy.")
+        company = request.user.technician_profile.company
         tech = data.get('technician')
         manufacturer = data.get('manufacturer')
 
@@ -245,6 +307,12 @@ class FiscalDeviceWriteSerializer(serializers.ModelSerializer):
 # -----------------------------
 # Service Tickets
 # -----------------------------
+
+class ServiceTicketTechnicianUpdateSerializer(serializers.ModelSerializer):
+    """Ograniczony serializer dla serwisantów do aktualizacji statusu i notatek."""
+    class Meta:
+        model = ServiceTicket
+        fields = ['status', 'resolution_notes']
 
 class ServiceTicketReadSerializer(serializers.ModelSerializer):
     client = ClientSummarySerializer(read_only=True)
@@ -339,6 +407,11 @@ class ActivationCodeWriteSerializer(serializers.ModelSerializer):
     def validate(self, data):
         request = self.context['request']
         order = data.get('order')
-        if order and order.company != request.user.company:
+        if not hasattr(request.user, 'technician_profile'):
+            raise serializers.ValidationError("Użytkownik nie jest przypisany do żadnej firmy.")
+        company = request.user.technician_profile.company
+
+        if order and order.company != company:
             raise serializers.ValidationError({"order": "Order does not belong to your company."})
         return data
+

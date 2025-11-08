@@ -1,4 +1,3 @@
-# api/models/devices.py
 from django.db import models
 from .clients import Client
 from .manufacturers import Manufacturer

@@ -53,6 +53,11 @@ class Technician(models.Model):
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
+    @property
+    def is_admin(self):
+        """Property do łatwego sprawdzania, czy technik jest adminem."""
+        return self.role == self.ROLE_ADMIN
+
     def __str__(self):
         return self.full_name or self.user.username
 

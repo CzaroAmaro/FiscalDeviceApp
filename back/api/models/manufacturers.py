@@ -1,4 +1,3 @@
-# api/models/manufacturers.py
 from django.db import models
 from .users import Company, Technician
 

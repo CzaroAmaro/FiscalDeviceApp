@@ -49,10 +49,27 @@ export interface User {
 
 export interface Technician {
   id: number;
-  user: User;
+  user: User | null; // Ważne: user może być null
+  first_name: string;
+  last_name: string;
+  email: string;
   phone_number: string;
   is_active: boolean;
-  full_name: string;
+  role: 'admin' | 'technician';
+  role_display: string;
+  full_name: string; // To jest @property, zawsze będzie stringiem
+}
+
+export interface TechnicianPayload {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  role: 'admin' | 'technician';
+  is_active: boolean;
+  create_user_account?: boolean;
+  username?: string;
+  password?: string;
 }
 
 export interface Certification {

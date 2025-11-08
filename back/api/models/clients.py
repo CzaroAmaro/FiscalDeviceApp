@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from stdnum.pl import nip as std_nip
-from .users import Company
 
 
 def validate_nip(value):

@@ -31,7 +31,8 @@ from .serializers import (
     FiscalDeviceReadSerializer, FiscalDeviceWriteSerializer,
     ServiceTicketReadSerializer, ServiceTicketWriteSerializer,
     OrderReadSerializer, OrderWriteSerializer,
-    ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer
+    ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer,
+    ServiceTicketTechnicianUpdateSerializer
 )
 
 
@@ -68,8 +69,25 @@ class IsCompanyAdmin(permissions.BasePermission):
         if user.is_staff or user.is_superuser:
             return True
         if hasattr(user, 'technician_profile'):
-            return user.technician_profile.is_company_admin
+            return user.technician_profile.is_admin
         return False
+
+
+class IsTicketAssigneeOrAdmin(permissions.BasePermission):
+    """Zezwala na dostęp do obiektu, jeśli użytkownik jest adminem lub przypisanym serwisantem."""
+
+    def has_object_permission(self, request, view, obj):
+        if not request.user.is_authenticated:
+            return False
+
+        profile = getattr(request.user, 'technician_profile', None)
+        if not profile:
+            return False
+
+        if profile.is_admin:
+            return True
+
+        return obj.assigned_technician == profile
 
 class ManageCompanyView(generics.RetrieveUpdateAPIView):
     """
@@ -122,7 +140,7 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         # Zwracamy dane nowo utworzonego użytkownika
         return Response(
-            CustomUserSerializer(user, context=self.get_serializer_context()).data,
+            CustomUserSerializer(instance=user, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED
         )
 
@@ -153,26 +171,21 @@ class CompanyScopedViewSet(viewsets.ModelViewSet):
 # -------------------------
 
 class TechnicianViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsCompanyMember]
+    permission_classes = [permissions.IsAuthenticated, IsCompanyAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['is_active', 'is_company_admin']
-    search_fields = ['first_name', 'last_name', 'email', 'user__username']
-    ordering_fields = ['first_name', 'last_name', 'is_company_admin']
-    ordering = ['first_name', 'last_name']
+    filterset_fields = ['is_active', 'role']
+    search_fields = ['user__first_name', 'user__last_name', 'user__email', 'user__username']
+    ordering_fields = ['user__first_name', 'user__last_name', 'role']
+    ordering = ['user__first_name']
 
     def get_queryset(self):
         company = self.request.user.technician_profile.company
-        if self.request.user.is_staff or self.request.user.is_superuser or self.request.user.technician_profile.is_company_admin:
-            return Technician.objects.select_related('user').filter(company=company)
-        return Technician.objects.select_related('user').filter(user=self.request.user, company=company)
+        return Technician.objects.select_related('user').filter(company=company)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
             return TechnicianWriteSerializer
         return TechnicianReadSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(company=self.request.user.technician_profile.company)
 
 
 # -------------------------
@@ -180,6 +193,7 @@ class TechnicianViewSet(viewsets.ModelViewSet):
 # -------------------------
 
 class ClientViewSet(CompanyScopedViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsCompanyAdmin]
     model = Client
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['nip']
@@ -194,6 +208,7 @@ class ClientViewSet(CompanyScopedViewSet):
 
 
 class ManufacturerViewSet(CompanyScopedViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsCompanyAdmin]
     model = Manufacturer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name']
@@ -220,7 +235,7 @@ class ManufacturerViewSet(CompanyScopedViewSet):
         # Pobieramy nowo utworzoną instancję
         instance = write_serializer.instance
         # Tworzymy serializer do odczytu na tej instancji
-        read_serializer = ManufacturerSummarySerializer(instance, context=self.get_serializer_context())
+        read_serializer = ManufacturerSummarySerializer(instance=instance, context=self.get_serializer_context())
 
         headers = self.get_success_headers(write_serializer.data)
         return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -231,7 +246,7 @@ class ManufacturerViewSet(CompanyScopedViewSet):
 # -------------------------
 
 class CertificationViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsCompanyMember]
+    permission_classes = [permissions.IsAuthenticated, IsCompanyAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['manufacturer', 'technician']
     search_fields = ['certificate_number', 'manufacturer__name', 'technician__first_name', 'technician__last_name']
@@ -258,7 +273,7 @@ class CertificationViewSet(viewsets.ModelViewSet):
 
 
 class FiscalDeviceViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsCompanyMember]
+    permission_classes = [permissions.IsAuthenticated, IsCompanyAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'brand']
     search_fields = ['model_name', 'serial_number', 'unique_number', 'owner__name']
@@ -285,7 +300,7 @@ class FiscalDeviceViewSet(viewsets.ModelViewSet):
         self.perform_create(write_serializer)
 
         instance = write_serializer.instance
-        read_serializer = FiscalDeviceReadSerializer(instance, context=self.get_serializer_context())
+        read_serializer = FiscalDeviceReadSerializer(instance=instance, context=self.get_serializer_context())
 
         headers = self.get_success_headers(write_serializer.data)
         return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -299,12 +314,29 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        company = self.request.user.technician_profile.company
-        return ServiceTicket.objects.select_related('client', 'device__brand', 'assigned_technician__user').filter(
-            client__company=company
-        )
+        user = self.request.user
+        company = user.technician_profile.company
+        # Zwykły serwisant widzi tylko swoje zgłoszenia
+        if not user.technician_profile.is_admin:
+            return ServiceTicket.objects.filter(
+                client__company=company,
+                assigned_technician=user.technician_profile
+            ).select_related('client', 'device__brand', 'assigned_technician__user')
+        # Admin widzi wszystkie zgłoszenia w firmie
+        return ServiceTicket.objects.filter(client__company=company).select_related('client', 'device__brand', 'assigned_technician__user')
+
+    def get_permissions(self):
+        # Sprawdzamy uprawnienia do obiektu przy edycji/usuwaniu
+        if self.action in ['update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated(), IsTicketAssigneeOrAdmin()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
+        user = self.request.user
+        # Zwykły serwisant edytuje za pomocą ograniczonego serializera
+        if self.action in ['update', 'partial_update'] and not getattr(user, 'technician_profile', None).is_admin:
+            return ServiceTicketTechnicianUpdateSerializer
+
         if self.action in ['create', 'update', 'partial_update']:
             return ServiceTicketWriteSerializer
         return ServiceTicketReadSerializer
@@ -321,7 +353,7 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
 
         ticket.assigned_technician = tech
         ticket.save()
-        return Response(ServiceTicketReadSerializer(ticket).data)
+        return Response(ServiceTicketReadSerializer(instance=ticket).data)
 
     @action(detail=True, methods=['post'])
     def change_status(self, request):
@@ -509,10 +541,9 @@ def create_checkout_session(request):
 @permission_classes([IsAuthenticated])
 def handle_payment_success(request):
     """
-    Opcjonalne: frontend może wysłać session_id po przekierowaniu z Stripe.
-    Funkcja spróbuje pobrać session, upewnić się, że payment_status == 'paid' i
-    zwrócić ActivationCode (jeśli został wygenerowany). Webhook jest głównym źródłem prawdy,
-    ale endpoint ten pozwala od razu zwrócić kod użytkownikowi natychmiast po przekierowaniu.
+    Sprawdza status płatności po stronie klienta.
+    Nie tworzy żadnych danych, jedynie odpytuje istniejący stan.
+    Głównym źródłem prawdy pozostaje webhook.
     """
     session_id = request.data.get('session_id')
     if not session_id:
@@ -522,50 +553,33 @@ def handle_payment_success(request):
     try:
         session = stripe.checkout.Session.retrieve(session_id)
         if session.get('payment_status') != 'paid':
-            return Response({'error': 'Payment not paid yet'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Najpierw spróbuj znaleźć order po metadata.order_id
-        metadata = session.get('metadata') or {}
-        order = None
-        order_id = metadata.get('order_id')
-        if order_id:
-            try:
-                order = Order.objects.get(id=order_id)
-            except Order.DoesNotExist:
-                order = None
-        if not order:
-            order = Order.objects.filter(stripe_session_id=session_id).first()
-
-        # jeśli order nie istnieje, stworzymy go defensywnie
-        if not order:
-            company = Company.objects.create(name=f"Company - {session.customer_details.email or session_id}")
-            order = Order.objects.create(
-                company=company,
-                email=session.customer_details.email or '',
-                stripe_session_id=session_id,
-                stripe_payment_intent=session.get('payment_intent'),
-                status='paid',
-                amount_cents=session.get('amount_total') or 0,
-                currency=(session.get('currency') or 'pln').upper()
+            return Response(
+                {'status': 'pending', 'message': 'Płatność nie została jeszcze potwierdzona.'},
+                status=status.HTTP_202_ACCEPTED
             )
-        else:
-            # uaktualnij order status na paid jeśli trzeba
-            if order.status != 'paid':
-                order.status = 'paid'
-                order.stripe_payment_intent = session.get('payment_intent')
-                order.amount_cents = order.amount_cents or session.get('amount_total') or 0
-                order.currency = (session.get('currency') or order.currency or 'pln').upper()
-                order.save()
 
-        # Stwórz activation code jeśli jeszcze nie istnieje
+        # Znajdź powiązane zamówienie
+        order = Order.objects.filter(stripe_session_id=session.id).first()
+        if not order or order.status != 'paid':
+            # Jeśli order nie jest jeszcze 'paid', to znaczy, że webhook jeszcze nie dotarł.
+            return Response(
+                {'status': 'processing', 'message': 'Płatność jest przetwarzana. Spróbuj ponownie za chwilę.'},
+                status=status.HTTP_202_ACCEPTED
+            )
+
+        # Znajdź kod aktywacyjny dla tego zamówienia
         activation = ActivationCode.objects.filter(order=order).first()
         if not activation:
-            activation = ActivationCode.create_for_order(order, email=order.email)
+            # To oznacza, że webhook go jeszcze nie utworzył
+            return Response(
+                {'status': 'processing', 'message': 'Kod aktywacyjny jest w trakcie generowania.'},
+                status=status.HTTP_202_ACCEPTED
+            )
 
         return Response({'code': activation.code}, status=status.HTTP_200_OK)
 
-    except stripe.error.InvalidRequestError as e:
-        return Response({'error': 'Stripe error: ' + str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    except stripe.error.StripeError as e:
+        return Response({'error': f'Błąd Stripe: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -575,8 +589,9 @@ def handle_payment_success(request):
 @permission_classes([permissions.AllowAny])
 def stripe_webhook(request):
     """
-    Webhook handler (pamiętaj: zarejestruj STRIPE_WEBHOOK_SECRET w settings i Stripe Dashboard).
-    Obsługujemy checkout.session.completed -> aktualizujemy lub tworzymy Order + ActivationCode.
+    Webhook handler. Potwierdza płatność, aktualizuje/tworzy Order
+    i tworzy powiązany z nim ActivationCode.
+    Nie tworzy obiektu Company.
     """
     stripe.api_key = settings.STRIPE_SECRET_KEY
     payload = request.body
@@ -595,55 +610,50 @@ def stripe_webhook(request):
 
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        session_id = session.get('id')
         metadata = session.get('metadata') or {}
-        order_id = metadata.get('order_id')
-
-        # idempotentnie: jeżeli order z tym stripe_session_id już oznaczony jako paid -> ok
-        existing_paid = Order.objects.filter(stripe_session_id=session_id, status='paid').exists()
-        if existing_paid:
-            return Response({'status': 'already_processed'}, status=status.HTTP_200_OK)
+        order_id_from_meta = metadata.get('order_id')
 
         try:
             with transaction.atomic():
-                order = None
-                if order_id:
-                    order = Order.objects.filter(id=order_id).first()
-
-                if not order:
-                    order = Order.objects.filter(stripe_session_id=session_id).first()
-
-                if not order:
-                    # defensywnie - stwórz nowe zamówienie przypisane do nowej firmy tymczasowej
-                    company = Company.objects.create(name=f"Company - {session.get('customer_details', {}).get('email', session_id)}")
-                    order = Order.objects.create(
-                        company=company,
-                        email=session.get('customer_details', {}).get('email', '') or '',
-                        stripe_session_id=session_id,
-                        stripe_payment_intent=session.get('payment_intent'),
-                        status='paid',
-                        amount_cents=session.get('amount_total') or 0,
-                        currency=(session.get('currency') or 'pln').upper()
+                # Użyj get_or_create na podstawie order_id z metadanych Stripe,
+                # a jeśli go nie ma, użyj session_id jako fallback
+                if order_id_from_meta:
+                    order, created = Order.objects.get_or_create(
+                        id=order_id_from_meta,
+                        defaults={
+                            'company': None,
+                            'email': session.get('customer_details', {}).get('email', ''),
+                            'status': 'pending',
+                            'stripe_session_id': session.id,
+                        }
                     )
                 else:
-                    # Aktualizuj istniejący order do paid
-                    order.status = 'paid'
-                    order.stripe_payment_intent = session.get('payment_intent')
-                    order.amount_cents = order.amount_cents or session.get('amount_total') or 0
-                    order.currency = (session.get('currency') or order.currency or 'pln').upper()
-                    # Jeżeli order miał None company, spróbuj ustawić tymczasową firmę
-                    if not order.company:
-                        company = Company.objects.create(name=f"Company - {session.get('customer_details', {}).get('email', session_id)}")
-                        order.company = company
-                    order.save()
+                    order, created = Order.objects.get_or_create(
+                        stripe_session_id=session.id,
+                        defaults={
+                            'company': None,
+                            'email': session.get('customer_details', {}).get('email', ''),
+                            'status': 'pending',
+                        }
+                    )
 
-                # Utwórz ActivationCode tylko raz
-                if not ActivationCode.objects.filter(order=order).exists():
-                    ActivationCode.create_for_order(order, email=order.email)
+                # Zawsze aktualizuj dane do stanu "opłacone"
+                order.status = 'paid'
+                order.amount_cents = session.get('amount_total', order.amount_cents or 0)
+                order.currency = (session.get('currency') or order.currency or 'pln').upper()
+                order.stripe_payment_intent = session.get('payment_intent')
+                order.save()
+
+                # Utwórz kod aktywacyjny, jeśli jeszcze nie istnieje
+                # To jest bezpieczne, bo get_or_create jest atomowe
+                ActivationCode.objects.get_or_create(
+                    order=order,
+                    defaults={'email': order.email}
+                )
         except Exception as e:
-            # Nie przerywamy webhooka — ale loguj błąd
-            # (tu możesz dodać logging / alert)
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # TODO: Dodaj logowanie błędów do systemu monitoringu (np. Sentry)
+            return Response({'error': f'Webhook processing error: {str(e)}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({'status': 'success'}, status=status.HTTP_200_OK)
 
@@ -667,8 +677,8 @@ def my_activation_codes(request):
 @permission_classes([IsAuthenticated])
 def redeem_activation_code(request):
     """
-    Umożliwia zalogowanemu użytkownikowi zrealizować kod aktywacyjny i utworzyć profil Technician
-    powiązany z order.company. Wymagany body: { "code": "XXXX" }
+    Realizuje kod aktywacyjny. Jeśli to pierwszy użytkownik dla danego zamówienia,
+    tworzy nową firmę i przypisuje mu rolę admina.
     """
     code_value = request.data.get('code')
     if not code_value:
@@ -679,38 +689,52 @@ def redeem_activation_code(request):
     except ActivationCode.DoesNotExist:
         return Response({'error': 'Nieprawidłowy kod'}, status=status.HTTP_404_NOT_FOUND)
 
-    # Sprawdzenia
+    # --- Walidacje ---
     if activation.used:
         return Response({'error': 'Kod został już użyty'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # Dodatkowe sprawdzenie: kod przypisany do emaila kupującego (opcjonalne)
-    if activation.email and activation.email != request.user.email:
-        return Response({'error': 'Kod przypisany do innego adresu e-mail'}, status=status.HTTP_403_FORBIDDEN)
-
-    # Jeżeli użytkownik już ma profil Technician — odrzuć (możesz też zezwolić na powiązanie)
     if hasattr(request.user, 'technician_profile'):
-        return Response({'error': 'Twoje konto jest już powiązane z profilem serwisanta.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Twoje konto jest już powiązane z firmą.'}, status=status.HTTP_400_BAD_REQUEST)
+    if activation.order.status != 'paid':
+        return Response({'error': 'Zamówienie powiązane z tym kodem nie jest jeszcze opłacone.'},
+                        status=status.HTTP_400_BAD_REQUEST)
 
-    # Stwórz Technician powiązany z activation.order.company
-    company = activation.order.company
-    if not company:
-        return Response({'error': 'Kod nie jest powiązany z żadną firmą.'}, status=status.HTTP_400_BAD_REQUEST)
-
+    # --- Główna logika biznesowa w jednej, atomowej transakcji ---
     with transaction.atomic():
-        tech = Technician.objects.create(
+        order = activation.order
+        company = order.company
+
+        # Krok 1: Jeśli firma dla tego zamówienia nie istnieje, stwórz ją.
+        if not company:
+            company_name = f"Firma {order.email or request.user.email}"
+            company = Company.objects.create(name=company_name)
+
+            # Połącz nowo utworzoną firmę z zamówieniem na stałe.
+            order.company = company
+            order.save(update_fields=['company'])
+
+        # Krok 2: Stwórz profil Technika.
+        technician = Technician.objects.create(
             user=request.user,
             company=company,
             first_name=request.user.first_name or '',
             last_name=request.user.last_name or '',
             email=request.user.email or '',
             is_active=True,
-            is_company_admin=False
+            # Pierwszy użytkownik, który realizuje kod dla zamówienia, zostaje adminem.
+            # `used_by` na order jest tu jeszcze None, więc warunek jest spełniony.
+            role=Technician.ROLE_ADMIN
         )
+
+        # Krok 3: Oznacz kod jako wykorzystany.
+        # Zakładam, że metoda .redeem() robi `self.used = True`, `self.used_by = user` i `self.save()`
         activation.redeem(request.user)
 
+    # Krok 4: Zwróć zaktualizowane dane użytkownika do frontendu.
+    # Musimy ponownie pobrać obiekt użytkownika z bazy, aby zobaczyć `technician_profile`.
     request.user.refresh_from_db()
-    user_data = UserProfileSerializer(request.user, context={'request': request}).data
+    user_data = UserProfileSerializer(instance=request.user, context={'request': request}).data
+
     return Response({
-        'detail': 'Kod zrealizowany, profil serwisanta utworzony.',
+        'detail': 'Kod zrealizowany! Twoje konto jest teraz w pełni aktywne.',
         'user': user_data
     }, status=status.HTTP_200_OK)
