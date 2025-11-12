@@ -70,9 +70,6 @@ const { t } = useI18n();
 const authStore = useAuthStore();
 const paymentStore = usePaymentStore();
 
-const isPurchasing = computed(() => paymentStore.isPurchasing);
-const startPurchase = () => paymentStore.startPurchase();
-
 const showActivationBanner = computed(() => {
   return authStore.isAuthenticated && !authStore.isActivated;
 })

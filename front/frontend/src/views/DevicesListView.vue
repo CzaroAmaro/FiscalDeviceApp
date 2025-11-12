@@ -58,6 +58,7 @@ import { useSnackbarStore } from '@/stores/snackbar';
 import { useResourceView } from '@/composables/useResourceView';
 import { getDeviceHeaders } from '@/config/tables/deviceHeaders';
 import type { FiscalDevice, Client } from '@/types';
+import { downloadDeviceReport } from '@/api/devices';
 
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
@@ -68,6 +69,7 @@ import ClientFormModal from '@/components/clients/ClientFormModal.vue';
 const { t } = useI18n();
 const snackbarStore = useSnackbarStore();
 const devicesStore = useDevicesStore();
+const isExporting = ref(false);
 
 const { devices, isLoading } = storeToRefs(devicesStore);
 
@@ -89,6 +91,22 @@ const {
   isLoading: isLoading,
   fetchItems: devicesStore.fetchDevices,
   deleteItem: devicesStore.deleteDevice,
+  customActions: {
+    export_pdf: async (selected) => {
+      // Funkcja ta otrzyma zaznaczone elementy jako argument
+      if (selected.length !== 1) return;
+
+      isExporting.value = true;
+      try {
+        await downloadDeviceReport(selected[0].id);
+        snackbarStore.showSuccess('Raport PDF został wygenerowany.');
+      } catch (error: any) {
+        snackbarStore.showError(error.message || 'Wystąpił błąd podczas eksportu.');
+      } finally {
+        isExporting.value = false;
+      }
+    },
+  },
 });
 
 const isClientModalOpen = ref(false);
@@ -98,8 +116,11 @@ const deviceHeaders = computed(() => getDeviceHeaders(t));
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('devices.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
   { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'export_pdf', label: t('devices.toolbar.exportPdf'), icon: 'mdi-file-pdf-box', requiresSelection: 'single' },
   { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
 ]);
+
+
 
 function onClientSaveSuccess(message: string, newClient?: Client) {
   snackbarStore.showSuccess(message);

@@ -1,47 +1,97 @@
 <template>
-  <template v-for="(item, index) in items" :key="index">
-    <!-- Case 1: Renderuj separator -->
-    <v-divider v-if="item.divider" class="my-2 mx-2" />
+  <template
+    v-for="(item, index) in items"
+    :key="`${item.title}-${mini ? 'mini' : 'normal'}-${index}`"
+  >
 
-    <!-- Case 2: Renderuj grupę zagnieżdżoną -->
-    <v-list-group v-else-if="item.children" :value="item.title">
-      <template #activator="{ props }">
-        <v-tooltip :disabled="!rail" location="end">
-          <template #activator="{ props: tooltipProps }">
+    <v-tooltip
+      v-if="!item.children || item.children.length === 0"
+      :disabled="!mini"
+      location="end"
+      :text="item.title"
+    >
+      <template #activator="{ props: tooltipActivatorProps }">
+        <MainMenuItem
+          :item="item"
+          :search-query="searchQuery"
+          v-bind="mini ? tooltipActivatorProps : undefined"
+        />
+      </template>
+    </v-tooltip>
+
+    <template v-else>
+      <v-list-group v-if="!mini" :value="item.title">
+        <template #activator="{ props: activatorProps }">
+          <v-list-item
+            v-bind="activatorProps"
+            class="my-1 mx-2"
+            :prepend-icon="item.icon"
+            rounded="lg"
+          >
+            <template #title>
+              <MainMenuSearchColoring :search-text="searchQuery" :title="item.title!" />
+            </template>
+          </v-list-item>
+        </template>
+        <MainMenuItems
+          v-model:opened="openedGroups"
+          :items="item.children"
+          :mini="mini"
+          :search-query="searchQuery"
+        />
+      </v-list-group>
+
+      <!-- Widok zwinięty (mini) -->
+      <div v-else>
+        <v-tooltip location="end" :text="item.title">
+          <template #activator="{ props: tooltipActivatorProps }">
             <v-list-item
-              v-bind="{ ...props, ...tooltipProps }"
+              v-bind="tooltipActivatorProps"
+              class="my-1 mx-2"
               :prepend-icon="item.icon"
-              :title="item.title"
               rounded="lg"
-              class="mx-2 my-1"
+              @click="toggleGroup(item.title!)"
             />
           </template>
-          <span>{{ item.title }}</span>
         </v-tooltip>
-      </template>
-
-      <!-- REKURENCJA: Komponent wywołuje sam siebie dla dzieci grupy -->
-      <MainMenuItems :items="item.children" :rail="rail" />
-    </v-list-group>
-
-    <!-- Case 3: Renderuj standardowy element listy -->
-    <v-tooltip v-else :disabled="!rail" location="end">
-      <template #activator="{ props }">
-        <div v-bind="props">
-          <MainMenuItem :item="item" />
+        <div v-if="isGroupOpen(item.title!)" class="mini-submenu">
+          <MainMenuItems
+            :items="item.children"
+            :mini="false"
+            :search-query="searchQuery"
+          />
         </div>
-      </template>
-      <span>{{ item.title }}</span>
-    </v-tooltip>
+      </div>
+    </template>
   </template>
 </template>
 
 <script lang="ts" setup>
-import type { MenuItem } from '@/config/menuItems';
+import type { MenuItem } from '@/components/menu/MainMenuItem.vue'
 import MainMenuItem from '@/components/menu/MainMenuItem.vue'
+import MainMenuSearchColoring from '@/components/menu/MainMenuSearchColoring.vue'
 
 defineProps<{
-  items: MenuItem[];
-  rail: boolean;
-}>();
+  items: MenuItem[]
+  searchQuery: string | null
+  mini: boolean
+}>()
+
+const openedGroups = defineModel<string[]>('opened')
+
+function toggleGroup (groupTitle: string) {
+  if (!openedGroups.value) {
+    openedGroups.value = [groupTitle];
+    return;
+  }
+
+  openedGroups.value = openedGroups.value.includes(groupTitle)
+    ? openedGroups.value.filter(title => title !== groupTitle)
+    : [...openedGroups.value, groupTitle]
+}
+
+function isGroupOpen (groupTitle: string) {
+  return openedGroups.value?.includes(groupTitle) ?? false
+}
 </script>
+

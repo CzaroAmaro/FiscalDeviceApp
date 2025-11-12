@@ -1,37 +1,62 @@
 <template>
   <v-navigation-drawer
-    v-model="drawer"
     :rail="mini"
     permanent
-    width="280"
     rail-width="72"
-    color="grey-darken-3"
+    width="280"
   >
     <template #prepend>
-      <!-- Używamy v-model do dwukierunkowej komunikacji stanu mini -->
       <MainMenuHeader v-model:mini="mini" />
     </template>
 
-    <v-list v-model:opened="openedGroups" nav density="compact">
-      <MainMenuItems :items="items" :rail="mini" />
+    <v-list
+      v-model:opened="openedGroups"
+      class="pt-0"
+      density="comfortable"
+      nav
+      open-strategy="multiple"
+    >
+      <MainMenuItems
+        v-if="!isSearching || filteredItems.length > 0"
+        v-model:opened="openedGroups"
+        :items="filteredItems"
+        :mini="mini"
+        :search-query="searchQuery"
+      />
+      <!-- NOWOŚĆ: Komunikat, gdy nic nie znaleziono -->
+      <div v-else class="text-body-2 text-grey text-center pa-4">
+        {{ t('menu.nothingFoundInMenu') }}
+      </div>
     </v-list>
+
+    <template #append>
+      <MainMenuSearch
+        v-model="searchQuery"
+        @focused="mini = false"
+      />
+    </template>
   </v-navigation-drawer>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import MainMenuHeader from '@/components/menu/MainMenuHeader.vue';
-import MainMenuItems from '@/components/menu/MainMenuItems.vue';
+import MainMenuHeader from '@/components/menu/MainMenuHeader.vue'
+import MainMenuItems from '@/components/menu/MainMenuItems.vue'
+import MainMenuSearch from '@/components/menu/MainMenuSearch.vue'
 import type { MenuItem } from '@/config/menuItems'
+import { useMenu } from '@/components/menu/useMainMenu.ts'
+import { ref, toRefs } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-// Przechowuje otwarte grupy menu
+const props = defineProps<{
+  items: MenuItem[]
+}>()
 
-defineProps<{
-  items: MenuItem[];
-}>();
+const mini = defineModel<boolean>('mini', { default: false })
 
-// Definiuje v-model:mini, który może być użyty w komponencie nadrzędnym
-const mini = defineModel<boolean>('mini');
+const { items } = toRefs(props)
+const {t} = useI18n()
+const searchQuery = ref<string | null>(null)
 
-const drawer = ref(true); // Stan widoczności szuflady (głównie dla mobile)
-const openedGroups = ref([]);</script>
+// NOWOŚĆ: Użycie composable do zarządzania logiką menu
+const { filteredItems, openedGroups, isSearching } = useMenu(items, searchQuery)
+</script>

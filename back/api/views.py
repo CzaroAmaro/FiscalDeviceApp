@@ -21,6 +21,10 @@ from .models.devices import FiscalDevice
 from .models.tickets import ServiceTicket
 from .models.billing import Order, ActivationCode
 
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+
 from .serializers import (
     CustomUserSerializer,
     RegisterSerializer,
@@ -738,3 +742,37 @@ def redeem_activation_code(request):
         'detail': 'Kod zrealizowany! Twoje konto jest teraz w pełni aktywne.',
         'user': user_data
     }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsCompanyAdmin]) # Tylko admin może generować raporty
+def export_device_pdf(request, device_id):
+    """
+    Generuje i zwraca raport PDF dla urządzenia o podanym ID.
+    """
+    try:
+        # Pobieramy obiekt urządzenia, upewniając się, że należy do firmy użytkownika
+        company = request.user.technician_profile.company
+        device = FiscalDevice.objects.select_related('owner', 'brand').get(
+            id=device_id,
+            owner__company=company
+        )
+    except FiscalDevice.DoesNotExist:
+        return Response({'error': 'Nie znaleziono urządzenia.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Przygotowujemy kontekst dla szablonu HTML
+    context = {
+        'device': device,
+        'generation_date': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+    # Renderujemy szablon HTML do stringa
+    html_string = render_to_string('device_report.html', context)
+
+    # Generujemy PDF za pomocą WeasyPrint
+    pdf_file = HTML(string=html_string).write_pdf()
+
+    # Tworzymy odpowiedź HTTP z plikiem PDF
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="raport_urzadzenia_{device.unique_number}.pdf"'
+
+    return response

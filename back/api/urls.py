@@ -34,4 +34,6 @@ urlpatterns = [
     path('stripe/webhook/', views.stripe_webhook, name='stripe-webhook'),
     path('redeem-activation-code/', views.redeem_activation_code, name='redeem-activation-code'),
     path('my-activation-codes/', views.my_activation_codes, name='my-activation-codes'),
+
+    path('devices/<int:device_id>/export-pdf/', views.export_device_pdf, name='export-device-pdf'),
 ]

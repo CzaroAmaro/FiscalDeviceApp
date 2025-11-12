@@ -4,12 +4,15 @@ import { useI18n } from 'vue-i18n'
 
 import { useSnackbarStore } from '@/stores/snackbar';
 
+type CustomActionHandler<T> = (selectedItems: T[]) => void | Promise<void>;
+
 interface ResourceViewOptions<T> {
   resourceName: string;
   items: Readonly<Ref<T[]>>;
   isLoading: Readonly<Ref<boolean>>;
   fetchItems: (force?: boolean) => Promise<void>;
   deleteItem: (id: number) => Promise<void>;
+  customActions?: Record<string, CustomActionHandler<T>>;
 }
 
 type ResourceItem = { id: number; name?: string; model_name?: string; serial_number?: string };
@@ -26,7 +29,7 @@ export function useResourceView<T extends ResourceItem>(
   const isConfirmOpen = ref(false);
   const isDeleting = ref(false);
 
-  const { items, isLoading, fetchItems, deleteItem } = options;
+  const { items, isLoading, fetchItems, deleteItem, customActions } = options;
 
   const confirmMessage = computed(() => {
     if (selectedItems.value.length === 1) {
@@ -38,14 +41,31 @@ export function useResourceView<T extends ResourceItem>(
   });
 
   function handleToolbarAction(actionId: string) {
-    if (actionId === 'add') {
-      itemToEdit.value = null;
-      isFormOpen.value = true;
-    } else if (actionId === 'edit' && selectedItems.value.length === 1) {
-      itemToEdit.value = selectedItems.value[0];
-      isFormOpen.value = true;
-    } else if (actionId === 'delete' && selectedItems.value.length > 0) {
-      isConfirmOpen.value = true;
+    // 1. Sprawdź, czy to akcja niestandardowa
+    if (customActions && customActions[actionId]) {
+      customActions[actionId](selectedItems.value);
+      return;
+    }
+
+    // 2. Jeśli nie, obsłuż domyślne akcje
+    switch (actionId) {
+      case 'add':
+        itemToEdit.value = null;
+        isFormOpen.value = true;
+        break;
+      case 'edit':
+        if (selectedItems.value.length === 1) {
+          itemToEdit.value = selectedItems.value[0];
+          isFormOpen.value = true;
+        }
+        break;
+      case 'delete':
+        if (selectedItems.value.length > 0) {
+          isConfirmOpen.value = true;
+        }
+        break;
+      default:
+        console.warn(`Nieobsługiwana akcja: ${actionId}`);
     }
   }
 

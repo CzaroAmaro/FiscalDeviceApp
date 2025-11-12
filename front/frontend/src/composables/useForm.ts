@@ -11,6 +11,7 @@ import type { VForm } from 'vuetify/components';
  */
 export type FormPayload = Record<string, unknown>;
 export type EditableItem<TId extends number = number> = { id: TId } | null;
+export type TransformPayloadFn<T extends FormPayload> = (payload: T) => T;
 
 export function useForm<
   TPayload extends FormPayload,
@@ -20,7 +21,8 @@ export function useForm<
   initialData: TPayload,
   editingItem: Ref<TItem>,
   addFn: (payload: TPayload) => Promise<TResult>,
-  updateFn: (id: number, payload: TPayload) => Promise<TResult>
+  updateFn: (id: number, payload: TPayload) => Promise<TResult>,
+  transformPayloadFn?: TransformPayloadFn<TPayload>
 ) {
   const formRef = ref<VForm | null>(null);
   // reactive copy of initialData
@@ -49,21 +51,21 @@ export function useForm<
       throw new Error('Form ref not found');
     }
 
-    const rawValidateResult = (formRef.value.validate && formRef.value.validate()) as
-      | boolean
-      | Promise<boolean>
-      | unknown;
-
-    const valid = Boolean(await Promise.resolve(rawValidateResult));
-    if (!valid) {
-      throw new Error('Validation failed');
+    const valid = await formRef.value.validate();
+    if (!valid.valid) {
+      throw new Error('Walidacja formularza nie powiodła się.');
     }
 
     state.isSaving = true;
     state.error = null;
 
     try {
-      const payload = (Object.assign({}, formData) as unknown) as TPayload;
+      let payload = { ...formData } as TPayload;
+
+      if (transformPayloadFn) {
+        payload = transformPayloadFn(payload);
+      }
+
       if (isEditing.value && editingItem.value) {
         return await updateFn(editingItem.value.id, payload);
       } else {

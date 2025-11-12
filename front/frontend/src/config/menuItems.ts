@@ -8,6 +8,7 @@ export interface MenuItem {
   divider?: boolean;
   children?: MenuItem[];
 }
+
 /**
  * Zwraca przetłumaczoną listę elementów menu nawigacyjnego.
  * @param t - Funkcja tłumacząca z useI18n.
@@ -39,10 +40,22 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'manufacturer-list' },
   },
   {
-    title: t('menu.technicians'),
-    value: 'technicians',
-    icon: 'mdi-account-hard-hat',
-    to: { name: 'technician-list' },
+    title: t('menu.employees'),
+    icon: 'mdi-briefcase-account',
+    children: [
+      {
+        title: t('menu.technicians'),
+        value: 'technicians',
+        icon: 'mdi-account-hard-hat',
+        to: { name: 'technician-list' },
+      },
+      {
+        title: t('menu.permissions'),
+        value: 'permissions',
+        icon: 'mdi-lock-check-outline',
+        // to: { name: 'permission-list' },
+      },
+    ],
   },
   {
     title: t('menu.tickets'),
@@ -50,5 +63,4 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     icon: 'mdi-ticket-confirmation-outline',
     to: { name: 'ticket-list' },
   },
-  // { divider: true },
 ];

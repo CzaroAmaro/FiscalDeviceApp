@@ -4,22 +4,20 @@
       {{ title }}
     </v-toolbar-title>
 
-    <!-- Kontekstowy tytuł, gdy coś jest zaznaczone -->
     <v-toolbar-title v-else class="text-subtitle-1 font-weight-medium">
       Zaznaczono: {{ selectedCount }}
     </v-toolbar-title>
 
     <v-spacer></v-spacer>
 
-    <!-- Pętla renderująca przyciski akcji -->
     <template v-for="action in actions" :key="action.id">
       <v-btn
         :color="action.color || 'primary'"
         :variant="action.variant || 'flat'"
         :prepend-icon="action.icon"
         :disabled="isActionDisabled(action)"
-        @click="$emit('action', action.id)"
         class="ms-2"
+        @click="$emit('action', action.id)"
       >
         {{ action.label }}
       </v-btn>

@@ -8,12 +8,12 @@
       <v-card-text>
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
           <v-alert
-            v-if="form.state.error"
+            v-if="state.error"
             type="error"
             density="compact"
             class="mb-4"
           >
-            {{ form.state.error }}
+            {{ state.error }}
           </v-alert>
 
           <v-container>
@@ -24,9 +24,8 @@
                 @save-success="onManufacturerSaveSuccess"
               />
               <v-col cols="12" sm="6">
-                <!-- ZMIANA W v-select DLA 'brand' -->
                 <v-select
-                  v-model="form.formData.brand"
+                  v-model="formData.brand"
                   :items="manufacturersStore.manufacturers"
                   item-title="name"
                   item-value="id"
@@ -44,7 +43,7 @@
 
               <v-col cols="12" sm="6">
                 <v-combobox
-                  v-model="form.formData.model_name"
+                  v-model="formData.model_name"
                   :items="predefinedDeviceModels"
                   :label="t('devices.forms.modelLabel')"
                   :rules="[rules.required]"
@@ -53,7 +52,7 @@
 
               <v-col cols="12" sm="6">
                 <v-text-field
-                  v-model="form.formData.unique_number"
+                  v-model="formData.unique_number"
                   :label="t('devices.forms.uniqueNumberLabel')"
                   :rules="[rules.required]"
                 />
@@ -61,14 +60,14 @@
 
               <v-col cols="12" sm="6">
                 <v-text-field
-                  v-model="form.formData.serial_number"
+                  v-model="formData.serial_number"
                   :label="t('devices.forms.serialLabel')"
                 />
               </v-col>
 
               <v-col cols="12" sm="6">
                 <v-text-field
-                  v-model="form.formData.sale_date"
+                  v-model="formData.sale_date"
                   :label="t('devices.forms.saleDateLabel')"
                   type="date"
                   :rules="[rules.required]"
@@ -77,7 +76,7 @@
 
               <v-col cols="12" sm="6">
                 <v-select
-                  v-model="form.formData.status"
+                  v-model="formData.status"
                   :items="statusOptions"
                   :label="t('devices.forms.statusLabel')"
                 />
@@ -85,7 +84,7 @@
 
               <v-col cols="12">
                 <v-select
-                  v-model="form.formData.owner"
+                  v-model="formData.owner"
                   :items="clientsStore.clients"
                   item-title="name"
                   item-value="id"
@@ -103,7 +102,7 @@
 
               <v-col cols="12">
                 <v-textarea
-                  v-model="form.formData.operating_instructions"
+                  v-model="formData.operating_instructions"
                   :label="t('devices.forms.instructionsLabel')"
                   rows="2"
                 />
@@ -111,7 +110,7 @@
 
               <v-col cols="12">
                 <v-textarea
-                  v-model="form.formData.remarks"
+                  v-model="formData.remarks"
                   :label="t('devices.forms.remarksLabel')"
                   rows="2"
                 />
@@ -128,7 +127,7 @@
         </v-btn>
         <v-btn
           color="primary"
-          :loading="form.state.isSaving"
+          :loading="state.isSaving"
           @click="handleFormSubmit"
         >
           {{ t('common.save') }}
@@ -193,14 +192,28 @@ const initialFormData: DevicePayload = {
   owner: 0,
 };
 
-const form = useForm<DevicePayload, FiscalDevice | null, FiscalDevice>(
+const transformDevicePayload = (payload: DevicePayload): DevicePayload => {
+  return {
+    ...payload,
+    owner: Number(payload.owner),
+    brand: Number(payload.brand),
+  };
+};
+
+const {
+  formData,
+  formRef,
+  isEditing,
+  state,
+  resetForm,
+  submit
+} = useForm<DevicePayload, FiscalDevice, FiscalDevice>(
   initialFormData,
   editingDevice,
   (payload) => devicesStore.addDevice(payload),
-  (id, payload) => devicesStore.updateDevice(id, payload)
+  (id, payload) => devicesStore.updateDevice(id, payload),
+  transformDevicePayload
 );
-
-const { formRef, isEditing } = form;
 
 /* ==========================
    Inicjalizacja
@@ -214,11 +227,11 @@ watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen) {
-      form.resetForm();
+      resetForm();
 
       // ustaw właściciela, jeśli dopiero dodany klient
       if (!isEditing.value && props.newlyAddedClientId) {
-        form.formData.owner = props.newlyAddedClientId;
+        formData.owner = props.newlyAddedClientId;
       }
     }
   }
@@ -261,7 +274,7 @@ function closeDialog() {
 
 async function handleFormSubmit() {
   try {
-    await form.submit();
+    await submit();
     const message = isEditing.value
       ? t('devices.forms.editSuccess')
       : t('devices.forms.addSuccess');
@@ -278,7 +291,7 @@ function onManufacturerSaveSuccess(message: string, newManufacturer?: Manufactur
   manufacturersStore.fetchManufacturers(true);
   if (newManufacturer) {
     // Ustaw nowo dodanego producenta jako wybranego w formularzu
-    form.formData.brand = newManufacturer.id;
+    formData.brand = newManufacturer.id;
   }
 }
 </script>
