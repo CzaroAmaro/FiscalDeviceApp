@@ -6,7 +6,7 @@
       density="compact"
       flat
       hide-details
-      :placeholder="$t('menu.searchPlaceholder')"
+      :placeholder="t('menu.searchPlaceholder')"
       prepend-inner-icon="mdi-magnify"
       variant="solo-filled"
       @focus="emit('focused')"
@@ -15,10 +15,11 @@
 </template>
 
 <script lang="ts" setup>
-import { defineModel } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits(['focused'])
+
+const { t } = useI18n()
 
 const searchQuery = defineModel<string | null>()
 

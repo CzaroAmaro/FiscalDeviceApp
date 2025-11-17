@@ -1,6 +1,6 @@
 import download from 'downloadjs';
 
-import api from './index'; // Twoja główna instancja Axios
+import api from './index';
 
 /**
  * Pobiera raport PDF dla danego urządzenia i inicjuje pobieranie w przeglądarce.

@@ -12,20 +12,28 @@ export default defineConfig({
       autoImport: true,
     }),
   ],
+  optimizeDeps: {
+    exclude: [
+      'vuetify',
+    ]
+  },
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+    server: {
+      host: true,
+      port: 5173,
+  },
   test: {
     globals: true,
     environment: 'happy-dom',
     setupFiles: ['tests/setup.ts'],
-    css: true, // Włącz przetwarzanie CSS
+    css: true,
     server: {
       deps: {
-        // Ta opcja mówi Vitest, aby nie próbował rozwiązywać zależności
-        // wewnątrz Vuetify, co rozwiązuje problem z CSS.
         inline: ['vuetify'],
       },
     },

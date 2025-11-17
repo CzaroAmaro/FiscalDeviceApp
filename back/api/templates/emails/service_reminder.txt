@@ -1,0 +1,16 @@
+Temat: Przypomnienie o zbliżającym się przeglądzie urządzenia
+
+Witaj {{ client_name }},
+
+Uprzejmie przypominamy, że zbliża się termin obowiązkowego przeglądu technicznego dla Twojego urządzenia fiskalnego:
+
+Marka i model: {{ device_brand_model }}
+Numer unikatowy: {{ device_unique_number }}
+
+Data ostatniego przeglądu: {{ last_service_date }}
+Sugerowana data następnego przeglądu: {{ next_service_date }}
+
+Prosimy o kontakt w celu umówienia wizyty serwisanta.
+
+Z poważaniem,
+Twój Serwis Fiskalny

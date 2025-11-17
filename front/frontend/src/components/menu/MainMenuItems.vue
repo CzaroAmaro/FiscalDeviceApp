@@ -67,15 +67,17 @@
 </template>
 
 <script lang="ts" setup>
-import type { MenuItem } from '@/components/menu/MainMenuItem.vue'
-import MainMenuItem from '@/components/menu/MainMenuItem.vue'
-import MainMenuSearchColoring from '@/components/menu/MainMenuSearchColoring.vue'
-
 defineProps<{
   items: MenuItem[]
   searchQuery: string | null
   mini: boolean
 }>()
+
+console.log(import.meta.env.BASE_URL)
+
+import type { MenuItem } from '@/components/menu/MainMenuItem.vue'
+import MainMenuItem from '@/components/menu/MainMenuItem.vue'
+import MainMenuSearchColoring from '@/components/menu/MainMenuSearchColoring.vue'
 
 const openedGroups = defineModel<string[]>('opened')
 

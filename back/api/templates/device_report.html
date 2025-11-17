@@ -81,6 +81,14 @@
                 <td>Status:</td>
                 <td>{{ device.get_status_display }}</td>
             </tr>
+             <tr>
+                <td>Sposób użytkowania:</td>
+                <td>{{ device.operating_instructions }}</td>
+            </tr>
+             <tr>
+                <td>Uwagi:</td>
+                <td>{{ device.remarks }}</td>
+            </tr>
         </table>
     </div>
 
@@ -101,8 +109,6 @@
             </tr>
         </table>
     </div>
-
-    <!-- Możesz tu dodać kolejne sekcje, np. listę zgłoszeń serwisowych dla tego urządzenia -->
 
 </body>
 </html>

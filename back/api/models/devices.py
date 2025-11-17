@@ -12,7 +12,6 @@ class FiscalDevice(models.Model):
         SERVICED = 'serviced', 'W serwisie'
         DECOMMISSIONED = 'decommissioned', 'Wycofana'
 
-    # company removed; use owner.company
     brand = models.ForeignKey(Manufacturer, on_delete=models.PROTECT, verbose_name="Marka/Producent")
     model_name = models.CharField(max_length=100, verbose_name="Model urządzenia")
     unique_number = models.CharField(max_length=100, unique=True, db_index=True, verbose_name="Numer unikatowy")
