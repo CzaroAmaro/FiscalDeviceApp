@@ -207,6 +207,20 @@ const transformDevicePayload = (payload: DevicePayload): DevicePayload => {
     brand: Number(payload.brand),
   };
 };
+const transformItemToFormPayload = (item: FiscalDevice): Partial<DevicePayload> => {
+  return {
+    brand: item.brand.id,
+    model_name: item.model_name,
+    unique_number: item.unique_number,
+    serial_number: item.serial_number,
+    sale_date: item.sale_date,
+    last_service_date: item.last_service_date || null, // Upewnij się, że jest null, a nie undefined
+    status: item.status,
+    operating_instructions: item.operating_instructions,
+    remarks: item.remarks,
+    owner: item.owner.id,
+  };
+};
 
 const {
   formData,
@@ -220,7 +234,8 @@ const {
   editingDevice,
   (payload) => devicesStore.addDevice(payload),
   (id, payload) => devicesStore.updateDevice(id, payload),
-  transformDevicePayload
+  transformDevicePayload,
+  transformItemToFormPayload
 );
 
 /* ==========================

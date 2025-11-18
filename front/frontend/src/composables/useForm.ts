@@ -12,6 +12,7 @@ import type { VForm } from 'vuetify/components';
 export type FormPayload = Record<string, unknown>;
 export type EditableItem<TId extends number = number> = { id: TId } | null;
 export type TransformPayloadFn<T extends FormPayload> = (payload: T) => T;
+export type TransformItemToPayloadFn<TItem, TPayload> = (item: TItem) => Partial<TPayload>;
 
 export function useForm<
   TPayload extends FormPayload,
@@ -22,7 +23,8 @@ export function useForm<
   editingItem: Ref<TItem>,
   addFn: (payload: TPayload) => Promise<TResult>,
   updateFn: (id: number, payload: TPayload) => Promise<TResult>,
-  transformPayloadFn?: TransformPayloadFn<TPayload>
+  transformPayloadForApi?: TransformPayloadFn<TPayload>,
+  transformItemToForm?: TransformItemToPayloadFn<TItem, TPayload>
 ) {
   const formRef = ref<VForm | null>(null);
   // reactive copy of initialData
@@ -38,8 +40,21 @@ export function useForm<
   function resetForm() {
     state.error = null;
     if (isEditing.value && editingItem.value) {
-      // przy edycji przepisz dostępne pola (bez nadpisywania referencji)
-      Object.assign(formData, editingItem.value as unknown as TPayload);
+      // === NOWA, POPRAWNA LOGIKA ===
+      // 1. Zresetuj formularz do stanu początkowego, aby wyczyścić stare dane.
+      Object.assign(formData, initialData);
+
+      // 2. Jeśli istnieje specjalna funkcja transformująca, użyj jej.
+      if (transformItemToForm) {
+        const transformedData = transformItemToForm(editingItem.value);
+        Object.assign(formData, transformedData);
+      } else {
+        // 3. W przeciwnym razie użyj starej, prostej logiki (dla prostszych przypadków).
+        // UWAGA: To nadal może powodować problemy dla złożonych obiektów,
+        // dlatego użycie transformItemToForm jest zalecane.
+        Object.assign(formData, editingItem.value as unknown as TPayload);
+      }
+      // ===========================
     } else {
       // przy dodawaniu zwróć do initialData
       Object.assign(formData, initialData);
@@ -62,8 +77,8 @@ export function useForm<
     try {
       let payload = { ...formData } as TPayload;
 
-      if (transformPayloadFn) {
-        payload = transformPayloadFn(payload);
+      if (transformPayloadForApi) {
+        payload = transformPayloadForApi(payload);
       }
 
       if (isEditing.value && editingItem.value) {

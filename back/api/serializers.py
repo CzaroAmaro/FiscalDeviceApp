@@ -7,6 +7,7 @@ from .models.manufacturers import Manufacturer, Certification
 from .models.devices import FiscalDevice
 from .models.tickets import ServiceTicket
 from .models.billing import Order, ActivationCode
+from dateutil.relativedelta import relativedelta
 
 
 # -----------------------------
@@ -263,10 +264,20 @@ class FiscalDeviceReadSerializer(serializers.ModelSerializer):
     brand = ManufacturerSummarySerializer(read_only=True)
     tickets_count = serializers.IntegerField(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    next_service_date = serializers.SerializerMethodField()
 
     class Meta:
         model = FiscalDevice
-        fields = ['id', 'brand', 'model_name', 'unique_number', 'serial_number', 'sale_date', 'last_service_date', 'status', 'status_display', 'operating_instructions', 'remarks', 'owner', 'tickets_count']
+        fields = ['id', 'brand', 'model_name', 'unique_number', 'serial_number', 'sale_date', 'last_service_date', 'next_service_date', 'status', 'status_display', 'operating_instructions', 'remarks', 'owner', 'tickets_count']
+
+    def get_next_service_date(self, obj: FiscalDevice):
+        """
+        Oblicza datę następnego przeglądu (2 lata po ostatnim).
+        Zwraca None, jeśli data ostatniego przeglądu nie jest ustawiona.
+        """
+        if obj.last_service_date:
+            return obj.last_service_date + relativedelta(years=2)
+        return None
 
 
 class FiscalDeviceWriteSerializer(serializers.ModelSerializer):
