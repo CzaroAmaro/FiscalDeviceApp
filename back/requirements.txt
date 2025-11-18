@@ -30,3 +30,6 @@ django-filter~=25.2
 stripe~=13.1.2
 weasyprint~=66.0
 celery[redis]
+redis~=7.0.1
+django-celery-beat
+celery

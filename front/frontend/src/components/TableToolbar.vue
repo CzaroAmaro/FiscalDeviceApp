@@ -15,6 +15,7 @@
         :color="action.color || 'primary'"
         :variant="action.variant || 'flat'"
         :prepend-icon="action.icon"
+        :loading="action.loading"
         :disabled="isActionDisabled(action)"
         class="ms-2"
         @click="$emit('action', action.id)"
@@ -35,6 +36,7 @@ export type ToolbarAction = {
   color?: string;
   variant?: 'flat' | 'text' | 'outlined';
   requiresSelection: 'none' | 'single' | 'multiple';
+  loading?: boolean;
 };
 
 const props = defineProps<{

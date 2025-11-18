@@ -4,6 +4,7 @@ from .manufacturers import Manufacturer, Certification
 from .devices import FiscalDevice
 from .tickets import ServiceTicket
 from .billing import Order, ActivationCode
+from .inspection import Inspection
 
 __all__ = [
     'CustomUser', 'Company', 'Technician',
@@ -11,5 +12,5 @@ __all__ = [
     'Manufacturer', 'Certification',
     'FiscalDevice',
     'ServiceTicket',
-    'Order', 'ActivationCode',
+    'Order', 'ActivationCode', Inspection
 ]

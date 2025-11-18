@@ -73,6 +73,14 @@
                   :rules="[rules.required]"
                 />
               </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="formData.last_service_date"
+                  :label="t('devices.forms.lastServiceDateLabel')"
+                  type="date"
+                  clearable
+                />
+              </v-col>
 
               <v-col cols="12" sm="6">
                 <v-select

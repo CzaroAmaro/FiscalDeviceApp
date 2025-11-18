@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+  <body style="font-family: sans-serif;">
+    <p>Witaj {{ client_name }},</p>
+    <p>Uprzejmie przypominamy, że zbliża się termin obowiązkowego przeglądu technicznego dla Twojego urządzenia fiskalnego:</p>
+    <ul>
+      <li><strong>Marka i model:</strong> {{ device_brand_model }}</li>
+      <li><strong>Numer unikatowy:</strong> {{ device_unique_number }}</li>
+      <li><strong>Data ostatniego przeglądu:</strong> {{ last_service_date }}</li>
+      <li><strong>Sugerowana data następnego przeglądu:</strong> {{ next_service_date }}</li>
+    </ul>
+    <p>Prosimy o kontakt w celu umówienia wizyty serwisanta.</p>
+    <p>Z poważaniem,<br/>Twój Serwis Fiskalny</p>
+  </body>
+</html>

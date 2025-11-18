@@ -15,4 +15,6 @@ export const getDeviceHeaders = (t: TranslationFunction): DataTableHeader[] => [
   { title: t('devices.headers.owner'), key: 'owner.name' },
   { title: t('devices.headers.status'), key: 'status' },
   { title: t('devices.headers.saleDate'), key: 'sale_date' },
+  { title: t('devices.headers.lastServiceDate'), key: 'last_service_date' },
+  { title: t('devices.headers.nextServiceDate'), key: 'next_service_date' }
 ];

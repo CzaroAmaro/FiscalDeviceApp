@@ -19,7 +19,7 @@ export interface FiscalDevice {
   model_name: string;
   unique_number: string;
   serial_number: string;
-  sale_date: string; // ISO date (YYYY-MM-DD)
+  sale_date: string;
   last_service_date: string | null;
   status: string;
   operating_instructions: string;

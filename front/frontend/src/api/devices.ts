@@ -2,6 +2,13 @@ import download from 'downloadjs';
 
 import api from './index';
 
+export const sendInspectionReminders = async (deviceIds: number[]): Promise<any> => {
+  const response = await api.post('/devices/send-reminders/', {
+    device_ids: deviceIds,
+  });
+  return response.data;
+};
+
 /**
  * Pobiera raport PDF dla danego urządzenia i inicjuje pobieranie w przeglądarce.
  * @param deviceId ID urządzenia

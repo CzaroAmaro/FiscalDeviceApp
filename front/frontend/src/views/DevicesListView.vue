@@ -58,7 +58,7 @@ import { useSnackbarStore } from '@/stores/snackbar';
 import { useResourceView } from '@/composables/useResourceView';
 import { getDeviceHeaders } from '@/config/tables/deviceHeaders';
 import type { FiscalDevice, Client } from '@/types';
-import { downloadDeviceReport } from '@/api/devices';
+import { downloadDeviceReport, sendInspectionReminders } from '@/api/devices';
 
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
@@ -70,6 +70,7 @@ const { t } = useI18n();
 const snackbarStore = useSnackbarStore();
 const devicesStore = useDevicesStore();
 const isExporting = ref(false);
+const isSendingReminders = ref(false);
 
 const { devices, isLoading } = storeToRefs(devicesStore);
 
@@ -93,7 +94,6 @@ const {
   deleteItem: devicesStore.deleteDevice,
   customActions: {
     export_pdf: async (selected) => {
-      // Funkcja ta otrzyma zaznaczone elementy jako argument
       if (selected.length !== 1) return;
 
       isExporting.value = true;
@@ -104,6 +104,23 @@ const {
         snackbarStore.showError(error.message || 'Wystąpił błąd podczas eksportu.');
       } finally {
         isExporting.value = false;
+      }
+    },
+    send_email: async (selected) => {
+      if (selected.length === 0) return;
+
+      isSendingReminders.value = true;
+      try {
+        const ids = selected.map(device => device.id);
+        const response = await sendInspectionReminders(ids);
+        snackbarStore.showSuccess(response.detail || `Zlecono wysłanie ${response.sent_count} przypomnień.`);
+        // Możesz odświeżyć dane, aby zobaczyć zaktualizowane daty przypomnień, jeśli je wyświetlasz
+        // await fetchItems();
+        selectedItems.value = []; // Wyczyść zaznaczenie po udanej akcji
+      } catch (error: any) {
+        snackbarStore.showError(error.message || 'Wystąpił błąd podczas wysyłania przypomnień.');
+      } finally {
+        isSendingReminders.value = false;
       }
     },
   },
@@ -118,6 +135,7 @@ const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'export_pdf', label: t('devices.toolbar.exportPdf'), icon: 'mdi-file-pdf-box', requiresSelection: 'single' },
   { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
+  { id: 'send_email', label: ('Wyslij email'), icon: 'mdi-email-send', color: 'primary', variant: 'outlined', requiresSelection: 'multiple', loading: isSendingReminders.value },
 ]);
 
 

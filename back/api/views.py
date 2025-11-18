@@ -309,6 +309,79 @@ class FiscalDeviceViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(write_serializer.data)
         return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsCompanyAdmin])
+    def remind(self, request, pk=None):
+        """
+        Uruchamia wysyłkę emaila z przypomnieniem o przeglądzie dla JEDNEGO urządzenia.
+        """
+        try:
+            device = self.get_object()
+        except FiscalDevice.DoesNotExist:
+            return Response({"detail": "Urządzenie nie istnieje."}, status=status.HTTP_404_NOT_FOUND)
+
+        if not getattr(device.owner, 'email', None):
+            return Response({"detail": "Klient przypisany do tego urządzenia nie ma adresu email."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Import zadania Celery
+        from api.tasks import send_device_inspection_reminder
+
+        # Wywołujemy zadanie z poprawnym argumentem (tylko device_id)
+        send_device_inspection_reminder.delay(device_id=device.id)
+
+        # Zaktualizujmy pola last_reminder_sent i reminder_count natychmiast,
+        # aby użytkownik widział efekt od razu w UI (opcjonalne, ale dobra praktyka)
+        # UWAGA: Model FiscalDevice musi mieć te pola. Widzę, że masz je w modelu Inspection,
+        # więc upewnij się, że FiscalDevice też je ma, lub zignoruj tę część.
+        # Zakładając, że ma:
+        if hasattr(device, 'last_reminder_sent'):
+            device.last_reminder_sent = timezone.now()
+            device.reminder_count = (getattr(device, 'reminder_count', 0) or 0) + 1
+            device.save(update_fields=['last_reminder_sent', 'reminder_count'])
+
+        return Response({"detail": f"Zlecono wysłanie przypomnienia dla urządzenia {device.unique_number}."},
+                        status=status.HTTP_202_ACCEPTED)
+
+    # NOWA AKCJA dla wielu urządzeń
+    @action(detail=False, methods=['post'], url_path='send-reminders',
+            permission_classes=[IsAuthenticated, IsCompanyAdmin])
+    def send_reminders(self, request):
+        """
+        Uruchamia wysyłkę emaili z przypomnieniem dla listy urządzeń.
+        Oczekuje w ciele zapytania: { "device_ids": [1, 2, 3] }
+        """
+        device_ids = request.data.get('device_ids')
+
+        if not isinstance(device_ids, list) or not device_ids:
+            return Response({"detail": "Oczekiwano listy ID urządzeń w polu 'device_ids'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Pobierz urządzenia należące do firmy użytkownika, żeby nikt nie wysłał maili dla cudzych urządzeń
+        company = request.user.technician_profile.company
+        devices = FiscalDevice.objects.filter(
+            id__in=device_ids,
+            owner__company=company
+        )
+
+        sent_count = 0
+        skipped_no_email = []
+
+        from api.tasks import send_device_inspection_reminder
+
+        for device in devices:
+            if getattr(device.owner, 'email', None):
+                send_device_inspection_reminder.delay(device_id=device.id)
+                sent_count += 1
+            else:
+                skipped_no_email.append(device.unique_number or device.id)
+
+        response_data = {
+            "detail": f"Zlecono wysłanie {sent_count} przypomnień.",
+            "sent_count": sent_count,
+            "skipped_no_email": skipped_no_email
+        }
+        return Response(response_data, status=status.HTTP_202_ACCEPTED)
+
 
 class ServiceTicketViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCompanyMember]
