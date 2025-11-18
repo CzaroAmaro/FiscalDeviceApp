@@ -79,9 +79,9 @@ const {
 });
 
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: t('clients.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'add', label: t('clients.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('clients.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'delete', label: t('clients.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
+  { id: 'delete', label: t('clients.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
 ]);
 
 onMounted(() => fetchItems());

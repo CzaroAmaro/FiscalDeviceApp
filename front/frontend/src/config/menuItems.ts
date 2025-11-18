@@ -40,7 +40,7 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'manufacturer-list' },
   },
   {
-    title: t('menu.employees'),
+    title: t('Pracownicy'),
     icon: 'mdi-briefcase-account',
     children: [
       {
@@ -50,10 +50,10 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
         to: { name: 'technician-list' },
       },
       {
-        title: t('menu.permissions'),
-        value: 'permissions',
+        title: t('Certyfikaty'),
+        value: 'certifications',
         icon: 'mdi-lock-check-outline',
-        // to: { name: 'permission-list' },
+        to: { name: 'certification-list' },
       },
     ],
   },

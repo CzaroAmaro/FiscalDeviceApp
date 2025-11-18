@@ -89,9 +89,9 @@ const {
 const technicianHeaders = computed(() => getTechnicianHeaders(t));
 
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: t('technicians.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'add', label: t('technicians.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('technicians.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'delete', label: t('technicians.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
+  { id: 'delete', label: t('technicians.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
 ]);
 
 onMounted(() => fetchItems());

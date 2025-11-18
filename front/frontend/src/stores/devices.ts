@@ -86,6 +86,13 @@ export const useDevicesStore = defineStore('devices', {
       }
     },
 
+    updateDeviceInList(updatedDevice: FiscalDevice) {
+      const index = this.devices.findIndex(d => d.id === updatedDevice.id);
+      if (index !== -1) {
+        this.devices[index] = updatedDevice;
+      }
+    },
+
     /**
      * Usuwa urządzenie fiskalne.
      * @param {number} deviceId - ID usuwanego urządzenia.

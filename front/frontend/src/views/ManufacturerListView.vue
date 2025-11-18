@@ -78,9 +78,9 @@ const {
 const manufacturerHeaders = computed(() => getManufacturerHeaders(t));
 
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: t('manufacturers.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'add', label: t('manufacturers.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('manufacturers.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'delete', label: t('manufacturers.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
+  { id: 'delete', label: t('manufacturers.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
 ]);
 
 onMounted(() => fetchItems());

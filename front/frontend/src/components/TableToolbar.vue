@@ -11,17 +11,22 @@
     <v-spacer></v-spacer>
 
     <template v-for="action in actions" :key="action.id">
-      <v-btn
-        :color="action.color || 'primary'"
-        :variant="action.variant || 'flat'"
-        :prepend-icon="action.icon"
-        :loading="action.loading"
-        :disabled="isActionDisabled(action)"
-        class="ms-2"
-        @click="$emit('action', action.id)"
-      >
-        {{ action.label }}
-      </v-btn>
+      <v-tooltip :text="action.label" location="bottom">
+        <template #activator="{ props }">
+          <div v-bind="props" class="d-inline-block mx-1">
+            <v-btn
+              :icon="action.icon"
+              :color="action.color || 'blue'"
+              variant="flat"
+              class="text-white"
+              size="40"
+              :loading="action.loading"
+              :disabled="isActionDisabled(action)"
+              @click="$emit('action', action.id)"
+            />
+          </div>
+        </template>
+      </v-tooltip>
     </template>
   </v-toolbar>
 </template>
@@ -34,7 +39,7 @@ export type ToolbarAction = {
   label: string;
   icon: string;
   color?: string;
-  variant?: 'flat' | 'text' | 'outlined';
+  variant?: 'flat' | 'text' | 'outlined' | 'elevated' | 'tonal' | 'plain';
   requiresSelection: 'none' | 'single' | 'multiple';
   loading?: boolean;
 };
@@ -45,14 +50,20 @@ const props = defineProps<{
   actions: ToolbarAction[];
 }>();
 
-defineEmits(['action']);
+defineEmits<{
+  (e: 'action', actionId: string): void;
+}>();
 
 const hasSelection = computed(() => props.selectedCount > 0);
 
 function isActionDisabled(action: ToolbarAction): boolean {
+  if (action.loading) {
+    return true;
+  }
+
   switch (action.requiresSelection) {
     case 'none':
-      return props.selectedCount > 0;
+      return false;
     case 'single':
       return props.selectedCount !== 1;
     case 'multiple':

@@ -89,7 +89,7 @@ const {
 const ticketHeaders = computed(() => getTicketHeaders(t));
 
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: t('tickets.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'add', label: t('tickets.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('tickets.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'delete', label: t('tickets.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
 ]);

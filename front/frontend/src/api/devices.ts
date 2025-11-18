@@ -1,5 +1,7 @@
 import download from 'downloadjs';
 
+import type { FiscalDevice } from '@/types'
+
 import api from './index';
 
 export const sendInspectionReminders = async (deviceIds: number[]): Promise<any> => {
@@ -34,4 +36,9 @@ export const downloadDeviceReport = async (deviceId: number): Promise<void> => {
     console.error('Błąd podczas pobierania raportu PDF:', error);
     throw new Error('Nie udało się pobrać raportu.');
   }
+};
+
+export const performDeviceService = async (deviceId: number): Promise<FiscalDevice> => {
+  const response = await api.post<FiscalDevice>(`/devices/${deviceId}/perform-service/`);
+  return response.data;
 };

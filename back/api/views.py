@@ -382,6 +382,26 @@ class FiscalDeviceViewSet(viewsets.ModelViewSet):
         }
         return Response(response_data, status=status.HTTP_202_ACCEPTED)
 
+    @action(detail=True, methods=['post'], url_path='perform-service')
+    def perform_service(self, request, pk=None):
+        """
+        Ustawia datę ostatniego przeglądu ('last_service_date') na dzisiejszą.
+        """
+        try:
+            # Użyj get_object(), aby skorzystać z domyślnego filtrowania uprawnień
+            device = self.get_object()
+        except FiscalDevice.DoesNotExist:
+            return Response({"detail": "Urządzenie nie istnieje."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Ustaw datę ostatniego przeglądu na dzisiaj
+        device.last_service_date = timezone.now().date()
+        device.save(update_fields=['last_service_date'])
+
+        # Zwróć zaktualizowany obiekt urządzenia, aby frontend mógł odświeżyć dane
+        # Użyj serializera do odczytu, który zawiera obliczone pole 'next_service_date'
+        serializer = self.get_serializer(instance=device)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class ServiceTicketViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCompanyMember]

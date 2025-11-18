@@ -31,6 +31,10 @@
       :editing-client="null"
       @save-success="onClientSaveSuccess"
     />
+    <DeviceDetailsModal
+      v-model="isDetailsModalOpen"
+      :device="itemToView"
+    />
 
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
@@ -59,6 +63,8 @@ import { useResourceView } from '@/composables/useResourceView';
 import { getDeviceHeaders } from '@/config/tables/deviceHeaders';
 import type { FiscalDevice, Client } from '@/types';
 import { downloadDeviceReport, sendInspectionReminders } from '@/api/devices';
+import { performDeviceService } from '@/api/devices';
+import DeviceDetailsModal from '@/components/devices/DeviceDetailsModal.vue';
 
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
@@ -71,6 +77,9 @@ const snackbarStore = useSnackbarStore();
 const devicesStore = useDevicesStore();
 const isExporting = ref(false);
 const isSendingReminders = ref(false);
+const isPerformingService = ref(false);
+const isDetailsModalOpen = ref(false);
+const itemToView = ref<FiscalDevice | null>(null);
 
 const { devices, isLoading } = storeToRefs(devicesStore);
 
@@ -123,6 +132,32 @@ const {
         isSendingReminders.value = false;
       }
     },
+    view_details: (selected) => {
+      if (selected.length !== 1) return;
+      itemToView.value = selected[0];
+      isDetailsModalOpen.value = true;
+    },
+    perform_service: async (selected) => {
+      if (selected.length !== 1) return;
+
+      isPerformingService.value = true;
+      try {
+        const deviceId = selected[0].id;
+        // Wywołaj funkcję API
+        const updatedDevice = await performDeviceService(deviceId);
+
+        // Zaktualizuj dane w store (i w tabeli)
+        // Zakładając, że masz metodę 'updateDeviceInList' lub podobną
+        devicesStore.updateDeviceInList(updatedDevice);
+
+        snackbarStore.showSuccess('Przegląd został wykonany.');
+        selectedItems.value = []; // Wyczyść zaznaczenie
+      } catch (error: any) {
+        snackbarStore.showError(error.message || 'Wystąpił błąd podczas aktualizacji.');
+      } finally {
+        isPerformingService.value = false;
+      }
+    },
   },
 });
 
@@ -131,11 +166,13 @@ const newlyCreatedClientId = ref<number | null>(null);
 
 const deviceHeaders = computed(() => getDeviceHeaders(t));
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: t('devices.toolbar.add'), icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'add', label: t('devices.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'export_pdf', label: t('devices.toolbar.exportPdf'), icon: 'mdi-file-pdf-box', requiresSelection: 'single' },
-  { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
-  { id: 'send_email', label: ('Wyslij email'), icon: 'mdi-email-send', color: 'primary', variant: 'outlined', requiresSelection: 'multiple', loading: isSendingReminders.value },
+  { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
+  { id: 'send_email', label: ('Wyslij email'), icon: 'mdi-email-send', requiresSelection: 'multiple', loading: isSendingReminders.value },
+  { id: 'perform_service', label: ('Wykonaj przegląd'), icon: 'mdi-check-decagram',  requiresSelection: 'single', loading: isPerformingService.value },
+  { id: 'view_details', label: ('Podgląd'), icon: 'mdi-eye', requiresSelection: 'single' },
 ]);
 
 

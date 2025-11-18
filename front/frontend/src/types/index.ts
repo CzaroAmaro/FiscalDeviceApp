@@ -83,6 +83,14 @@ export interface Certification {
   manufacturer_name: string;
 }
 
+export type CertificationPayload = Pick<
+  Certification,
+  'certificate_number' | 'issue_date' | 'expiry_date'
+> & {
+  technician: number;
+  manufacturer: number;
+};
+
 export interface ServiceTicket {
   id: number;
   ticket_number: string;
