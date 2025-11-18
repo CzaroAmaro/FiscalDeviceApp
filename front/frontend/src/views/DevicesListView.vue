@@ -170,7 +170,7 @@ const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'export_pdf', label: t('devices.toolbar.exportPdf'), icon: 'mdi-file-pdf-box', requiresSelection: 'single' },
   { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
-  { id: 'send_email', label: ('Wyslij email'), icon: 'mdi-email-send', requiresSelection: 'multiple', loading: isSendingReminders.value },
+  { id: 'send_email', label: ('Wyslij email'), icon: 'mdi-email', requiresSelection: 'multiple', loading: isSendingReminders.value },
   { id: 'perform_service', label: ('Wykonaj przegląd'), icon: 'mdi-check-decagram',  requiresSelection: 'single', loading: isPerformingService.value },
   { id: 'view_details', label: ('Podgląd'), icon: 'mdi-eye', requiresSelection: 'single' },
 ]);

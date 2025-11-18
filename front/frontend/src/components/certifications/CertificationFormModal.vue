@@ -39,18 +39,16 @@
                 />
               </v-col>
               <v-col cols="12" sm="6">
-                <v-text-field
+                <DatePicker
                   v-model="formData.issue_date"
                   label="Data wydania"
-                  type="date"
                   :rules="[rules.required]"
                 />
               </v-col>
               <v-col cols="12" sm="6">
-                <v-text-field
+                <DatePicker
                   v-model="formData.expiry_date"
                   label="Data ważności"
-                  type="date"
                   :rules="[rules.required]"
                 />
               </v-col>
@@ -74,6 +72,7 @@ import { useTechniciansStore } from '@/stores/technicians'; // Potrzebny do list
 import { useManufacturersStore } from '@/stores/manufacturers'; // Potrzebny do listy producentów
 import { useForm } from '@/composables/useForm';
 import type { Certification, CertificationPayload } from '@/types';
+import DatePicker from '@/components/common/DatePicker.vue';
 
 const props = defineProps<{
   modelValue: boolean;

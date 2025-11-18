@@ -66,18 +66,17 @@
               </v-col>
 
               <v-col cols="12" sm="6">
-                <v-text-field
+                <DatePicker
                   v-model="formData.sale_date"
                   :label="t('devices.forms.saleDateLabel')"
-                  type="date"
                   :rules="[rules.required]"
                 />
               </v-col>
+
               <v-col cols="12" sm="6">
-                <v-text-field
+                <DatePicker
                   v-model="formData.last_service_date"
                   :label="t('devices.forms.lastServiceDateLabel')"
-                  type="date"
                   clearable
                 />
               </v-col>
@@ -156,6 +155,7 @@ import { predefinedDeviceModels } from '@/config/deviceModels';
 import type { FiscalDevice, DevicePayload, Manufacturer } from '@/types';
 import ManufacturerFormModal from '@/components/manufacturers/ManufacturerFormModal.vue';
 import { useSnackbarStore } from '@/stores/snackbar';
+import DatePicker from '@/components/common/DatePicker.vue';
 
 /* ==========================
    Props & Emits
