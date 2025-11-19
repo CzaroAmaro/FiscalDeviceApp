@@ -14,13 +14,13 @@
         :loading="isLoading"
       >
         <template #item.status="{ item }">
-          <v-chip
-            :color="statusColor(item.status)"
-            size="small"
-            variant="flat"
-            label
-          >
-            {{ item.status }}
+          <v-chip :color="statusColor(item.status_display)" size="small" variant="flat" label>
+            {{ item.status_display }}
+          </v-chip>
+        </template>
+        <template #item.resolution="{ item }">
+          <v-chip v-if="item.status === 'closed'" :color="resolutionColor(item.resolution)" size="x-small" label>
+            {{ item.resolution_display }}
           </v-chip>
         </template>
       </DataTable>
@@ -30,6 +30,13 @@
       v-model="isFormOpen"
       :editing-ticket="itemToEdit"
       @save-success="handleFormSave"
+    />
+
+    <TicketResolveModal
+      v-if="itemToResolve"
+      v-model="isResolveModalOpen"
+      :ticket="itemToResolve"
+      @save-success="handleResolveSuccess"
     />
 
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
@@ -50,13 +57,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useTicketsStore } from '@/stores/tickets';
 import { useResourceView } from '@/composables/useResourceView';
 import { getTicketHeaders } from '@/config/tables/ticketHeaders';
 import type { ServiceTicket } from '@/types';
+import TicketResolveModal from '@/components/tickets/TicketResolveModal.vue';
+import { useSnackbarStore } from '@/stores/snackbar';
 
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
@@ -65,6 +74,9 @@ import TicketFormModal from '@/components/tickets/TicketFormModal.vue';
 const { t } = useI18n();
 const ticketsStore = useTicketsStore();
 const { tickets, isLoading } = storeToRefs(ticketsStore);
+const isResolveModalOpen = ref(false);
+const itemToResolve = ref<ServiceTicket | null>(null);
+const snackbarStore = useSnackbarStore();
 
 const {
   selectedItems,
@@ -84,6 +96,15 @@ const {
   isLoading: isLoading,
   fetchItems: ticketsStore.fetchTickets,
   deleteItem: ticketsStore.deleteTicket,
+  customActions: {
+    resolve: (selected) => {
+      // Funkcja `resolve` zostanie wywołana przez `handleToolbarAction` z `useResourceView`
+      if (selected.length === 1) {
+        itemToResolve.value = selected[0];
+        isResolveModalOpen.value = true;
+      }
+    },
+  },
 });
 
 const ticketHeaders = computed(() => getTicketHeaders(t));
@@ -91,16 +112,31 @@ const ticketHeaders = computed(() => getTicketHeaders(t));
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('tickets.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('tickets.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'resolve', label: 'Zakończ zgłoszenie', icon: 'mdi-check-circle', color: 'primary', requiresSelection: 'single' },
   { id: 'delete', label: t('tickets.toolbar.delete'), icon: 'mdi-delete', color: 'error', variant: 'outlined', requiresSelection: 'multiple' },
 ]);
 
+function handleResolveSuccess(message: string) {
+  selectedItems.value = [];
+  snackbarStore.showSuccess(message);
+  isResolveModalOpen.value = false;
+  itemToResolve.value = null;
+}
+
+const resolutionColor = (resolution: string) => {
+  switch (resolution) {
+    case 'completed': return 'success';
+    case 'failed': return 'error';
+    case 'cancelled': return 'grey';
+    default: return 'default';
+  }
+};
+
 const statusColor = (status: string) => {
   switch (status) {
-    case 'Nowe': return 'blue';
-    case 'W toku': return 'orange';
-    case 'Zakończone': return 'success';
-    case 'Anulowane': return 'grey';
-    case 'Oczekujące na klienta': return 'purple';
+    case 'open': return 'blue';
+    case 'in_progress': return 'orange';
+    case 'closed': return 'success';
     default: return 'default';
   }
 };

@@ -19,12 +19,18 @@ class ServiceTicket(models.Model):
         REPAIR = 'repair', 'Naprawa'
         OTHER = 'other', 'Inne'
 
+    class Resolution(models.TextChoices):
+        UNRESOLVED = 'unresolved', 'Nierozwiązane'
+        COMPLETED = 'completed', 'Zrealizowane pomyślnie'
+        FAILED = 'failed', 'Niezrealizowane - nie udało się'
+        CANCELLED = 'cancelled', 'Anulowane przez klienta'
+
     ticket_number = models.CharField(max_length=50, unique=True, blank=True, db_index=True, verbose_name="Numer zgłoszenia")
     title = models.CharField(max_length=255, verbose_name="Tytuł zgłoszenia")
     description = models.TextField(verbose_name="Opis zgłoszenia")
     ticket_type = models.CharField(max_length=20, choices=TicketType.choices, verbose_name="Typ zgłoszenia")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN, db_index=True, verbose_name="Status")
-    scheduled_for = models.DateTimeField(null=True, blank=True, verbose_name="Zaplanowano na")
+    scheduled_for = models.DateField(null=True, blank=True, verbose_name="Zaplanowano na")
     completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Data ukończenia")
 
     client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name="tickets", verbose_name="Klient")
@@ -36,9 +42,15 @@ class ServiceTicket(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     resolution_notes = models.TextField(blank=True, verbose_name="Notatki z wykonania / Rozwiązanie")
+    resolution = models.CharField(
+        max_length=20,
+        choices=Resolution.choices,
+        default=Resolution.UNRESOLVED,
+        verbose_name="Wynik rozwiązania"
+    )
 
     def save(self, *args, **kwargs):
-        if not self.pk and not self.ticket_number:
+        if not self.ticket_number:
             self.ticket_number = self._generate_ticket_number()
         super().save(*args, **kwargs)
 

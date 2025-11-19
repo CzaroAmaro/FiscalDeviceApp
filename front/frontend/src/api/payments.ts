@@ -1,5 +1,4 @@
 import api from './index'
-// createCheckoutSession wymaga by user był zalogowany (token wysyłany przez api client)
 
 export interface CreateSessionResp {
   sessionId?: string

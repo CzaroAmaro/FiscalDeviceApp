@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 
 import api from '@/api';
-import type { ServiceTicket, ServiceTicketPayload } from '@/types';
+import type { ServiceTicket, ServiceTicketPayload, TicketResolutionPayload } from '@/types'
 
 interface TicketsState {
   tickets: ServiceTicket[];
@@ -69,6 +69,24 @@ export const useTicketsStore = defineStore('tickets', {
       } catch (error) {
         console.error('Błąd usuwania zgłoszenia:', error);
         throw error;
+      }
+    },
+    async resolveTicket(ticketId: number, payload: TicketResolutionPayload) {
+      this.isLoading = true;
+      try {
+        const response = await api.post<ServiceTicket>(`/tickets/${ticketId}/resolve/`, payload);
+        // Znajdź i zaktualizuj zgłoszenie w liście
+        const index = this.tickets.findIndex(t => t.id === ticketId);
+        if (index !== -1) {
+          this.tickets[index] = response.data;
+        }
+        this.error = null;
+      } catch (error: any) {
+        console.error('Błąd zamykania zgłoszenia:', error);
+        this.error = error.response?.data?.detail || 'Nie udało się zakończyć zgłoszenia.';
+        throw new Error(this.error);
+      } finally {
+        this.isLoading = false;
       }
     },
   },

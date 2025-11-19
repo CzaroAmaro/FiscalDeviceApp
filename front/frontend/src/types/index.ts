@@ -106,6 +106,8 @@ export interface ServiceTicket {
   device_info: string;
   device: number;
   assigned_technician: { id: number; full_name: string } | null;
+  resolution: string;
+  resolution_display: string;
 }
 
 export type ClientPayload = Omit<Client, 'id' | 'created_at'> & {
@@ -162,4 +164,34 @@ export interface UserProfile {
   first_name: string;
   last_name: string;
   technician_profile: NestedTechnicianProfile | null
+}
+
+export interface ChartDataResponse {
+  tickets_by_status: {
+    labels: string[];
+    data: number[];
+  };
+  tickets_over_time: {
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+      backgroundColor: string;
+      borderColor: string;
+    }[];
+  };
+  devices_by_status: {
+    labels: string[];
+    data: number[];
+  };
+  expiring_certifications: {
+    technician: string;
+    manufacturer: string;
+    certificate_number: string;
+    expiry_date: string;
+  }[];
+}
+export interface TicketResolutionPayload {
+  resolution: string;
+  resolution_notes?: string;
 }

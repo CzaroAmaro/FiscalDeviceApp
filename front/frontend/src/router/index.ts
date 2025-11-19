@@ -31,6 +31,11 @@ const router = createRouter({
           meta: { requiresActivation: true },
         },
         {
+          path: 'chart',
+          name: 'chart',
+          component: () => import('@/views/ChartView.vue'),
+        },
+        {
           path: 'clients',
           name: 'client-list',
           component: () => import('../views/ClientsListView.vue'),

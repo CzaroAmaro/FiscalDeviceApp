@@ -68,8 +68,8 @@
 <script setup lang="ts">
 import { watch, computed, onMounted, toRefs } from 'vue';
 import { useCertificationsStore } from '@/stores/certifications';
-import { useTechniciansStore } from '@/stores/technicians'; // Potrzebny do listy serwisantów
-import { useManufacturersStore } from '@/stores/manufacturers'; // Potrzebny do listy producentów
+import { useTechniciansStore } from '@/stores/technicians';
+import { useManufacturersStore } from '@/stores/manufacturers';
 import { useForm } from '@/composables/useForm';
 import type { Certification, CertificationPayload } from '@/types';
 import DatePicker from '@/components/common/DatePicker.vue';

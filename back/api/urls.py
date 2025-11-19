@@ -36,4 +36,5 @@ urlpatterns = [
     path('my-activation-codes/', views.my_activation_codes, name='my-activation-codes'),
 
     path('devices/<int:device_id>/export-pdf/', views.export_device_pdf, name='export-device-pdf'),
+    path('charts/', views.ChartView.as_view(), name='charts-data'),
 ]

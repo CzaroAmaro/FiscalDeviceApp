@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import timedelta, datetime
 import stripe
 import requests
@@ -36,7 +37,7 @@ from .serializers import (
     ServiceTicketReadSerializer, ServiceTicketWriteSerializer,
     OrderReadSerializer, OrderWriteSerializer,
     ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer,
-    ServiceTicketTechnicianUpdateSerializer
+    ServiceTicketTechnicianUpdateSerializer, ServiceTicketResolveSerializer
 )
 
 
@@ -410,6 +411,26 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
     search_fields = ['ticket_number', 'title', 'description', 'client__name']
     ordering = ['-created_at']
 
+    def create(self, request, *args, **kwargs):
+        """
+        Nadpisana metoda create, aby zwrócić pełne dane obiektu
+        używając serializera do odczytu (ServiceTicketReadSerializer).
+        """
+        # Użyj serializera do zapisu (Write) do walidacji i utworzenia obiektu
+        write_serializer = self.get_serializer(data=request.data)
+        write_serializer.is_valid(raise_exception=True)
+        # perform_create zajmie się logiką zapisu, w tym generowaniem numeru
+        self.perform_create(write_serializer)
+
+        # Pobierz nowo utworzoną instancję
+        instance = write_serializer.instance
+
+        # Utwórz odpowiedź używając serializera do odczytu (Read)
+        read_serializer = ServiceTicketReadSerializer(instance=instance, context=self.get_serializer_context())
+
+        headers = self.get_success_headers(write_serializer.data)
+        return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
     def get_queryset(self):
         user = self.request.user
         company = user.technician_profile.company
@@ -429,8 +450,10 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_serializer_class(self):
+        if self.action == 'resolve':
+            return ServiceTicketResolveSerializer
+
         user = self.request.user
-        # Zwykły serwisant edytuje za pomocą ograniczonego serializera
         if self.action in ['update', 'partial_update'] and not getattr(user, 'technician_profile', None).is_admin:
             return ServiceTicketTechnicianUpdateSerializer
 
@@ -465,6 +488,37 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
 
         ticket.save()
         return Response(ServiceTicketReadSerializer(ticket).data)
+
+    @action(detail=True, methods=['post'], url_path='resolve',
+            permission_classes=[IsAuthenticated, IsTicketAssigneeOrAdmin])
+    def resolve(self, request, pk=None):
+        """
+        Marks a ticket as resolved with a given outcome and notes.
+        This sets the ticket's main status to 'CLOSED'.
+        """
+        ticket = self.get_object()
+
+        if ticket.status == ServiceTicket.Status.CLOSED:
+            return Response(
+                {"detail": "This ticket is already closed."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Aktualizujemy zgłoszenie danymi z serializera
+        ticket.resolution = serializer.validated_data['resolution']
+        ticket.resolution_notes = serializer.validated_data.get('resolution_notes', ticket.resolution_notes)
+
+        # Ustawiamy status główny na zamknięty i datę ukończenia
+        ticket.status = ServiceTicket.Status.CLOSED
+        ticket.completed_at = timezone.now()
+
+        ticket.save()
+
+        # Zwracamy pełne dane zaktualizowanego zgłoszenia
+        return Response(ServiceTicketReadSerializer(instance=ticket).data, status=status.HTTP_200_OK)
 
 
 
@@ -869,3 +923,116 @@ def export_device_pdf(request, device_id):
     response['Content-Disposition'] = f'attachment; filename="raport_urzadzenia_{device.unique_number}.pdf"'
 
     return response
+
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+
+class ChartView(APIView):
+    """
+    Widok dostarczający zagregowane dane do wykresów na pulpicie.
+    Wszystkie dane są filtrowane w kontekście firmy zalogowanego użytkownika.
+    """
+    permission_classes = [permissions.IsAuthenticated, IsCompanyMember]
+
+    def get(self, request, *args, **kwargs):
+        company = request.user.technician_profile.company
+        current_year = timezone.now().year
+
+        # 1. Wykres: Zgłoszenia wg statusu (Pie Chart)
+        tickets_by_status_qs = ServiceTicket.objects.filter(
+            client__company=company
+        ).values('status').annotate(count=Count('id')).order_by('status')
+
+        # Mapowanie kluczy statusu na czytelne etykiety
+        status_labels_map = dict(ServiceTicket.Status.choices)
+        tickets_by_status_data = {
+            "labels": [status_labels_map.get(item['status'], item['status']) for item in tickets_by_status_qs],
+            "data": [item['count'] for item in tickets_by_status_qs]
+        }
+
+        # 2. Wykres: Zgłoszenia w czasie (Line Chart)
+        # Przygotowujemy dane dla ostatnich 12 miesięcy
+        today = timezone.now().date()
+        twelve_months_ago = today - timedelta(days=365)
+
+        # Zgłoszenia utworzone
+        created_tickets_qs = ServiceTicket.objects.filter(
+            client__company=company,
+            created_at__gte=twelve_months_ago
+        ).annotate(
+            month=TruncMonth('created_at')
+        ).values('month').annotate(count=Count('id')).order_by('month')
+
+        # Zgłoszenia zamknięte
+        closed_tickets_qs = ServiceTicket.objects.filter(
+            client__company=company,
+            completed_at__gte=twelve_months_ago
+        ).annotate(
+            month=TruncMonth('completed_at')
+        ).values('month').annotate(count=Count('id')).order_by('month')
+
+        # Przetwarzanie danych do formatu wykresu
+        monthly_data = defaultdict(lambda: {'created': 0, 'closed': 0})
+        for item in created_tickets_qs:
+            monthly_data[item['month'].strftime('%Y-%m')]['created'] = item['count']
+        for item in closed_tickets_qs:
+            monthly_data[item['month'].strftime('%Y-%m')]['closed'] = item['count']
+
+        # Sortowanie i formatowanie finalnego outputu
+        sorted_months = sorted(monthly_data.keys())
+        tickets_over_time_data = {
+            "labels": [datetime.strptime(m, '%Y-%m').strftime('%B %Y') for m in sorted_months],
+            "datasets": [
+                {
+                    "label": "Nowe zgłoszenia",
+                    "data": [monthly_data[m]['created'] for m in sorted_months],
+                    "backgroundColor": 'rgba(75, 192, 192, 0.5)',
+                    "borderColor": 'rgb(75, 192, 192)',
+                },
+                {
+                    "label": "Zamknięte zgłoszenia",
+                    "data": [monthly_data[m]['closed'] for m in sorted_months],
+                    "backgroundColor": 'rgba(255, 99, 132, 0.5)',
+                    "borderColor": 'rgb(255, 99, 132)',
+                }
+            ]
+        }
+
+        # 3. Wykres: Urządzenia wg statusu (Doughnut Chart)
+        devices_by_status_qs = FiscalDevice.objects.filter(
+            owner__company=company
+        ).values('status').annotate(count=Count('id')).order_by('status')
+
+        device_status_map = dict(FiscalDevice.Status.choices)
+        devices_by_status_data = {
+            "labels": [device_status_map.get(item['status'], item['status']) for item in devices_by_status_qs],
+            "data": [item['count'] for item in devices_by_status_qs]
+        }
+
+        # 4. Dane: Certyfikaty wygasające w ciągu 90 dni
+        ninety_days_from_now = timezone.now().date() + timedelta(days=90)
+        expiring_certs_qs = Certification.objects.filter(
+            technician__company=company,
+            expiry_date__lte=ninety_days_from_now,
+            expiry_date__gte=timezone.now().date()
+        ).select_related('technician__user', 'manufacturer').order_by('expiry_date')
+
+        expiring_certs_data = [
+            {
+                "technician": cert.technician.full_name,
+                "manufacturer": cert.manufacturer.name,
+                "certificate_number": cert.certificate_number,
+                "expiry_date": cert.expiry_date.strftime('%Y-%m-%d'),
+            }
+            for cert in expiring_certs_qs
+        ]
+
+        # Kompilacja wszystkich danych w jedną odpowiedź
+        response_data = {
+            "tickets_by_status": tickets_by_status_data,
+            "tickets_over_time": tickets_over_time_data,
+            "devices_by_status": devices_by_status_data,
+            "expiring_certifications": expiring_certs_data,
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)

@@ -64,14 +64,6 @@
                 />
               </v-col>
               <v-col cols="12" sm="6">
-                <v-select
-                  v-model="form.formData.status"
-                  :items="statusOptions"
-                  :label="t('tickets.forms.statusLabel')"
-                  :rules="[rules.required]"
-                />
-              </v-col>
-              <v-col cols="12" sm="6">
                 <v-autocomplete
                   v-model="form.formData.assigned_technician"
                   :items="techniciansStore.technicians"
@@ -83,17 +75,10 @@
                 />
               </v-col>
               <v-col cols="12" sm="6">
-                <v-text-field
+                <DatePicker
                   v-model="form.formData.scheduled_for"
                   :label="t('tickets.forms.scheduledLabel')"
-                  type="datetime-local"
-                />
-              </v-col>
-              <v-col cols="12">
-                <v-textarea
-                  v-model="form.formData.resolution_notes"
-                  :label="t('tickets.forms.resolutionLabel')"
-                  rows="2"
+                  clearable
                 />
               </v-col>
             </v-row>
@@ -124,6 +109,7 @@ import { useTechniciansStore } from '@/stores/technicians';
 import { useForm } from '@/composables/useForm';
 import type { ServiceTicket, ServiceTicketPayload } from '@/types';
 import { format, parseISO } from 'date-fns';
+import DatePicker from '@/components/common/DatePicker.vue'
 
 const props = defineProps<{
   modelValue: boolean;
@@ -153,9 +139,9 @@ const toDatetimeLocal = (isoString: string | null | undefined): string => {
 
 const form = useForm<ServiceTicketPayload, ServiceTicket | null, ServiceTicket>(
   {
-    title: '', description: '', ticket_type: 'Serwis', status: 'Nowe',
-    client: 0, device: 0, assigned_technician: null,
-    scheduled_for: null, resolution_notes: '',
+    title: '', description: '', ticket_type: 'service',
+    client: null, device: null, assigned_technician: null,
+    scheduled_for: null,
   },
   editingTicket,
   (payload) => ticketsStore.addTicket(payload),
@@ -193,8 +179,12 @@ const formTitle = computed(() =>
   isEditing.value ? t('tickets.forms.editTitle') : t('tickets.forms.addTitle')
 );
 
-const typeOptions = computed(() => ['Serwis', 'Instalacja', 'Przegląd', 'Inne']);
-const statusOptions = computed(() => ['Nowe', 'W toku', 'Oczekujące na klienta', 'Zakończone', 'Anulowane']);
+const typeOptions = computed(() => [
+  { title: 'Przegląd', value: 'service' },
+  { title: 'Odczyt', value: 'reading' },
+  { title: 'Naprawa', value: 'repair' },
+  { title: 'Inne', value: 'other' }
+]);
 
 const rules = computed(() => ({
   required: (v: any) => (v !== null && v !== undefined && v !== '') || t('validation.required'),

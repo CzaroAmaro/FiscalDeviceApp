@@ -22,6 +22,12 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'home' },
   },
   {
+    title: t('Wykresy'),
+    value: 'chart',
+    icon: 'mdi-chart-line',
+    to: { name: 'chart' },
+  },
+  {
     title: t('menu.devices'),
     value: 'devices',
     icon: 'mdi-printer-pos',

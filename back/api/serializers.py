@@ -33,7 +33,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 class TechnicianSummarySerializer(serializers.ModelSerializer):
     """Simplified serializer for nested technician info."""
-    full_name = serializers.CharField(source='full_name', read_only=True)
+    full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = Technician
@@ -325,17 +325,42 @@ class ServiceTicketTechnicianUpdateSerializer(serializers.ModelSerializer):
         model = ServiceTicket
         fields = ['status', 'resolution_notes']
 
+
+class ServiceTicketResolveSerializer(serializers.ModelSerializer):
+    """Serializer for resolving a service ticket."""
+
+    # Sprawiamy, że `resolution` jest wymagane przy tej akcji
+    resolution = serializers.ChoiceField(choices=ServiceTicket.Resolution.choices)
+
+    class Meta:
+        model = ServiceTicket
+        fields = ['resolution', 'resolution_notes']
+        extra_kwargs = {
+            'resolution_notes': {'required': False, 'allow_blank': True}
+        }
+
+    def validate_resolution(self, value):
+        if value == ServiceTicket.Resolution.UNRESOLVED:
+            raise serializers.ValidationError("Cannot set resolution back to 'unresolved' via this action.")
+        return value
+
 class ServiceTicketReadSerializer(serializers.ModelSerializer):
     client = ClientSummarySerializer(read_only=True)
     device_info = serializers.CharField(source='device.model_name', read_only=True)
     assigned_technician = TechnicianSummarySerializer(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     ticket_type_display = serializers.CharField(source='get_ticket_type_display', read_only=True)
+    # ZMIANA: Dodajemy pole resolution
+    resolution_display = serializers.CharField(source='get_resolution_display', read_only=True)
 
     class Meta:
         model = ServiceTicket
-        fields = ['id', 'ticket_number', 'title', 'description', 'ticket_type', 'ticket_type_display', 'status', 'status_display', 'client', 'device', 'device_info', 'assigned_technician', 'created_at', 'scheduled_for', 'completed_at', 'resolution_notes']
-        extra_kwargs = {'device': {'write_only': True}}
+        fields = [
+            'id', 'ticket_number', 'title', 'description', 'ticket_type', 'ticket_type_display',
+            'status', 'status_display', 'client', 'device', 'device_info', 'assigned_technician',
+            'created_at', 'scheduled_for', 'completed_at', 'resolution', 'resolution_display', 'resolution_notes' # ZMIANA
+        ]
+        # Usunięto extra_kwargs, bo nie jest już potrzebne
 
 
 class ServiceTicketWriteSerializer(serializers.ModelSerializer):
@@ -348,9 +373,10 @@ class ServiceTicketWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceTicket
         fields = [
-            'title', 'description', 'ticket_type', 'status', 'client',
-            'device', 'assigned_technician', 'scheduled_for', 'resolution_notes'
+            'title', 'description', 'ticket_type', 'client',
+            'device', 'assigned_technician', 'scheduled_for'
         ]
+        read_only_fields = ('status',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
