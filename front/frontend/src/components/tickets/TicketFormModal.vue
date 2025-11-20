@@ -128,15 +128,6 @@ const devicesStore = useDevicesStore();
 const techniciansStore = useTechniciansStore();
 const { editingTicket } = toRefs(props);
 
-const toDatetimeLocal = (isoString: string | null | undefined): string => {
-  if (!isoString) return '';
-  try {
-    return format(parseISO(isoString), "yyyy-MM-dd'T'HH:mm");
-  } catch {
-    return '';
-  }
-};
-
 const form = useForm<ServiceTicketPayload, ServiceTicket | null, ServiceTicket>(
   {
     title: '', description: '', ticket_type: 'service',
@@ -164,7 +155,12 @@ watch(() => props.modelValue, (isOpen) => {
     if (isEditing.value && props.editingTicket) {
       form.formData.client = props.editingTicket.client.id;
       form.formData.assigned_technician = props.editingTicket.assigned_technician?.id ?? null;
-      form.formData.scheduled_for = toDatetimeLocal(props.editingTicket.scheduled_for);
+
+      if (props.editingTicket.scheduled_for) {
+        form.formData.scheduled_for = props.editingTicket.scheduled_for.slice(0, 10);
+      } else {
+        form.formData.scheduled_for = null;
+      }
     }
   }
 });

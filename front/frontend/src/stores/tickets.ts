@@ -17,7 +17,7 @@ export const useTicketsStore = defineStore('tickets', {
   }),
 
   getters: {
-    inProgressCount: (state) => state.tickets.filter(t => t.status === 'W toku').length,
+    inProgressCount: (state) => state.tickets.filter(t => t.status === 'open').length,
   },
 
   actions: {
