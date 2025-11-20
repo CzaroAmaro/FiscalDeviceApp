@@ -411,41 +411,24 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
     search_fields = ['ticket_number', 'title', 'description', 'client__name']
     ordering = ['-created_at']
 
-    def create(self, request, *args, **kwargs):
-        """
-        Nadpisana metoda create, aby zwrócić pełne dane obiektu
-        używając serializera do odczytu (ServiceTicketReadSerializer).
-        """
-        # Użyj serializera do zapisu (Write) do walidacji i utworzenia obiektu
-        write_serializer = self.get_serializer(data=request.data)
-        write_serializer.is_valid(raise_exception=True)
-        # perform_create zajmie się logiką zapisu, w tym generowaniem numeru
-        self.perform_create(write_serializer)
-
-        # Pobierz nowo utworzoną instancję
-        instance = write_serializer.instance
-
-        # Utwórz odpowiedź używając serializera do odczytu (Read)
-        read_serializer = ServiceTicketReadSerializer(instance=instance, context=self.get_serializer_context())
-
-        headers = self.get_success_headers(write_serializer.data)
-        return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
     def get_queryset(self):
         user = self.request.user
         company = user.technician_profile.company
-        # Zwykły serwisant widzi tylko swoje zgłoszenia
-        if not user.technician_profile.is_admin:
-            return ServiceTicket.objects.filter(
-                client__company=company,
-                assigned_technician=user.technician_profile
-            ).select_related('client', 'device__brand', 'assigned_technician__user')
+
         # Admin widzi wszystkie zgłoszenia w firmie
-        return ServiceTicket.objects.filter(client__company=company).select_related('client', 'device__brand', 'assigned_technician__user')
+        if user.technician_profile.is_admin:
+            return ServiceTicket.objects.filter(client__company=company).select_related(
+                'client', 'device', 'assigned_technician'
+            )
+        # Zwykły serwisant widzi tylko swoje zgłoszenia
+        return ServiceTicket.objects.filter(
+            client__company=company,
+            assigned_technician=user.technician_profile
+        ).select_related('client', 'device', 'assigned_technician')
 
     def get_permissions(self):
-        # Sprawdzamy uprawnienia do obiektu przy edycji/usuwaniu
-        if self.action in ['update', 'partial_update', 'destroy']:
+        # POPRAWKA: Dodano 'resolve' do listy akcji wymagających uprawnień do obiektu
+        if self.action in ['update', 'partial_update', 'destroy', 'resolve']:
             return [permissions.IsAuthenticated(), IsTicketAssigneeOrAdmin()]
         return super().get_permissions()
 
@@ -453,71 +436,74 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
         if self.action == 'resolve':
             return ServiceTicketResolveSerializer
 
-        user = self.request.user
-        if self.action in ['update', 'partial_update'] and not getattr(user, 'technician_profile', None).is_admin:
+        # Dla akcji tworzenia i pełnej aktualizacji używamy pełnego serializera
+        if self.action in ['create', 'update']:
+            return ServiceTicketWriteSerializer
+
+        # Dla PATCH (częściowa aktualizacja), czyli naszego drag-and-drop
+        if self.action == 'partial_update':
+            # Jeśli jedynym kluczem w zapytaniu jest 'status', to jest to operacja z Kanbana.
+            # Używamy prostego serializera, który pozwala na zmianę statusu.
+            if list(self.request.data.keys()) == ['status']:
+                return ServiceTicketTechnicianUpdateSerializer  # Ten serializer zawiera 'status'
+
+            # Jeśli admin wysyła bardziej złożony PATCH (np. z modala), użyj pełnego serializera
+            if self.request.user.technician_profile.is_admin:
+                return ServiceTicketWriteSerializer
+
+            # W przeciwnym razie, dla zwykłego technika, użyj ograniczonego serializera
             return ServiceTicketTechnicianUpdateSerializer
 
-        if self.action in ['create', 'update', 'partial_update']:
-            return ServiceTicketWriteSerializer
+        # Domyślnie dla 'list' i 'retrieve' używamy serializera do odczytu
         return ServiceTicketReadSerializer
 
-    @action(detail=True, methods=['post'], permission_classes=[IsCompanyAdmin])
-    def assign_technician(self, request):
-        ticket = self.get_object()
-        tech_id = request.data.get('technician_id')
-        try:
-            company = self.request.user.technician_profile.company
-            tech = Technician.objects.get(id=tech_id, company=company)
-        except Technician.DoesNotExist:
-            return Response({'detail': 'Technician not found in your company.'}, status=status.HTTP_400_BAD_REQUEST)
+    # POPRAWKA: Dodano brakującą metodę perform_create
+    def perform_create(self, serializer):
+        """
+        Zapisuje nowe zgłoszenie. Jeśli model `ServiceTicket` ma specjalną logikę
+        w metodzie `save()` (np. do generowania numeru), zostanie ona tutaj wywołana.
+        """
+        serializer.save()
 
-        ticket.assigned_technician = tech
-        ticket.save()
-        return Response(ServiceTicketReadSerializer(instance=ticket).data)
+    def create(self, request, *args, **kwargs):
+        """
+        Nadpisane, aby zwrócić pełne dane obiektu po utworzeniu, używając
+        serializera do odczytu.
+        """
+        write_serializer = self.get_serializer(data=request.data)
+        write_serializer.is_valid(raise_exception=True)
+        self.perform_create(write_serializer)
 
-    @action(detail=True, methods=['post'])
-    def change_status(self, request):
-        ticket = self.get_object()
-        new_status = request.data.get('status')
-        if new_status not in ServiceTicket.Status:
-            return Response({'detail': 'Invalid status.'}, status=status.HTTP_400_BAD_REQUEST)
+        instance = write_serializer.instance
+        read_serializer = ServiceTicketReadSerializer(instance=instance, context=self.get_serializer_context())
 
-        ticket.status = new_status
-        if new_status == ServiceTicket.Status.CLOSED and not ticket.completed_at:
-            ticket.completed_at = timezone.now()
+        headers = self.get_success_headers(write_serializer.data)
+        return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-        ticket.save()
-        return Response(ServiceTicketReadSerializer(ticket).data)
-
-    @action(detail=True, methods=['post'], url_path='resolve',
-            permission_classes=[IsAuthenticated, IsTicketAssigneeOrAdmin])
+    @action(detail=True, methods=['post'], url_path='resolve')
     def resolve(self, request, pk=None):
         """
-        Marks a ticket as resolved with a given outcome and notes.
-        This sets the ticket's main status to 'CLOSED'.
+        Oznacza zgłoszenie jako rozwiązane z podanym rezultatem i notatkami.
+        Ta akcja ustawia główny status zgłoszenia na 'Zamknięte'.
         """
         ticket = self.get_object()
 
         if ticket.status == ServiceTicket.Status.CLOSED:
             return Response(
-                {"detail": "This ticket is already closed."},
+                {"detail": "To zgłoszenie jest już zamknięte."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Aktualizujemy zgłoszenie danymi z serializera
         ticket.resolution = serializer.validated_data['resolution']
         ticket.resolution_notes = serializer.validated_data.get('resolution_notes', ticket.resolution_notes)
-
-        # Ustawiamy status główny na zamknięty i datę ukończenia
         ticket.status = ServiceTicket.Status.CLOSED
         ticket.completed_at = timezone.now()
-
         ticket.save()
 
-        # Zwracamy pełne dane zaktualizowanego zgłoszenia
+        # Zwracamy pełne, zaktualizowane dane zgłoszenia
         return Response(ServiceTicketReadSerializer(instance=ticket).data, status=status.HTTP_200_OK)
 
 

@@ -7,6 +7,8 @@ interface TicketsState {
   tickets: ServiceTicket[];
   isLoading: boolean;
   error: string | null;
+  movingTicketId: number | null;
+  lastUpdate: number | null;
 }
 
 export const useTicketsStore = defineStore('tickets', {
@@ -14,10 +16,12 @@ export const useTicketsStore = defineStore('tickets', {
     tickets: [],
     isLoading: false,
     error: null,
+    movingTicketId: null,
+    lastUpdate: null,
   }),
 
   getters: {
-    inProgressCount: (state) => state.tickets.filter(t => t.status === 'open').length,
+    openTicketsCount: (state) => state.tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length,
   },
 
   actions: {
@@ -36,7 +40,6 @@ export const useTicketsStore = defineStore('tickets', {
       }
     },
 
-    // NOWOŚĆ: Implementacja CRUD dla zgłoszeń
     async addTicket(payload: ServiceTicketPayload) {
       try {
         const response = await api.post<ServiceTicket>('/tickets/', payload);
@@ -59,6 +62,30 @@ export const useTicketsStore = defineStore('tickets', {
       } catch (error) {
         console.error('Błąd aktualizacji zgłoszenia:', error);
         throw error;
+      }
+    },
+    async updateTicketStatus(ticketId: number, status: 'open' | 'in_progress' | 'closed') {
+      if (this.movingTicketId === ticketId) {
+        console.warn(`Ticket ${ticketId} jest już w trakcie przenoszenia`);
+        return;
+      }
+
+      this.movingTicketId = ticketId;
+
+      try {
+        const response = await api.patch<ServiceTicket>(`/tickets/${ticketId}/`, { status });
+        const index = this.tickets.findIndex(t => t.id === ticketId);
+        if (index !== -1) {
+          this.tickets[index] = { ...this.tickets[index], ...response.data };
+        }
+        this.lastUpdate = Date.now();
+        return response.data;
+      } catch (error) {
+        console.error(`Błąd aktualizacji statusu zgłoszenia ${ticketId}:`, error);
+        await this.fetchTickets(true);
+        throw error;
+      } finally {
+        this.movingTicketId = null;
       }
     },
 

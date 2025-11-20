@@ -97,7 +97,9 @@ export interface ServiceTicket {
   title: string;
   description: string;
   ticket_type: string;
+  ticket_type_display: string;
   status: string;
+  status_display: string;
   resolution_notes: string;
   created_at: string;
   scheduled_for: string | null;
