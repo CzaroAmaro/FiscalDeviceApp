@@ -40,6 +40,12 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'client-list' },
   },
   {
+    title: t('Mapa klientów'),
+    value: 'clients-map',
+    icon: 'mdi-map-marker-multiple',
+    to: { name: 'client-map' },
+  },
+  {
     title: t('menu.manufacturers'),
     value: 'manufacturers',
     icon: 'mdi-factory',

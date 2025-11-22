@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef
 from django.utils import timezone
 from rest_framework import viewsets, generics, permissions, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
@@ -37,7 +37,7 @@ from .serializers import (
     ServiceTicketReadSerializer, ServiceTicketWriteSerializer,
     OrderReadSerializer, OrderWriteSerializer,
     ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer,
-    ServiceTicketTechnicianUpdateSerializer, ServiceTicketResolveSerializer
+    ServiceTicketTechnicianUpdateSerializer, ServiceTicketResolveSerializer, ClientLocationSerializer
 )
 
 
@@ -207,9 +207,35 @@ class ClientViewSet(CompanyScopedViewSet):
     ordering = ['name']
 
     def get_serializer_class(self):
+        if self.action == 'locations':
+            return ClientLocationSerializer
         if self.action in ['create', 'update', 'partial_update']:
             return ClientWriteSerializer
         return ClientReadSerializer
+
+    @action(detail=False, methods=['get'])
+    def locations(self, request, *args, **kwargs):
+        """
+        Zwraca uproszczoną listę klientów z lokalizacjami i informacją
+        o otwartych zgłoszeniach, do użycia na mapie.
+        """
+        # Adnotacja sprawdzająca, czy dla danego klienta istnieje
+        # przynajmniej jedno zgłoszenie o statusie 'OPEN'.
+        open_tickets_subquery = ServiceTicket.objects.filter(
+            client=OuterRef('pk'),
+            status=ServiceTicket.Status.OPEN
+        )
+
+        # Pobieramy tylko klientów, którzy mają współrzędne
+        queryset = self.get_queryset().filter(
+            latitude__isnull=False,
+            longitude__isnull=False
+        ).annotate(
+            has_open_tickets=Exists(open_tickets_subquery)
+        )
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class ManufacturerViewSet(CompanyScopedViewSet):

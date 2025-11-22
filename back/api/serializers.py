@@ -8,6 +8,7 @@ from .models.devices import FiscalDevice
 from .models.tickets import ServiceTicket
 from .models.billing import Order, ActivationCode
 from dateutil.relativedelta import relativedelta
+from geopy.geocoders import Nominatim
 
 
 # -----------------------------
@@ -180,18 +181,62 @@ class ClientSummarySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'nip']
 
 
+class ClientLocationSerializer(serializers.ModelSerializer):
+    """
+    Lekki serializer zwracający tylko dane potrzebne dla widoku mapy.
+    """
+    has_open_tickets = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Client
+        fields = ['id', 'name', 'latitude', 'longitude', 'has_open_tickets']
+
+
 class ClientReadSerializer(serializers.ModelSerializer):
     """Full client serializer."""
     class Meta:
         model = Client
-        fields = ['id', 'company', 'name', 'address', 'nip', 'regon', 'phone_number', 'email', 'created_at']
+        fields = ['id', 'company', 'name', 'address', 'nip', 'regon', 'phone_number', 'email', 'created_at', 'latitude', 'longitude']
+        read_only_fields = fields
 
 
 class ClientWriteSerializer(serializers.ModelSerializer):
-    """Serializer for creating/updating clients, company-scoped."""
+
     class Meta:
         model = Client
         fields = ['name', 'address', 'nip', 'regon', 'phone_number', 'email']
+
+    def geocode(self, address):
+        geolocator = Nominatim(user_agent="myapp")
+        location = geolocator.geocode(address)
+        if location:
+            return location.latitude, location.longitude
+        return None, None
+
+    def create(self, validated_data):
+        # automatyczne geokodowanie
+        address = validated_data.get('address')
+        if address:
+            lat, lng = self.geocode(address)
+            validated_data['latitude'] = lat
+            validated_data['longitude'] = lng
+
+        # przypisanie klienta do firmy zalogowanego technika
+        request = self.context['request']
+        company = request.user.technician_profile.company
+        validated_data['company'] = company
+
+        return Client.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        # Jeśli zmienia się adres → wykonaj nowy geocode
+        new_address = validated_data.get('address', instance.address)
+        if new_address != instance.address:
+            lat, lng = self.geocode(new_address)
+            validated_data['latitude'] = lat
+            validated_data['longitude'] = lng
+
+        return super().update(instance, validated_data)
 
     def validate_nip(self, value):
         # NIP validated at model level; additionally ensure unique per company

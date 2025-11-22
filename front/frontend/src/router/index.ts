@@ -41,6 +41,11 @@ const router = createRouter({
           component: () => import('../views/ClientsListView.vue'),
         },
         {
+          path: 'clients-map',
+          name: 'client-map',
+          component: () => import('../views/ClientsMapView.vue'),
+        },
+        {
           path: 'devices',
           name: 'device-list',
           component: () => import('../views/DevicesListView.vue'),

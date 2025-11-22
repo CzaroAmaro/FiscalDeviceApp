@@ -1,23 +1,29 @@
 import { defineStore } from 'pinia';
 
 import api from '@/api';
-import type { Client, ClientPayload } from '@/types';
+import type { Client, ClientLocation,ClientPayload } from '@/types';
 
 interface ClientsState {
   clients: Client[];
+  clientLocations: ClientLocation[];
   isLoading: boolean;
+  isLoadingLocations: boolean;
   error: string | null;
 }
 
 export const useClientsStore = defineStore('clients', {
   state: (): ClientsState => ({
     clients: [],
+    clientLocations: [],
     isLoading: false,
+    isLoadingLocations: false,
     error: null,
   }),
 
   getters: {
     clientCount: (state) => state.clients.length,
+    clientsWithLocation: (state) =>
+      state.clients.filter((c) => c.latitude && c.longitude),
   },
   actions: {
     // DOBRA PRAKTYKA: Dodajemy parametr 'force' do przeładowania danych
@@ -72,6 +78,21 @@ export const useClientsStore = defineStore('clients', {
       } catch (error) {
         console.error('Błąd usuwania klienta:', error);
         throw error;
+      }
+    },
+    async fetchClientLocations(force = false) {
+      if (this.clientLocations.length > 0 && !force) return;
+
+      this.isLoadingLocations = true;
+      this.error = null;
+      try {
+        const response = await api.get<ClientLocation[]>('/clients/locations/');
+        this.clientLocations = response.data;
+      } catch (err) {
+        this.error = 'Nie udało się załadować lokalizacji klientów.';
+        console.error(err);
+      } finally {
+        this.isLoadingLocations = false;
       }
     },
   },

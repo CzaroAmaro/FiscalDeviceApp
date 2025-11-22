@@ -1,7 +1,8 @@
-// main.ts
 import 'vuetify/styles';
 import '@mdi/font/css/materialdesignicons.css';
+import "leaflet/dist/leaflet.css";
 
+import * as L from "leaflet";
 import { createPinia } from 'pinia';
 import { createApp } from 'vue';
 import { createI18n, useI18n } from 'vue-i18n';
@@ -12,12 +13,14 @@ import { mdi } from 'vuetify/iconsets/mdi';
 import { en, pl } from 'vuetify/locale';
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n';
 
-import { useAuthStore } from '@/stores/auth'; // Przesunięcie importu wyżej dla czytelności
+import { useAuthStore } from '@/stores/auth';
 
 import App from './App.vue';
 import enMessages from './i18n/en.json';
 import plMessages from './i18n/pl.json';
 import router from './router';
+
+window.L = L;
 
 const i18n = createI18n({
   legacy: false,
@@ -29,7 +32,6 @@ const i18n = createI18n({
   },
 });
 
-// --- Konfiguracja Vuetify ---
 const vuetify = createVuetify({
   components,
   directives,
@@ -45,18 +47,17 @@ const vuetify = createVuetify({
   },
 });
 
-// --- Inicjalizacja Aplikacji ---
 const app = createApp(App);
-const pinia = createPinia(); // 1. Stwórz instancję Pinia
+const pinia = createPinia();
 
-app.use(pinia); // 2. Zainstaluj Pinia w aplikacji
+app.use(pinia);
 
-// 3. NAJWAŻNIEJSZA ZMIANA: Zainicjuj store autentykacji PRZED routerem
 const authStore = useAuthStore();
-authStore.initialize(); // To ustawi nagłówek w `api` na podstawie tokenu z localStorage
+authStore.initialize();
 
-app.use(router); // 4. Dopiero teraz zainstaluj router, który będzie używał poprawnie skonfigurowanego `api`
+app.use(router);
 app.use(vuetify);
 app.use(i18n);
 
 app.mount('#app');
+

@@ -6,7 +6,17 @@ export interface Client {
   phone_number: string;
   email: string;
   regon: string;
-  created_at: string; // ISO datetime (np. "2025-10-27T10:15:00Z")
+  created_at: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface ClientLocation {
+  id: number;
+  name: string;
+  latitude: number;
+  longitude: number;
+  has_open_tickets: boolean;
 }
 
 export interface Manufacturer {
