@@ -75,4 +75,10 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     icon: 'mdi-ticket-confirmation-outline',
     to: { name: 'ticket-list' },
   },
+  {
+    title: t('Chat'),
+    value: 'chat',
+    icon: 'mdi-forum-outline',
+    to: { name: 'chat' },
+  },
 ];

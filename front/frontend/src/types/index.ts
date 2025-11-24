@@ -207,3 +207,18 @@ export interface TicketResolutionPayload {
   resolution: string;
   resolution_notes?: string;
 }
+
+export interface Message {
+  id: number;
+  sender_id: number;
+  sender_name: string;
+  content: string;
+  timestamp: string;
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}

@@ -20,7 +20,7 @@ services:
     depends_on:
       # Uruchom backend dopiero, gdy db i redis będą gotowe
       - redis
-    command: python manage.py runserver 0.0.0.0:8000
+    command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
 
   # Serwis Frontendu (Vue)
   frontend:

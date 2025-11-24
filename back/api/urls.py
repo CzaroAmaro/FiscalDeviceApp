@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from .views_chat import MessageViewSet
 
 router = DefaultRouter()
 
@@ -16,6 +17,7 @@ router.register(r'devices', views.FiscalDeviceViewSet, basename='fiscaldevice')
 router.register(r'tickets', views.ServiceTicketViewSet, basename='serviceticket')
 router.register(r'orders', views.OrderViewSet, basename='order')
 router.register(r'activation-codes', views.ActivationCodeViewSet, basename='activationcode')
+router.register(r'messages', MessageViewSet, basename='message')
 
 urlpatterns = [
     path('', include(router.urls)),

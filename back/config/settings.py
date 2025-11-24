@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'api.apps.ApiConfig',
     # 'django_celery_beat',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -175,6 +176,17 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
+
+ASGI_APPLICATION = 'config.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('redis', 6379)], # 'redis' to nazwa serwisu z docker-compose
+        },
+    },
 }
 
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')

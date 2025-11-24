@@ -85,6 +85,11 @@ const router = createRouter({
           name: 'certification-list',
           component: () => import('@/views/CertificationsView.vue'),
         },
+        {
+          path: 'chat',
+          name: 'chat',
+          component: () => import('@/views/ChatView.vue'),
+        },
       ],
     },
     {

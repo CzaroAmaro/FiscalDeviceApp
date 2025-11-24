@@ -5,6 +5,7 @@ from .devices import FiscalDevice
 from .tickets import ServiceTicket
 from .billing import Order, ActivationCode
 from .inspection import Inspection
+from .chat import Message
 
 __all__ = [
     'CustomUser', 'Company', 'Technician',
@@ -12,5 +13,5 @@ __all__ = [
     'Manufacturer', 'Certification',
     'FiscalDevice',
     'ServiceTicket',
-    'Order', 'ActivationCode', Inspection
+    'Order', 'ActivationCode', 'Inspection', 'Message'
 ]
