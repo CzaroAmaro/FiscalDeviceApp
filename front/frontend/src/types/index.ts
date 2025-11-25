@@ -222,3 +222,40 @@ export interface PaginatedResponse<T> {
   previous: string | null;
   results: T[];
 }
+
+export interface ReportParameters {
+  date_from?: string;
+  date_to?: string;
+  clients?: number[];
+  technicians?: number[];
+  device_brands?: number[];
+  ticket_statuses?: string[];
+  ticket_types?: string[];
+  ticket_resolutions?: string[];
+  output_format?: 'json' | 'csv' | 'pdf';
+}
+
+export interface ReportFilterOptions {
+  clients: { id: number; name: string }[];
+  technicians: { id: number; name: string }[];
+  brands: { id: number; name: string }[];
+  ticket_statuses: { value: string; text: string }[];
+  ticket_types: { value: string; text: string }[];
+  ticket_resolutions: { value: string; text: string }[];
+}
+
+export interface ReportResult {
+  ticket_number: string;
+  title: string;
+  created_at: string;
+  scheduled_for: string | null;
+  completed_at: string | null;
+  client_name: string;
+  client_nip: string;
+  device_model: string;
+  device_unique_number: string;
+  assigned_technician_name: string | null;
+  status_display: string;
+  ticket_type_display: string;
+  resolution_display: string;
+}

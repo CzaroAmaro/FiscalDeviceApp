@@ -497,3 +497,69 @@ class ActivationCodeWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"order": "Order does not belong to your company."})
         return data
 
+
+class ReportParameterSerializer(serializers.Serializer):
+    """
+    Waliduje parametry wejściowe dla generatora raportów.
+    """
+    # Zakres dat
+    date_from = serializers.DateField(required=False)
+    date_to = serializers.DateField(required=False)
+
+    # Filtry po modelach
+    clients = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+    technicians = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+    device_brands = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+
+    # Filtry po statusach/typach
+    ticket_statuses = serializers.ListField(
+        child=serializers.ChoiceField(choices=ServiceTicket.Status.choices), required=False
+    )
+    ticket_types = serializers.ListField(
+        child=serializers.ChoiceField(choices=ServiceTicket.TicketType.choices), required=False
+    )
+    ticket_resolutions = serializers.ListField(
+        child=serializers.ChoiceField(choices=ServiceTicket.Resolution.choices), required=False
+    )
+
+    # Format wyjściowy
+    output_format = serializers.ChoiceField(
+        choices=['json', 'csv', 'pdf'], default='json', required=False
+    )
+
+    def validate(self, data):
+        """
+        Możemy tu dodać walidację krzyżową, np. czy date_from nie jest późniejsze niż date_to.
+        """
+        if 'date_from' in data and 'date_to' in data and data['date_from'] > data['date_to']:
+            raise serializers.ValidationError("Data 'od' nie może być późniejsza niż data 'do'.")
+        return data
+
+
+class ReportResultSerializer(serializers.ModelSerializer):
+    """
+    Prezentuje dane pojedynczego wiersza w raporcie.
+    Jest to spłaszczona struktura dla łatwiejszego wyświetlania i eksportu.
+    """
+    client_name = serializers.CharField(source='client.name')
+    client_nip = serializers.CharField(source='client.nip')
+    device_model = serializers.CharField(source='device.model_name')
+    device_unique_number = serializers.CharField(source='device.unique_number')
+    assigned_technician_name = serializers.CharField(source='assigned_technician.full_name', allow_null=True)
+    status_display = serializers.CharField(source='get_status_display')
+    ticket_type_display = serializers.CharField(source='get_ticket_type_display')
+    resolution_display = serializers.CharField(source='get_resolution_display')
+
+    class Meta:
+        model = ServiceTicket
+        fields = (
+            'ticket_number', 'title', 'created_at', 'scheduled_for', 'completed_at',
+            'client_name', 'client_nip', 'device_model', 'device_unique_number',
+            'assigned_technician_name', 'status_display', 'ticket_type_display', 'resolution_display'
+        )

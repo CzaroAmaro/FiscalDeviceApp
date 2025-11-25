@@ -81,4 +81,10 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     icon: 'mdi-forum-outline',
     to: { name: 'chat' },
   },
+  {
+    title: t('Raporty'),
+    value: 'reports',
+    icon: 'mdi-file-chart-outline',
+    to: { name: 'reports' },
+  },
 ];

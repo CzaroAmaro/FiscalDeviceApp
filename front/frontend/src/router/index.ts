@@ -90,6 +90,11 @@ const router = createRouter({
           name: 'chat',
           component: () => import('@/views/ChatView.vue'),
         },
+        {
+          path: '/reports',
+          name: 'reports',
+          component: () => import('../views/ReportsView.vue'),
+        },
       ],
     },
     {

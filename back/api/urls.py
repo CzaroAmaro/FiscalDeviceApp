@@ -39,4 +39,7 @@ urlpatterns = [
 
     path('devices/<int:device_id>/export-pdf/', views.export_device_pdf, name='export-device-pdf'),
     path('charts/', views.ChartView.as_view(), name='charts-data'),
+
+    path('reports/generate/', views.GenerateReportView.as_view(), name='generate-report'),
+    path('reports/filter-options/', views.ReportFilterOptionsView.as_view(), name='report-filter-options'),
 ]

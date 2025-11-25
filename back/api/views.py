@@ -1,3 +1,4 @@
+import csv
 from collections import defaultdict
 from datetime import timedelta, datetime
 import stripe
@@ -10,6 +11,7 @@ from django.db.models import Count, Exists, OuterRef
 from django.utils import timezone
 from rest_framework import viewsets, generics, permissions, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.renderers import JSONRenderer, BaseRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
@@ -21,6 +23,8 @@ from .models.manufacturers import Manufacturer, Certification
 from .models.devices import FiscalDevice
 from .models.tickets import ServiceTicket
 from .models.billing import Order, ActivationCode
+
+from django.db.models import Q
 
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -37,7 +41,8 @@ from .serializers import (
     ServiceTicketReadSerializer, ServiceTicketWriteSerializer,
     OrderReadSerializer, OrderWriteSerializer,
     ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer,
-    ServiceTicketTechnicianUpdateSerializer, ServiceTicketResolveSerializer, ClientLocationSerializer
+    ServiceTicketTechnicianUpdateSerializer, ServiceTicketResolveSerializer, ClientLocationSerializer,
+    ReportResultSerializer, ReportParameterSerializer
 )
 
 
@@ -1048,3 +1053,131 @@ class ChartView(APIView):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+
+class CSVRenderer(BaseRenderer):
+    media_type = 'text/csv'
+    format = 'csv'
+    charset = 'utf-8'
+
+    def render(self, data, media_type=None, renderer_context=None):
+        if not data:
+            return ""
+
+        # Zakładamy, że data to lista słowników
+        if not isinstance(data, list) or not isinstance(data[0], dict):
+            # Można obsłużyć błąd lub zwrócić JSON z błędem
+            return JSONRenderer().render(data, media_type, renderer_context)
+
+        # Używamy kluczy z pierwszego obiektu jako nagłówków
+        headers = data[0].keys()
+
+        # Używamy StringIO, aby pisać do "pliku" w pamięci
+        from io import StringIO
+        string_buffer = StringIO()
+        writer = csv.DictWriter(string_buffer, fieldnames=headers)
+
+        writer.writeheader()
+        writer.writerows(data)
+
+        return string_buffer.getvalue().encode(self.charset)
+
+
+# ... (reszta widoków)
+
+class ReportFilterOptionsView(APIView):
+    """
+    Zwraca dane potrzebne do wypełnienia opcji w formularzu raportów na frontendzie.
+    """
+    permission_classes = [IsAuthenticated, IsCompanyAdmin]
+
+    def get(self, request, *args, **kwargs):
+        company = request.user.technician_profile.company
+
+        clients = Client.objects.filter(company=company).values('id', 'name')
+        technicians = Technician.objects.filter(company=company).values('id', 'first_name', 'last_name')
+        brands = Manufacturer.objects.filter(company=company).values('id', 'name')
+
+        return Response({
+            'clients': list(clients),
+            'technicians': [{'id': t['id'], 'name': f"{t['first_name']} {t['last_name']}"} for t in technicians],
+            'brands': list(brands),
+            'ticket_statuses': [{'value': choice[0], 'text': choice[1]} for choice in ServiceTicket.Status.choices],
+            'ticket_types': [{'value': choice[0], 'text': choice[1]} for choice in ServiceTicket.TicketType.choices],
+            'ticket_resolutions': [{'value': choice[0], 'text': choice[1]} for choice in
+                                   ServiceTicket.Resolution.choices],
+        })
+
+
+class GenerateReportView(APIView):
+    """
+    Generuje raport na podstawie dostarczonych filtrów.
+    Obsługuje formaty JSON, CSV i PDF.
+    """
+    permission_classes = [IsAuthenticated, IsCompanyAdmin]
+    renderer_classes = [JSONRenderer, CSVRenderer]  # Dodajemy nasz renderer CSV
+
+    def post(self, request, *args, **kwargs):
+        serializer = ReportParameterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        params = serializer.validated_data
+
+        company = request.user.technician_profile.company
+        queryset = ServiceTicket.objects.select_related(
+            'client', 'device', 'device__brand', 'assigned_technician'
+        ).filter(client__company=company)
+
+        # --- DYNAMICZNE BUDOWANIE ZAPYTANIA ---
+        if params.get('date_from'):
+            queryset = queryset.filter(created_at__gte=params['date_from'])
+        if params.get('date_to'):
+            # Dodajemy jeden dzień, aby uwzględnić cały dzień 'date_to'
+            queryset = queryset.filter(created_at__lt=params['date_to'] + timedelta(days=1))
+
+        if params.get('clients'):
+            queryset = queryset.filter(client_id__in=params['clients'])
+        if params.get('technicians'):
+            queryset = queryset.filter(assigned_technician_id__in=params['technicians'])
+        if params.get('device_brands'):
+            queryset = queryset.filter(device__brand_id__in=params['device_brands'])
+
+        if params.get('ticket_statuses'):
+            queryset = queryset.filter(status__in=params['ticket_statuses'])
+        if params.get('ticket_types'):
+            queryset = queryset.filter(ticket_type__in=params['ticket_types'])
+        if params.get('ticket_resolutions'):
+            queryset = queryset.filter(resolution__in=params['ticket_resolutions'])
+
+        # Sortowanie dla spójności wyników
+        queryset = queryset.order_by('-created_at')
+
+        # --- OBSŁUGA FORMATU WYJŚCIOWEGO ---
+        output_format = params.get('output_format', 'json')
+
+        # Przygotowujemy dane wynikowe za pomocą naszego serializera
+        report_data = ReportResultSerializer(queryset, many=True).data
+
+        # 1. Obsługa PDF
+        if output_format == 'pdf':
+            context = {
+                'report_data': report_data,
+                'params': params,
+                'generation_date': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'company_name': company.name
+            }
+            # Będziemy potrzebować nowego szablonu HTML dla tego raportu
+            html_string = render_to_string('generic_report.html', context)
+            pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+
+            response = HttpResponse(pdf_file, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="raport_aktywnosci.pdf"'
+            return response
+
+        # 2. Obsługa CSV - zostanie obsłużona przez nasz CSVRenderer
+        if output_format == 'csv':
+            response = Response(report_data)
+            response['Content-Disposition'] = 'attachment; filename="raport_aktywnosci.csv"'
+            return response
+
+        # 3. Domyślna obsługa JSON - obsłużona przez domyślny renderer DRF
+        return Response(report_data)
