@@ -69,7 +69,9 @@
       "uniqueNumber": "Unique Number",
       "owner": "Owner",
       "status": "Status",
-      "saleDate": "Sale Date"
+      "saleDate": "Sale Date",
+      "lastServiceDate": "Last Service Date",
+      "nextServiceDate": "Next Service Date"
     },
     "forms": {
       "addTitle": "Add New Device",
@@ -127,7 +129,14 @@
     "clients": "Clients",
     "technicians": "Technicians",
     "tickets": "Tickets",
-    "manufacturers": "Manufacturers"
+    "manufacturers": "Manufacturers",
+    "reports": "Reports",
+    "chat": "Chat",
+    "certifications": "Certifications",
+    "employees": "Employees",
+    "clients-map": "Clients Map",
+    "chart": "Charts",
+    "searchPlaceholder": "Search in menu"
   },
   "technicians": {
     "title": "Technicians",

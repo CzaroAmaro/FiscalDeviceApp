@@ -69,7 +69,9 @@
       "uniqueNumber": "Numer unikatowy",
       "owner": "Właściciel",
       "status": "Status",
-      "saleDate": "Data sprzedaży"
+      "saleDate": "Data sprzedaży",
+      "lastServiceDate": "Data ostatniego przeglądu",
+      "nextServiceDate": "Data następnego przeglądu"
     },
     "forms": {
       "addTitle": "Dodaj nowe urządzenie",
@@ -127,7 +129,14 @@
     "clients": "Klienci",
     "technicians": "Serwisanci",
     "tickets": "Zlecenia",
-    "manufacturers": "Producenci"
+    "manufacturers": "Producenci",
+    "reports": "Raporty",
+    "chat": "Czat",
+    "certifications": "Certyfikaty",
+    "employees": "Pracownicy",
+    "clients-map": "Mapa klientów",
+    "chart": "Wykresy",
+    "searchPlaceholder": "Wyszukaj w menu"
   },
   "technicians": {
     "title": "Serwisanci",

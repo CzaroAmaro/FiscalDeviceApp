@@ -1166,7 +1166,7 @@ class GenerateReportView(APIView):
                 'company_name': company.name
             }
             # Będziemy potrzebować nowego szablonu HTML dla tego raportu
-            html_string = render_to_string('generic_report.html', context)
+            html_string = render_to_string('reports/generic_report.html', context)
             pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
             response = HttpResponse(pdf_file, content_type='application/pdf')

@@ -22,7 +22,7 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'home' },
   },
   {
-    title: t('Wykresy'),
+    title: t('menu.chart'),
     value: 'chart',
     icon: 'mdi-chart-line',
     to: { name: 'chart' },
@@ -40,7 +40,7 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'client-list' },
   },
   {
-    title: t('Mapa klientów'),
+    title: t('menu.clients-map'),
     value: 'clients-map',
     icon: 'mdi-map-marker-multiple',
     to: { name: 'client-map' },
@@ -52,7 +52,7 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'manufacturer-list' },
   },
   {
-    title: t('Pracownicy'),
+    title: t('menu.employees'),
     icon: 'mdi-briefcase-account',
     children: [
       {
@@ -62,7 +62,7 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
         to: { name: 'technician-list' },
       },
       {
-        title: t('Certyfikaty'),
+        title: t('menu.certifications'),
         value: 'certifications',
         icon: 'mdi-lock-check-outline',
         to: { name: 'certification-list' },
@@ -76,13 +76,13 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     to: { name: 'ticket-list' },
   },
   {
-    title: t('Chat'),
+    title: t('menu.chat'),
     value: 'chat',
     icon: 'mdi-forum-outline',
     to: { name: 'chat' },
   },
   {
-    title: t('Raporty'),
+    title: t('menu.reports'),
     value: 'reports',
     icon: 'mdi-file-chart-outline',
     to: { name: 'reports' },

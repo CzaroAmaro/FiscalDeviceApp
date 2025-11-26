@@ -4,8 +4,8 @@
     color="grey-darken-4"
     height="64"
   >
-    <v-avatar v-if="!mini" class="me-3" color="primary" size="40" tile>
-      <span class="white--text text-h6">FL</span>
+    <v-avatar v-if="!mini" class="me-3" size="40" tile>
+      <v-img src="/assets/logofiscal-removebg-preview.png" alt="Avatar" />
     </v-avatar>
     <div v-if="!mini" class="text-subtitle-1 font-weight-medium">
       <router-link to="/" class="text-white text-decoration-none">
@@ -19,6 +19,5 @@
 </template>
 
 <script lang="ts" setup>
-// v-model:mini przekazywany z MainMenu.vue
 const mini = defineModel<boolean>('mini')
 </script>
