@@ -53,7 +53,8 @@
       "devices": "Wszystkie urządzenia",
       "clients": "Klienci",
       "technicians": "Aktywni serwisanci",
-      "ticketsInProgress": "Zlecenia w toku"
+      "ticketsInProgress": "Zlecenia w toku",
+      "manufacturers": "Producenci"
     }
   },
   "devices": {
@@ -80,7 +81,7 @@
       "modelLabel": "Model urządzenia",
       "uniqueNumberLabel": "Numer unikatowy",
       "serialLabel": "Numer seryjny",
-      "saleDateLabel": "Data sprzedaży",
+      "saleDateLabel": "Data zakupu",
       "statusLabel": "Status",
       "ownerLabel": "Właściciel",
       "instructionsLabel": "Sposób użytkowania",
@@ -88,6 +89,7 @@
       "addSuccess": "Nowe urządzenie zostało pomyślnie dodane.",
       "editSuccess": "Dane urządzenia zostały zaktualizowane.",
       "addNewClientTooltip": "Dodaj nowego klienta",
+      "lastServiceDateLabel": "Data ostatniego przeglądu",
       "statusOptions": {
         "active": "Aktywna",
         "inactive": "Niewykorzystywana",
@@ -200,6 +202,11 @@
       "cancelled": "Anulowane",
       "pending_client": "Oczekujące na klienta"
     },
+    "statuses": {
+      "open": "Otwarte",
+      "closed": "Zamknięte",
+      "in_progress": "W toku"
+    },
     "types": {
       "service": "Serwis",
       "installation": "Instalacja",
@@ -224,5 +231,9 @@
     "isNumber": "Pole musi być liczbą",
     "nip": "NIP musi składać się z 10 cyfr",
     "email": "Nieprawidłowy format e-mail"
+  },
+  "clientsMap": {
+    "title": "Mapa Klientów",
+    "filterLabel": "Pokaż klientów"
   }
 }

@@ -132,15 +132,6 @@
             <v-spacer></v-spacer>
             <v-btn
               variant="outlined"
-              class="mr-2"
-              prepend-icon="mdi-file-export-outline"
-              :disabled="results.length === 0 || reportsStore.isLoading"
-              @click="reportsStore.exportReport('csv')"
-            >
-              Eksportuj CSV
-            </v-btn>
-            <v-btn
-              variant="outlined"
               prepend-icon="mdi-file-pdf-box"
               :disabled="results.length === 0 || reportsStore.isLoading"
               @click="reportsStore.exportReport('pdf')"

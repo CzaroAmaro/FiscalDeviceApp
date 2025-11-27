@@ -42,9 +42,8 @@
               </v-col>
 
               <v-col cols="12" sm="6">
-                <v-combobox
+                <v-text-field
                   v-model="formData.model_name"
-                  :items="predefinedDeviceModels"
                   :label="t('devices.forms.modelLabel')"
                   :rules="[rules.required]"
                 />

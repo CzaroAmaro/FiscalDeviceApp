@@ -127,3 +127,42 @@ def send_device_inspection_reminder(self, device_id, trigger_user_id=None):
 
     logger.info("send_device_inspection_reminder: sent reminder for device %s to %s", device_id, recipient_email)
     return True
+
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
+def send_email_task(self, subject, to_email, body, html_body=None):
+    """
+    Uniwersalne zadanie Celery do wysyłania e-maili.
+
+    :param subject: Tytuł wiadomości e-mail.
+    :param to_email: Adres odbiorcy (jako string lub lista stringów).
+    :param body: Treść wiadomości w formacie tekstowym.
+    :param html_body: Opcjonalna treść wiadomości w formacie HTML.
+    """
+    logger.info(f"Wysyłanie e-maila z tematem '{subject}' do {to_email}")
+
+    # Upewnij się, że to_email jest listą
+    if not isinstance(to_email, list):
+        recipients = [to_email]
+    else:
+        recipients = to_email
+
+    try:
+        msg = EmailMultiAlternatives(
+            subject=subject,
+            body=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=recipients
+        )
+
+        if html_body:
+            msg.attach_alternative(html_body, "text/html")
+
+        msg.send(fail_silently=False)
+        logger.info(f"E-mail do {to_email} został pomyślnie wysłany.")
+        return True
+
+    except Exception as e:
+        logger.error(f"Nie udało się wysłać e-maila do {to_email}: {e}")
+        # Dzięki autoretry_for, Celery automatycznie ponowi próbę w razie błędu
+        raise self.retry(exc=e)

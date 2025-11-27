@@ -53,7 +53,8 @@
       "devices": "All Devices",
       "clients": "Clients",
       "technicians": "Active Technicians",
-      "ticketsInProgress": "Tickets in Progress"
+      "ticketsInProgress": "Tickets in Progress",
+      "manufacturers": "Manufacturers"
     }
   },
   "devices": {
@@ -80,7 +81,7 @@
       "modelLabel": "Device model",
       "uniqueNumberLabel": "Unique number",
       "serialLabel": "Serial number",
-      "saleDateLabel": "Sale date",
+      "saleDateLabel": "Date of purchase",
       "statusLabel": "Status",
       "ownerLabel": "Owner",
       "instructionsLabel": "Instructions for use",
@@ -88,6 +89,7 @@
       "addSuccess": "New device has been successfully added.",
       "editSuccess": "Device data has been updated.",
       "addNewClientTooltip": "Add new client",
+      "lastServiceDateLabel": "Last Service Date",
       "statusOptions": {
         "active": "Active",
         "inactive": "Inactive",
@@ -200,6 +202,11 @@
       "cancelled": "Cancelled",
       "pending_client": "Pending Client"
     },
+    "statuses": {
+      "open": "Open",
+      "closed": "Closed",
+      "in_progress": "In Progress"
+},
     "types": {
       "service": "Service",
       "installation": "Installation",
@@ -224,5 +231,9 @@
     "isNumber": "This field must be a number",
     "nip": "NIP must consist of 10 digits",
     "email": "Invalid e-mail format"
+  },
+  "clientsMap": {
+    "title": "Clients Map",
+    "filterLabel": "Show clients"
   }
 }

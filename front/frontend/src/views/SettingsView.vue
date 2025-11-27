@@ -1,3 +1,4 @@
+<!-- front/frontend/src/views/SettingsView.vue -->
 <template>
   <v-container>
     <v-row justify="center">
@@ -13,7 +14,9 @@
           {{ error }}
         </v-alert>
 
+        <!-- Sekcje ustawień widoczne po załadowaniu danych -->
         <div v-else>
+          <!-- --- Karta Ustawień Firmy (bez zmian) --- -->
           <v-card class="mt-6">
             <v-card-title>Ustawienia Firmy</v-card-title>
             <v-card-text>
@@ -36,21 +39,10 @@
             </v-card-text>
           </v-card>
 
-          <v-card class="mt-6">
-            <v-card-title>Ustawienia Konta</v-card-title>
-            <v-card-text>
-              <v-form>
-                <v-text-field
-                  label="Adres e-mail"
-                  variant="outlined"
-                  disabled
-                  :model-value="currentUserEmail"
-                  hint="Zmiana e-maila będzie dostępna wkrótce"
-                  persistent-hint
-                ></v-text-field>
-              </v-form>
-            </v-card-text>
-          </v-card>
+          <!-- --- NOWA, ZINTEGROWANA SEKCJA ZMIANY E-MAIL --- -->
+          <!-- Zamiast starej karty, używamy nowego komponentu -->
+          <ChangeEmailForm class="mt-6" />
+
         </div>
       </v-col>
     </v-row>
@@ -64,13 +56,15 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import api from '@/api';
-import { useAuthStore } from '@/stores/auth';
+
+import ChangeEmailForm from '@/components/ChangeEmailForm.vue';
 
 interface Company {
   id: string;
   name: string;
 }
 
+// Logika ładowania i zapisywania danych firmy (bez zmian)
 const isLoading = ref(true);
 const isSavingCompany = ref(false);
 const error = ref<string | null>(null);
@@ -125,7 +119,7 @@ const showSnackbar = (text: string, color: 'success' | 'error' = 'success') => {
   snackbar.show = true;
 };
 
-const authStore = useAuthStore();
-const currentUserEmail = ref(authStore.user?.email || 'email@example.com');
+// Usunięto logikę `currentUserEmail`, ponieważ formularz zmiany e-mail
+// jest teraz w osobnym, samowystarczalnym komponencie.
 
 </script>

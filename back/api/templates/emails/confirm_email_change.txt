@@ -1,0 +1,12 @@
+Witaj {{ username }},
+
+Otrzymaliśmy prośbę o zmianę adresu e-mail dla Twojego konta.
+
+Aby potwierdzić tę zmianę, skopiuj poniższy link i wklej go do przeglądarki:
+{{ confirm_url }}
+
+Jeśli to nie Ty prosiłeś o zmianę, zignoruj tę wiadomość.
+Link jest ważny przez 1 godzinę.
+
+Pozdrawiamy,
+Zespół aplikacji Serwisant

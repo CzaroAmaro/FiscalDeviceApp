@@ -563,3 +563,21 @@ class ReportResultSerializer(serializers.ModelSerializer):
             'client_name', 'client_nip', 'device_model', 'device_unique_number',
             'assigned_technician_name', 'status_display', 'ticket_type_display', 'resolution_display'
         )
+
+class ChangeEmailSerializer(serializers.Serializer):
+    """
+    Serializer do walidacji danych wejściowych dla żądania zmiany e-mail.
+    """
+    new_email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
+
+    def validate_new_email(self, value):
+        if CustomUser.objects.filter(email__iexact=value).exists():
+            raise serializers.ValidationError("Ten adres e-mail jest już zajęty.")
+        return value
+
+class ConfirmEmailChangeSerializer(serializers.Serializer):
+    """
+    Serializer do walidacji tokenu potwierdzającego zmianę e-mail.
+    """
+    token = serializers.CharField(required=True)

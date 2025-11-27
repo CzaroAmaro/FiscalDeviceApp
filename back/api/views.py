@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 import stripe
 import requests
 from django.conf import settings
+from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 
@@ -42,7 +43,7 @@ from .serializers import (
     OrderReadSerializer, OrderWriteSerializer,
     ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer,
     ServiceTicketTechnicianUpdateSerializer, ServiceTicketResolveSerializer, ClientLocationSerializer,
-    ReportResultSerializer, ReportParameterSerializer
+    ReportResultSerializer, ReportParameterSerializer, ConfirmEmailChangeSerializer, ChangeEmailSerializer
 )
 
 
@@ -106,7 +107,7 @@ class ManageCompanyView(generics.RetrieveUpdateAPIView):
     """
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-    permission_classes = [IsAuthenticated, IsCompanyMember] # Tylko członek firmy ma dostęp
+    permission_classes = [IsAuthenticated, IsCompanyMember]
 
     def get_object(self):
         """
@@ -1181,3 +1182,105 @@ class GenerateReportView(APIView):
 
         # 3. Domyślna obsługa JSON - obsłużona przez domyślny renderer DRF
         return Response(report_data)
+
+from .tasks import send_email_task
+
+class RequestEmailChangeView(APIView):
+    """
+    Rozpoczyna proces zmiany adresu e-mail.
+    Wymaga podania nowego e-maila i aktualnego hasła.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = ChangeEmailSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = request.user
+        new_email = serializer.validated_data['new_email']
+        password = serializer.validated_data['password']
+
+        # 1. Sprawdź hasło użytkownika
+        if not user.check_password(password):
+            return Response({"error": "Nieprawidłowe hasło."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Wygeneruj podpisany token
+        signer = TimestampSigner()
+        payload = {
+            'user_id': user.id,
+            'new_email': new_email
+        }
+        token = signer.sign_object(payload)
+
+        # 3. Przygotuj i wyślij e-mail z linkiem potwierdzającym
+        # Zakładając, że FRONTEND_URL jest w settings.py
+        confirm_url = f"{settings.FRONTEND_URL}/settings/confirm-email-change?token={token}"
+
+        context = {
+            'username': user.username,
+            'confirm_url': confirm_url,
+        }
+
+        # Użyj szablonów do stworzenia treści e-maila
+        subject = "Potwierdź zmianę adresu e-mail w aplikacji Serwisant"
+        html_message = render_to_string('emails/confirm_email_change.html', context)
+        plain_message = render_to_string('emails/confirm_email_change.txt', context)
+
+        # Wyślij e-mail w tle za pomocą Celery
+        send_email_task.delay(
+            subject=subject,
+            body=plain_message,
+            to_email=new_email,  # Wyślij na NOWY adres
+            html_body=html_message
+        )
+
+        return Response(
+            {"detail": f"Link potwierdzający został wysłany na adres {new_email}."},
+            status=status.HTTP_200_OK
+        )
+
+
+class ConfirmEmailChangeView(APIView):
+    """
+    Finalizuje proces zmiany adresu e-mail po kliknięciu linku w mailu.
+    """
+    permission_classes = [permissions.AllowAny]  # Każdy z linkiem może tu wejść
+    serializer_class = ConfirmEmailChangeSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.validated_data['token']
+
+        signer = TimestampSigner()
+        try:
+            # max_age = 3600 (token ważny 1 godzinę)
+            payload = signer.unsign_object(token, max_age=3600)
+            user_id = payload['user_id']
+            new_email = payload['new_email']
+
+            user = CustomUser.objects.get(id=user_id)
+
+            # Sprawdź, czy w międzyczasie ktoś nie zajął tego maila
+            if CustomUser.objects.filter(email__iexact=new_email).exclude(id=user_id).exists():
+                return Response({"error": "Ten adres e-mail został w międzyczasie zajęty."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Zaktualizuj e-mail
+            user.email = new_email
+            user.save(update_fields=['email'])
+
+            # Jeśli użytkownik ma profil technika, zaktualizuj też tam
+            if hasattr(user, 'technician_profile'):
+                user.technician_profile.email = new_email
+                user.technician_profile.save(update_fields=['email'])
+
+            return Response({"detail": "Adres e-mail został pomyślnie zmieniony."}, status=status.HTTP_200_OK)
+
+        except SignatureExpired:
+            return Response({"error": "Link potwierdzający wygasł."}, status=status.HTTP_400_BAD_REQUEST)
+        except BadSignature:
+            return Response({"error": "Nieprawidłowy link potwierdzający."}, status=status.HTTP_400_BAD_REQUEST)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "Użytkownik nie istnieje."}, status=status.HTTP_404_NOT_FOUND)

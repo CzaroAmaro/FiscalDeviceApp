@@ -109,6 +109,12 @@ const router = createRouter({
       component: () => import('@/views/PaymentCancelView.vue'),
       meta: { isPublic: true }
     },
+    {
+      path: '/settings/confirm-email-change',
+      name: 'confirm-email-change',
+      component: () => import('@/views/ConfirmEmailChangeView.vue'),
+      meta: { isPublic: true },
+    },
   ],
 });
 

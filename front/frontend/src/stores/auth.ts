@@ -35,6 +35,10 @@ export const useAuthStore = defineStore('auth', {
         // Interceptor w api.ts powinien zająć się wylogowaniem w razie błędu 401
       }
     },
+    async refreshUserData() {
+      console.log('Odświeżanie danych użytkownika...');
+      await this.fetchUser();
+    },
 
     async initialize() {
       if (this.accessToken) {
