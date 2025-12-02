@@ -30,6 +30,8 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
+import json
+import google.generativeai as genai
 
 from .serializers import (
     CustomUserSerializer,
@@ -43,7 +45,8 @@ from .serializers import (
     OrderReadSerializer, OrderWriteSerializer,
     ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer,
     ServiceTicketTechnicianUpdateSerializer, ServiceTicketResolveSerializer, ClientLocationSerializer,
-    ReportResultSerializer, ReportParameterSerializer, ConfirmEmailChangeSerializer, ChangeEmailSerializer
+    ReportResultSerializer, ReportParameterSerializer, ConfirmEmailChangeSerializer, ChangeEmailSerializer,
+    AiSuggestionRequestSerializer
 )
 
 
@@ -1284,3 +1287,64 @@ class ConfirmEmailChangeView(APIView):
             return Response({"error": "Nieprawidłowy link potwierdzający."}, status=status.HTTP_400_BAD_REQUEST)
         except CustomUser.DoesNotExist:
             return Response({"error": "Użytkownik nie istnieje."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class GetAiSuggestionView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsCompanyMember]
+    serializer_class = AiSuggestionRequestSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        description = serializer.validated_data['description']
+
+        if not settings.GOOGLE_API_KEY:
+            return Response({"error": "Klucz API dla Google AI nie jest skonfigurowany na serwerze."},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            genai.configure(api_key=settings.GOOGLE_API_KEY)
+        except Exception as e:
+            return Response({"error": f"Błąd konfiguracji Google AI: {e}"},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        full_prompt = f"""
+        Twoim zadaniem jest analiza opisu problemu z urządzeniem fiskalnym i zwrócenie odpowiedzi WYŁĄCZNIE w formacie JSON.
+        Nie dodawaj żadnych dodatkowych wyjaśnień, komentarzy ani tekstu poza obiektem JSON. Nie używaj znaczników markdown takich jak ```json.
+
+        Opis problemu: "{description}"
+
+        Zwróć obiekt JSON zawierający następujące klucze:
+        - "possible_cause": (string) Krótki, prawdopodobny powód problemu.
+        - "suggested_category": (string) Jedna z wartości: "Sprzęt", "Oprogramowanie", "Sieć", "Użytkownik", "Inne".
+        - "diagnostic_steps": (array of strings) Lista 3-5 konkretnych kroków diagnostycznych do wykonania.
+        """
+
+        try:
+            # Używamy stabilnego i sprawdzonego modelu 'gemini-pro'
+            model = genai.GenerativeModel('gemini-2.0-flash')
+
+            generation_config = genai.types.GenerationConfig(
+                response_mime_type="application/json"
+            )
+
+            response = model.generate_content(
+                full_prompt,
+                generation_config=generation_config
+            )
+
+            suggestions = json.loads(response.text)
+            return Response(suggestions, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            error_message = f"Błąd podczas komunikacji z Google Gemini API: {e}"
+            print(error_message)
+
+            if "API key not valid" in str(e):
+                error_message = "Klucz API do Google AI jest nieprawidłowy lub wygasł."
+            elif "404" in str(e) and "is not found" in str(e):
+                error_message = "Wybrany model AI nie jest dostępny. Skontaktuj się z administratorem."
+            else:
+                error_message = "Wystąpił błąd po stronie serwera AI. Spróbuj ponownie później."
+
+            return Response({"error": error_message}, status=status.HTTP_503_SERVICE_UNAVAILABLE)

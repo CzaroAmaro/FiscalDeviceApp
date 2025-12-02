@@ -27,9 +27,7 @@ export function useForm<
   transformItemToForm?: TransformItemToPayloadFn<TItem, TPayload>
 ) {
   const formRef = ref<VForm | null>(null);
-  // reactive copy of initialData
   const formData = reactive({ ...initialData } as TPayload);
-
   const state = reactive({
     isSaving: false,
     error: null as string | null,

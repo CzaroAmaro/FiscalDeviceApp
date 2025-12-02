@@ -45,4 +45,6 @@ urlpatterns = [
 
     path('users/change-email/', views.RequestEmailChangeView.as_view(), name='request-email-change'),
     path('users/change-email-confirm/', views.ConfirmEmailChangeView.as_view(), name='confirm-email-change'),
+
+    path('ai/get-suggestion/', views.GetAiSuggestionView.as_view(), name='get-ai-suggestion'),
 ]

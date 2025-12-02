@@ -581,3 +581,6 @@ class ConfirmEmailChangeSerializer(serializers.Serializer):
     Serializer do walidacji tokenu potwierdzającego zmianę e-mail.
     """
     token = serializers.CharField(required=True)
+
+class AiSuggestionRequestSerializer(serializers.Serializer):
+    description = serializers.CharField(required=True, min_length=10, max_length=2048, trim_whitespace=True)
