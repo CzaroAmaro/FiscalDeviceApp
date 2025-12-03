@@ -1,5 +1,6 @@
 <template>
-  <v-container class="fill-height d-flex justify-center align-center">
+  <v-container class="fill-height d-flex justify-center align-center auth-container">
+    <img src="@/assets/logo-fiscal.png" alt="Fiscal Service App Logo" class="auth-logo" />
     <v-card width="400" class="pa-5">
       <v-card-title class="text-h5 text-center mb-4">
         Zaloguj się
@@ -112,5 +113,34 @@ const handleLogin = async () => {
 <style scoped>
 .fill-height {
   min-height: 100vh;
+}
+.auth-logo {
+  position: absolute;
+  top: 2rem;
+  left: 80px;
+  max-width: 520px;
+  opacity: 0.9;
+}
+@media (max-width: 1500px) {
+  .auth-logo {
+    top: 1rem;
+    left: 1rem;
+    max-width: 380px;
+  }
+}
+@media (max-width: 1185px) {
+  .auth-logo {
+    top: 1rem;
+    left: 1rem;
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 960px) {
+  .auth-logo {
+    top: 1rem;
+    left: 1rem;
+    max-width: 150px;
+  }
 }
 </style>
