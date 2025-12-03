@@ -45,10 +45,10 @@
         <v-col cols="12">
           <v-card>
             <v-card-text class="chart-container" style="height: 400px;">
-              <Line
-                v-if="ticketsOverTime && ticketsOverTime.datasets[0].data.length > 0"
-                :data="ticketsOverTime"
-                :options="{...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'Zgłoszenia w czasie (ostatnie 12 m-cy)'}}}"
+              <Bar
+                v-if="workloadOverTime && workloadOverTime.datasets[0].data.length > 0"
+                :data="workloadOverTime"
+                :options="barChartOptions"
               />
               <div v-else class="d-flex align-center justify-center fill-height">Brak danych do wyświetlenia</div>
             </v-card-text>
@@ -91,7 +91,7 @@
 import { onMounted, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useChartsStore } from '@/stores/charts';
-import { Bar, Line, Pie, Doughnut } from 'vue-chartjs';
+import { Bar, Pie, Doughnut } from 'vue-chartjs';
 import {
   Chart as ChartJS,
   Title,
@@ -141,6 +141,41 @@ const chartOptions = {
   },
 };
 
+const barChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'top' as const,
+    },
+    title: {
+      display: true,
+      text: 'Miesięczne obciążenie pracą wg typu zlecenia (ostatnie 12 m-cy)',
+      font: {
+        size: 16,
+      },
+    },
+    // Opcjonalnie: Tooltip, który pokazuje sumę dla całego słupka
+    tooltip: {
+      mode: 'index' as const, // Pokazuje tooltip dla całej kategorii (miesiąca)
+      intersect: false,
+    },
+  },
+  scales: {
+    x: {
+      stacked: true, // PRAWIDŁOWO: Słupki w tej samej kategorii (miesiąc) będą stackowane
+    },
+    y: {
+      stacked: true, // PRAWIDŁOWO: Wartości z różnych datasetów będą dodawane do siebie
+      beginAtZero: true,
+      title: {
+        display: true,
+        text: 'Liczba zleceń'
+      }
+    },
+  },
+};
+
 // --- Computed properties for each chart (teraz odwołują się do store'a) ---
 const ticketsByStatus = computed(() => {
   if (!chartData.value?.tickets_by_status) return null;
@@ -153,16 +188,12 @@ const ticketsByStatus = computed(() => {
   };
 });
 
-const ticketsOverTime = computed(() => {
-  if (!chartData.value?.tickets_over_time) return null;
-  return {
-    labels: chartData.value.tickets_over_time.labels,
-    datasets: chartData.value.tickets_over_time.datasets.map((ds: any) => ({
-      ...ds,
-      tension: 0.1,
-      fill: true,
-    })),
-  };
+const workloadOverTime = computed(() => {
+  // Sprawdzamy, czy dane istnieją i czy jest co najmniej jeden dataset
+  if (!chartData.value?.workload_over_time || chartData.value.workload_over_time.datasets.length === 0) {
+    return null;
+  }
+  return chartData.value.workload_over_time;
 });
 
 const devicesByStatus = computed(() => {

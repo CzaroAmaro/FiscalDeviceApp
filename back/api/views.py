@@ -1,8 +1,9 @@
 import csv
 from collections import defaultdict
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 import stripe
 import requests
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.db import transaction
@@ -1026,114 +1027,103 @@ def export_device_pdf(request, device_id):
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
 
+
 class ChartView(APIView):
-    """
-    Widok dostarczający zagregowane dane do wykresów na pulpicie.
-    Wszystkie dane są filtrowane w kontekście firmy zalogowanego użytkownika.
-    """
     permission_classes = [permissions.IsAuthenticated, IsCompanyMember]
 
     def get(self, request, *args, **kwargs):
         company = request.user.technician_profile.company
-        current_year = timezone.now().year
 
-        # 1. Wykres: Zgłoszenia wg statusu (Pie Chart)
+        # 1. Zgłoszenia wg statusu
         tickets_by_status_qs = ServiceTicket.objects.filter(
             client__company=company
         ).values('status').annotate(count=Count('id')).order_by('status')
-
-        # Mapowanie kluczy statusu na czytelne etykiety
         status_labels_map = dict(ServiceTicket.Status.choices)
         tickets_by_status_data = {
             "labels": [status_labels_map.get(item['status'], item['status']) for item in tickets_by_status_qs],
             "data": [item['count'] for item in tickets_by_status_qs]
         }
 
-        # 2. Wykres: Zgłoszenia w czasie (Line Chart)
-        # Przygotowujemy dane dla ostatnich 12 miesięcy
-        today = timezone.now().date()
-        twelve_months_ago = today - timedelta(days=365)
+        # 2. Obciążenie pracą w czasie
+        twelve_months_ago = timezone.now().date() - relativedelta(months=11)
+        twelve_months_ago = twelve_months_ago.replace(day=1)
 
-        # Zgłoszenia utworzone
-        created_tickets_qs = ServiceTicket.objects.filter(
+        tickets_by_month_and_type = ServiceTicket.objects.filter(
             client__company=company,
             created_at__gte=twelve_months_ago
         ).annotate(
             month=TruncMonth('created_at')
-        ).values('month').annotate(count=Count('id')).order_by('month')
+        ).values('month', 'ticket_type').annotate(count=Count('id')).order_by('month')
 
-        # Zgłoszenia zamknięte
-        closed_tickets_qs = ServiceTicket.objects.filter(
-            client__company=company,
-            completed_at__gte=twelve_months_ago
-        ).annotate(
-            month=TruncMonth('completed_at')
-        ).values('month').annotate(count=Count('id')).order_by('month')
+        monthly_data = defaultdict(lambda: defaultdict(int))
+        for item in tickets_by_month_and_type:
+            month_str = item['month'].strftime('%Y-%m')
+            monthly_data[month_str][item['ticket_type']] += item['count']
 
-        # Przetwarzanie danych do formatu wykresu
-        monthly_data = defaultdict(lambda: {'created': 0, 'closed': 0})
-        for item in created_tickets_qs:
-            monthly_data[item['month'].strftime('%Y-%m')]['created'] = item['count']
-        for item in closed_tickets_qs:
-            monthly_data[item['month'].strftime('%Y-%m')]['closed'] = item['count']
+        all_months_labels = []
+        today = date.today()
+        for i in range(12, 0, -1):
+            month_date = today - relativedelta(months=i - 1)
+            all_months_labels.append(month_date.strftime('%Y-%m'))
 
-        # Sortowanie i formatowanie finalnego outputu
-        sorted_months = sorted(monthly_data.keys())
-        tickets_over_time_data = {
-            "labels": [datetime.strptime(m, '%Y-%m').strftime('%B %Y') for m in sorted_months],
-            "datasets": [
-                {
-                    "label": "Nowe zgłoszenia",
-                    "data": [monthly_data[m]['created'] for m in sorted_months],
-                    "backgroundColor": 'rgba(75, 192, 192, 0.5)',
-                    "borderColor": 'rgb(75, 192, 192)',
-                },
-                {
-                    "label": "Zamknięte zgłoszenia",
-                    "data": [monthly_data[m]['closed'] for m in sorted_months],
-                    "backgroundColor": 'rgba(255, 99, 132, 0.5)',
-                    "borderColor": 'rgb(255, 99, 132)',
-                }
-            ]
+        # POPRAWKA TUTAJ: Dodajemy brakujący klucz do słownika
+        colors = {
+            ServiceTicket.TicketType.SERVICE: {'bg': 'rgba(75, 192, 192, 0.7)', 'border': 'rgb(75, 192, 192)'},
+            ServiceTicket.TicketType.REPAIR: {'bg': 'rgba(255, 99, 132, 0.7)', 'border': 'rgb(255, 99, 132)'},
+            ServiceTicket.TicketType.READING: {'bg': 'rgba(54, 162, 235, 0.7)', 'border': 'rgb(54, 162, 235)'},
+            ServiceTicket.TicketType.OTHER: {'bg': 'rgba(201, 203, 207, 0.7)', 'border': 'rgb(201, 203, 207)'},
         }
 
-        # 3. Wykres: Urządzenia wg statusu (Doughnut Chart)
+        datasets = []
+        for ticket_type_value, ticket_type_label in ServiceTicket.TicketType.choices:
+            data_for_all_months = [monthly_data[month].get(ticket_type_value, 0) for month in all_months_labels]
+            color_set = colors.get(ticket_type_value)  # Bezpieczne pobranie
+
+            dataset = {
+                "label": ticket_type_label,
+                "data": data_for_all_months,
+                "backgroundColor": color_set['bg'],
+                "borderColor": color_set['border'],
+            }
+            datasets.append(dataset)
+
+        workload_over_time_data = {
+            "labels": [datetime.strptime(m, '%Y-%m').strftime('%B %Y') for m in all_months_labels],
+            "datasets": datasets
+        }
+
+        # 3. Urządzenia wg statusu
         devices_by_status_qs = FiscalDevice.objects.filter(
             owner__company=company
         ).values('status').annotate(count=Count('id')).order_by('status')
-
         device_status_map = dict(FiscalDevice.Status.choices)
         devices_by_status_data = {
             "labels": [device_status_map.get(item['status'], item['status']) for item in devices_by_status_qs],
             "data": [item['count'] for item in devices_by_status_qs]
         }
 
-        # 4. Dane: Certyfikaty wygasające w ciągu 90 dni
+        # 4. Wygasające certyfikaty
         ninety_days_from_now = timezone.now().date() + timedelta(days=90)
         expiring_certs_qs = Certification.objects.filter(
             technician__company=company,
             expiry_date__lte=ninety_days_from_now,
             expiry_date__gte=timezone.now().date()
         ).select_related('technician__user', 'manufacturer').order_by('expiry_date')
-
         expiring_certs_data = [
             {
                 "technician": cert.technician.full_name,
                 "manufacturer": cert.manufacturer.name,
                 "certificate_number": cert.certificate_number,
                 "expiry_date": cert.expiry_date.strftime('%Y-%m-%d'),
-            }
-            for cert in expiring_certs_qs
+            } for cert in expiring_certs_qs
         ]
 
-        # Kompilacja wszystkich danych w jedną odpowiedź
         response_data = {
             "tickets_by_status": tickets_by_status_data,
-            "tickets_over_time": tickets_over_time_data,
+            "workload_over_time": workload_over_time_data,
             "devices_by_status": devices_by_status_data,
             "expiring_certifications": expiring_certs_data,
         }
-
         return Response(response_data, status=status.HTTP_200_OK)
 
 

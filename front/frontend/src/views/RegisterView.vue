@@ -68,41 +68,69 @@
         <span class="text-body-2">Masz już konto?</span>
         <v-btn :to="{ name: 'login' }" variant="text" color="primary" size="small">Zaloguj się</v-btn>
       </v-card-actions>
+
+      <v-divider class="my-3"></v-divider>
+
+      <v-card-text class="pa-0">
+        <v-row align="center" justify="center" class="text-caption">
+          <v-col cols="auto">
+            <div class="d-flex align-center">
+              <v-icon start>mdi-weather-night</v-icon>
+              <v-switch
+                v-model="themeStore.isDark"
+                color="primary"
+                hide-details
+                inset
+                @update:model-value="themeStore.toggleTheme"
+              ></v-switch>
+              <v-icon end>mdi-white-balance-sunny</v-icon>
+            </div>
+          </v-col>
+
+          <v-col cols="auto">
+            <LanguageSelect />
+          </v-col>
+        </v-row>
+      </v-card-text>
+
     </v-card>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { reactive, ref } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme'; // <-- NOWY IMPORT
+import LanguageSelect from '@/components/languageSelect/LanguageSelect.vue'; // <-- NOWY IMPORT
 
-const authStore = useAuthStore()
+const authStore = useAuthStore();
+const themeStore = useThemeStore(); // <-- INICJALIZACJA STORE'A
 
 const formData = reactive({
   username: '',
   email: '',
   password: '',
   passwordConfirm: '',
-})
+});
 
-const errors = reactive<Record<string, any>>({})
-const isLoading = ref(false)
+const errors = reactive<Record<string, any>>({});
+const isLoading = ref(false);
 
 const handleRegister = async () => {
   Object.keys(errors).forEach(key => delete errors[key]);
 
   if (formData.password !== formData.passwordConfirm) {
-    errors.passwordConfirm = 'Hasła nie są zgodne.'
+    errors.passwordConfirm = 'Hasła nie są zgodne.';
     return;
   }
 
-  isLoading.value = true
+  isLoading.value = true;
   try {
     await authStore.register({
       username: formData.username,
       email: formData.email,
       password: formData.password,
-    })
+    });
   } catch (err: any) {
     if (err.response && err.response.data) {
       Object.assign(errors, err.response.data);
@@ -110,9 +138,9 @@ const handleRegister = async () => {
       errors.detail = "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.";
     }
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
 
 <style scoped>

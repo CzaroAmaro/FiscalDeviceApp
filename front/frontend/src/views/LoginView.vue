@@ -41,43 +41,72 @@
           Zarejestruj się
         </v-btn>
       </v-card-actions>
+
+      <v-divider class="my-3"></v-divider>
+
+      <v-card-text class="pa-0">
+        <v-row align="center" justify="center" class="text-caption">
+          <v-col cols="auto">
+            <div class="d-flex align-center">
+              <v-icon start>mdi-weather-night</v-icon>
+              <v-switch
+                v-model="themeStore.isDark"
+                color="primary"
+                hide-details
+                inset
+                @update:model-value="themeStore.toggleTheme"
+              ></v-switch>
+              <v-icon end>mdi-white-balance-sunny</v-icon>
+            </div>
+          </v-col>
+
+          <v-col cols="auto">
+            <LanguageSelect />
+          </v-col>
+        </v-row>
+      </v-card-text>
+
     </v-card>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import type { VForm } from 'vuetify/components'
+import { ref } from 'vue';
+import type { VForm } from 'vuetify/components';
+import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme'; // <-- NOWY IMPORT
+import LanguageSelect from '@/components/languageSelect/LanguageSelect.vue'; // <-- NOWY IMPORT
 
-const authStore = useAuthStore()
-const form = ref<VForm | null>(null)
-const username = ref('')
-const password = ref('')
-const isLoading = ref(false)
-const error = ref<string | null>(null)
+const authStore = useAuthStore();
+const themeStore = useThemeStore(); // <-- INICJALIZACJA STORE'A
+
+const form = ref<VForm | null>(null);
+const username = ref('');
+const password = ref('');
+const isLoading = ref(false);
+const error = ref<string | null>(null);
 
 const rules = {
   required: (value: string) => !!value || 'Pole jest wymagane.',
-}
+};
 
 const handleLogin = async () => {
-  const { valid } = await form.value!.validate()
-  if (!valid) return
+  const { valid } = await form.value!.validate();
+  if (!valid) return;
 
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
   try {
     await authStore.login({
       username: username.value,
       password: password.value,
-    })
+    });
   } catch (err: any) {
-    error.value = err.response?.data?.detail || 'Nieprawidłowe dane logowania.'
+    error.value = err.response?.data?.detail || 'Nieprawidłowe dane logowania.';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
 
 <style scoped>

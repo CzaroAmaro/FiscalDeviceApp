@@ -183,7 +183,7 @@ export interface ChartDataResponse {
     labels: string[];
     data: number[];
   };
-  tickets_over_time: {
+  workload_over_time: {
     labels: string[];
     datasets: {
       label: string;
