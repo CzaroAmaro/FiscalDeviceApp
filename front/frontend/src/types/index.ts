@@ -259,3 +259,8 @@ export interface ReportResult {
   ticket_type_display: string;
   resolution_display: string;
 }
+
+export interface TechnicianSummary {
+  id: number;
+  full_name: string;
+}

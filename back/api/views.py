@@ -21,7 +21,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models.users import Technician, Company, CustomUser
 from .models.clients import Client
 from .models.manufacturers import Manufacturer, Certification
-from .models.devices import FiscalDevice
+from .models.devices import FiscalDevice, DeviceHistoryEntry
 from .models.tickets import ServiceTicket
 from .models.billing import Order, ActivationCode
 
@@ -46,7 +46,7 @@ from .serializers import (
     ActivationCodeReadSerializer, ActivationCodeWriteSerializer, CompanySerializer, UserProfileSerializer,
     ServiceTicketTechnicianUpdateSerializer, ServiceTicketResolveSerializer, ClientLocationSerializer,
     ReportResultSerializer, ReportParameterSerializer, ConfirmEmailChangeSerializer, ChangeEmailSerializer,
-    AiSuggestionRequestSerializer
+    AiSuggestionRequestSerializer, TechnicianSummarySerializer
 )
 
 
@@ -321,9 +321,10 @@ class FiscalDeviceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         company = self.request.user.technician_profile.company
+        # Dodajemy prefetch_related, aby pobrać wszystkie wpisy historii jednym zapytaniem
         return FiscalDevice.objects.select_related('owner', 'brand').filter(
             owner__company=company
-        ).annotate(tickets_count=Count('tickets'))
+        ).prefetch_related('history_entries__actor').annotate(tickets_count=Count('tickets'))
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -344,6 +345,31 @@ class FiscalDeviceViewSet(viewsets.ModelViewSet):
 
         headers = self.get_success_headers(write_serializer.data)
         return Response(read_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=True, methods=['get'], url_path='eligible-technicians')
+    def eligible_technicians(self, request, pk=None):
+        """
+        Zwraca listę serwisantów, którzy mają ważne uprawnienia
+        do wykonania przeglądu dla marki tego konkretnego urządzenia.
+        """
+        device = self.get_object()
+        company = request.user.technician_profile.company
+        today = timezone.now().date()
+
+        # Znajdź techników z tej samej firmy, którzy:
+        # 1. Mają certyfikat dla marki tego urządzenia.
+        # 2. Ten certyfikat jest jeszcze ważny (expiry_date >= today).
+        # 3. Są aktywni.
+        eligible_techs = Technician.objects.filter(
+            company=company,
+            is_active=True,
+            certifications__manufacturer=device.brand,
+            certifications__expiry_date__gte=today
+        ).distinct()  # distinct() jest ważne, jeśli serwisant miałby kilka ważnych certyfikatów tej samej marki
+
+        # Użyjemy prostego serializera do zwrócenia tylko potrzebnych danych
+        serializer = TechnicianSummarySerializer(eligible_techs, many=True)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsCompanyAdmin])
     def remind(self, request, pk=None):
@@ -421,20 +447,52 @@ class FiscalDeviceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='perform-service')
     def perform_service(self, request, pk=None):
         """
-        Ustawia datę ostatniego przeglądu ('last_service_date') na dzisiejszą.
+        Ustawia datę ostatniego przeglądu na dzisiejszą i zapisuje,
+        KTÓRY uprawniony serwisant wykonał przegląd.
+        Oczekuje w ciele zapytania: { "technician_id": <id> }
         """
+        device = self.get_object()
+        technician_id = request.data.get('technician_id')
+        today = timezone.now().date()
+
+        if not technician_id:
+            return Response({"detail": "Należy wybrać serwisanta."}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            # Użyj get_object(), aby skorzystać z domyślnego filtrowania uprawnień
-            device = self.get_object()
-        except FiscalDevice.DoesNotExist:
-            return Response({"detail": "Urządzenie nie istnieje."}, status=status.HTTP_404_NOT_FOUND)
+            # Sprawdźmy, czy wybrany serwisant istnieje i należy do firmy
+            technician = Technician.objects.get(
+                id=technician_id,
+                company=request.user.technician_profile.company
+            )
 
-        # Ustaw datę ostatniego przeglądu na dzisiaj
-        device.last_service_date = timezone.now().date()
-        device.save(update_fields=['last_service_date'])
+            # --- KLUCZOWA WALIDACJA PO STRONIE SERWERA ---
+            # Sprawdź, czy ten serwisant faktycznie ma ważne uprawnienia
+            has_valid_certification = technician.certifications.filter(
+                manufacturer=device.brand,
+                expiry_date__gte=today
+            ).exists()
 
-        # Zwróć zaktualizowany obiekt urządzenia, aby frontend mógł odświeżyć dane
-        # Użyj serializera do odczytu, który zawiera obliczone pole 'next_service_date'
+            if not has_valid_certification:
+                return Response({"detail": "Wybrany serwisant nie ma ważnych uprawnień dla tej marki urządzenia."},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        except Technician.DoesNotExist:
+            return Response({"detail": "Wybrany serwisant nie istnieje."}, status=status.HTTP_404_NOT_FOUND)
+
+        with transaction.atomic():
+            device.last_service_date = today
+            device.save(update_fields=['last_service_date'])
+
+            DeviceHistoryEntry.objects.create(
+                device=device,
+                action_type=DeviceHistoryEntry.ActionType.SERVICE_PERFORMED,
+                # Zmieniamy opis, aby uwzględniał wykonawcę
+                description=f"Wykonano okresowy przegląd urządzenia. Wykonawca: {technician.full_name}.",
+                # Aktorem jest teraz faktyczny wykonawca przeglądu
+                actor=technician.user if technician.user else request.user
+            )
+
+        # Zwracamy zaktualizowane dane urządzenia (razem z nowym wpisem w historii)
         serializer = self.get_serializer(instance=device)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -518,8 +576,7 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='resolve')
     def resolve(self, request, pk=None):
         """
-        Oznacza zgłoszenie jako rozwiązane z podanym rezultatem i notatkami.
-        Ta akcja ustawia główny status zgłoszenia na 'Zamknięte'.
+        Oznacza zgłoszenie jako rozwiązane i DODAJĘ WPIS DO HISTORII.
         """
         ticket = self.get_object()
 
@@ -532,12 +589,23 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        ticket.resolution = serializer.validated_data['resolution']
-        ticket.resolution_notes = serializer.validated_data.get('resolution_notes', ticket.resolution_notes)
-        ticket.status = ServiceTicket.Status.CLOSED
-        ticket.completed_at = timezone.now()
-        ticket.save()
+        # Używamy transakcji dla spójności danych
+        with transaction.atomic():
+            ticket.resolution = serializer.validated_data['resolution']
+            ticket.resolution_notes = serializer.validated_data.get('resolution_notes', ticket.resolution_notes)
+            ticket.status = ServiceTicket.Status.CLOSED
+            ticket.completed_at = timezone.now()
+            ticket.save()
 
+            # <<< NOWA LOGIKA >>>
+            # Jeśli zlecenie jest powiązane z konkretnym urządzeniem, dodaj wpis do jego historii
+            if ticket.device:
+                DeviceHistoryEntry.objects.create(
+                    device=ticket.device,
+                    action_type=DeviceHistoryEntry.ActionType.TICKET_COMPLETED,
+                    description=f"Zakończono zlecenie serwisowe nr {ticket.ticket_number} ('{ticket.title}'). Wynik: {ticket.get_resolution_display()}.",
+                    actor=request.user
+                )
         # Zwracamy pełne, zaktualizowane dane zgłoszenia
         return Response(ServiceTicketReadSerializer(instance=ticket).data, status=status.HTTP_200_OK)
 
@@ -915,12 +983,25 @@ def redeem_activation_code(request):
 @permission_classes([IsAuthenticated, IsCompanyAdmin]) # Tylko admin może generować raporty
 def export_device_pdf(request, device_id):
     """
-    Generuje i zwraca raport PDF dla urządzenia o podanym ID.
+    Generuje i zwraca raport PDF dla urządzenia o podanym ID,
+    zawierający pełną historię zleceń i przeglądów.
     """
     try:
         # Pobieramy obiekt urządzenia, upewniając się, że należy do firmy użytkownika
         company = request.user.technician_profile.company
-        device = FiscalDevice.objects.select_related('owner', 'brand').get(
+
+        # <<< MODYFIKACJA ZAPYTANIA DLA WYDAJNOŚCI >>>
+        # Używamy select_related dla relacji "do jednego" (owner, brand)
+        # Używamy prefetch_related dla relacji "do wielu" (tickets, history_entries)
+        device = FiscalDevice.objects.select_related(
+            'owner',
+            'brand'
+        ).prefetch_related(
+            # Pobierz zlecenia i od razu przypisanego do nich technika
+            'tickets__assigned_technician',
+            # Pobierz wpisy historii i od razu użytkownika, który je dodał
+            'history_entries__actor'
+        ).get(
             id=device_id,
             owner__company=company
         )
@@ -935,11 +1016,8 @@ def export_device_pdf(request, device_id):
 
     # Renderujemy szablon HTML do stringa
     html_string = render_to_string('device_report.html', context)
-
-    # Generujemy PDF za pomocą WeasyPrint
     pdf_file = HTML(string=html_string).write_pdf()
 
-    # Tworzymy odpowiedź HTTP z plikiem PDF
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="raport_urzadzenia_{device.unique_number}.pdf"'
 
@@ -1297,10 +1375,6 @@ class GetAiSuggestionView(APIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         description = serializer.validated_data['description']
-
-        if not settings.GOOGLE_API_KEY:
-            return Response({"error": "Klucz API dla Google AI nie jest skonfigurowany na serwerze."},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         try:
             genai.configure(api_key=settings.GOOGLE_API_KEY)

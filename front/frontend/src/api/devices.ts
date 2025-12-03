@@ -1,7 +1,8 @@
 import download from 'downloadjs';
 
-import type { FiscalDevice } from '@/types'
+import type { FiscalDevice, TechnicianSummary } from '@/types';
 
+import apiClient from './index';
 import api from './index';
 
 export const sendInspectionReminders = async (deviceIds: number[]): Promise<any> => {
@@ -38,7 +39,10 @@ export const downloadDeviceReport = async (deviceId: number): Promise<void> => {
   }
 };
 
-export const performDeviceService = async (deviceId: number): Promise<FiscalDevice> => {
-  const response = await api.post<FiscalDevice>(`/devices/${deviceId}/perform-service/`);
-  return response.data;
+export const getEligibleTechnicians = (deviceId: number): Promise<TechnicianSummary[]> => {
+  return apiClient.get(`/devices/${deviceId}/eligible-technicians/`).then(res => res.data);
+};
+
+export const performDeviceService = (deviceId: number, technicianId: number): Promise<FiscalDevice> => {
+  return apiClient.post(`/devices/${deviceId}/perform-service/`, { technician_id: technicianId }).then(res => res.data);
 };

@@ -4,7 +4,7 @@ from rest_framework import serializers
 from .models.users import CustomUser, Technician, Company
 from .models.clients import Client
 from .models.manufacturers import Manufacturer, Certification
-from .models.devices import FiscalDevice
+from .models.devices import FiscalDevice, DeviceHistoryEntry
 from .models.tickets import ServiceTicket
 from .models.billing import Order, ActivationCode
 from dateutil.relativedelta import relativedelta
@@ -302,6 +302,17 @@ class CertificationWriteSerializer(serializers.ModelSerializer):
 # -----------------------------
 # Fiscal Devices
 # -----------------------------
+class DeviceHistoryEntrySerializer(serializers.ModelSerializer):
+    """
+    Serializer do odczytu pojedynczego wpisu w historii urządzenia.
+    """
+    action_type_display = serializers.CharField(source='get_action_type_display', read_only=True)
+    actor_name = serializers.CharField(source='actor.username', read_only=True, allow_null=True)
+
+    class Meta:
+        model = DeviceHistoryEntry
+        fields = ['id', 'event_date', 'action_type', 'action_type_display', 'description', 'actor_name']
+        read_only_fields = fields
 
 class FiscalDeviceReadSerializer(serializers.ModelSerializer):
     """Read-only fiscal device serializer with nested owner and brand."""
@@ -310,10 +321,11 @@ class FiscalDeviceReadSerializer(serializers.ModelSerializer):
     tickets_count = serializers.IntegerField(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     next_service_date = serializers.SerializerMethodField()
+    history_entries = DeviceHistoryEntrySerializer(many=True, read_only=True)
 
     class Meta:
         model = FiscalDevice
-        fields = ['id', 'brand', 'model_name', 'unique_number', 'serial_number', 'sale_date', 'last_service_date', 'next_service_date', 'status', 'status_display', 'operating_instructions', 'remarks', 'owner', 'tickets_count']
+        fields = ['id', 'brand', 'model_name', 'unique_number', 'serial_number', 'sale_date', 'last_service_date', 'next_service_date', 'status', 'status_display', 'operating_instructions', 'remarks', 'owner', 'tickets_count', 'history_entries']
 
     def get_next_service_date(self, obj: FiscalDevice):
         """

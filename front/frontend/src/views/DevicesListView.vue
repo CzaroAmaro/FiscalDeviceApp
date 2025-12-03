@@ -35,6 +35,11 @@
       v-model="isDetailsModalOpen"
       :device="itemToView"
     />
+    <PerformServiceModal
+      v-model="isServiceModalOpen"
+      :device="itemToPerformService"
+      @success="handlePerformServiceConfirm"
+    />
 
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
@@ -65,6 +70,7 @@ import type { FiscalDevice, Client } from '@/types';
 import { downloadDeviceReport, sendInspectionReminders } from '@/api/devices';
 import { performDeviceService } from '@/api/devices';
 import DeviceDetailsModal from '@/components/devices/DeviceDetailsModal.vue';
+import PerformServiceModal from '@/components/devices/PerformServiceModal.vue';
 
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
@@ -80,6 +86,9 @@ const isSendingReminders = ref(false);
 const isPerformingService = ref(false);
 const isDetailsModalOpen = ref(false);
 const itemToView = ref<FiscalDevice | null>(null);
+
+const isServiceModalOpen = ref(false);
+const itemToPerformService = ref<FiscalDevice | null>(null);
 
 const { devices, isLoading } = storeToRefs(devicesStore);
 
@@ -137,26 +146,10 @@ const {
       itemToView.value = selected[0];
       isDetailsModalOpen.value = true;
     },
-    perform_service: async (selected) => {
+    perform_service: (selected) => {
       if (selected.length !== 1) return;
-
-      isPerformingService.value = true;
-      try {
-        const deviceId = selected[0].id;
-        // Wywołaj funkcję API
-        const updatedDevice = await performDeviceService(deviceId);
-
-        // Zaktualizuj dane w store (i w tabeli)
-        // Zakładając, że masz metodę 'updateDeviceInList' lub podobną
-        devicesStore.updateDeviceInList(updatedDevice);
-
-        snackbarStore.showSuccess('Przegląd został wykonany.');
-        selectedItems.value = []; // Wyczyść zaznaczenie
-      } catch (error: any) {
-        snackbarStore.showError(error.message || 'Wystąpił błąd podczas aktualizacji.');
-      } finally {
-        isPerformingService.value = false;
-      }
+      itemToPerformService.value = selected[0];
+      isServiceModalOpen.value = true;
     },
   },
 });
@@ -174,6 +167,28 @@ const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'perform_service', label: ('Wykonaj przegląd'), icon: 'mdi-check-decagram',  requiresSelection: 'single', loading: isPerformingService.value },
   { id: 'view_details', label: ('Podgląd'), icon: 'mdi-eye', requiresSelection: 'single' },
 ]);
+
+async function handlePerformServiceConfirm(technicianId: number) {
+  if (!itemToPerformService.value) return;
+
+  isPerformingService.value = true;
+  isServiceModalOpen.value = false; // Zamknij modal od razu
+
+  try {
+    const deviceId = itemToPerformService.value.id;
+    // Wywołaj zaktualizowaną funkcję API z ID technika
+    const updatedDevice = await performDeviceService(deviceId, technicianId);
+
+    devicesStore.updateDeviceInList(updatedDevice);
+    snackbarStore.showSuccess('Przegląd został wykonany.');
+    selectedItems.value = [];
+  } catch (error: any) {
+    snackbarStore.showError(error.message || 'Wystąpił błąd podczas aktualizacji.');
+  } finally {
+    isPerformingService.value = false;
+    itemToPerformService.value = null; // Wyczyść stan
+  }
+}
 
 
 

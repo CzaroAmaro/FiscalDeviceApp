@@ -10,7 +10,7 @@
         }
         body {
             font-family: sans-serif;
-            font-size: 12px;
+            font-size: 11px; /* Zmniejszyłem trochę, żeby więcej się zmieściło */
             color: #333;
         }
         h1 {
@@ -20,7 +20,9 @@
             margin-bottom: 30px;
         }
         .report-section {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            /* Zapobiegaj łamaniu strony w środku sekcji, jeśli to możliwe */
+            page-break-inside: avoid;
         }
         .report-section h2 {
             font-size: 16px;
@@ -28,21 +30,32 @@
             padding-bottom: 5px;
             margin-bottom: 10px;
         }
-        .details-table {
+        .details-table, .history-table {
             width: 100%;
             border-collapse: collapse;
         }
-        .details-table td {
-            padding: 8px 5px;
+        .details-table td, .history-table td, .history-table th {
+            padding: 6px 4px; /* Zmniejszyłem padding */
             border-bottom: 1px solid #eee;
+            text-align: left;
         }
         .details-table td:first-child {
             font-weight: bold;
-            width: 30%;
+            width: 25%; /* Zmniejszyłem szerokość pierwszej kolumny */
+        }
+        .history-table th {
+            font-weight: bold;
+            background-color: #f7f7f7;
+            border-bottom: 2px solid #ddd;
+        }
+        .no-data {
+            color: #888;
+            padding: 10px;
+            text-align: center;
         }
         .footer {
             position: fixed;
-            bottom: -1cm;
+            bottom: -1.5cm; /* Poprawiona pozycja */
             left: 0;
             right: 0;
             text-align: center;
@@ -61,52 +74,86 @@
     <div class="report-section">
         <h2>Dane Urządzenia</h2>
         <table class="details-table">
-            <tr>
-                <td>Marka i Model:</td>
-                <td>{{ device.brand.name }} {{ device.model_name }}</td>
-            </tr>
-            <tr>
-                <td>Numer Unikatowy:</td>
-                <td>{{ device.unique_number }}</td>
-            </tr>
-            <tr>
-                <td>Numer Seryjny:</td>
-                <td>{{ device.serial_number }}</td>
-            </tr>
-            <tr>
-                <td>Data Sprzedaży:</td>
-                <td>{{ device.sale_date }}</td>
-            </tr>
-            <tr>
-                <td>Status:</td>
-                <td>{{ device.get_status_display }}</td>
-            </tr>
-             <tr>
-                <td>Sposób użytkowania:</td>
-                <td>{{ device.operating_instructions }}</td>
-            </tr>
-             <tr>
-                <td>Uwagi:</td>
-                <td>{{ device.remarks }}</td>
-            </tr>
+            <tr><td>Marka i Model:</td><td>{{ device.brand.name }} {{ device.model_name }}</td></tr>
+            <tr><td>Numer Unikatowy:</td><td>{{ device.unique_number }}</td></tr>
+            <tr><td>Numer Seryjny:</td><td>{{ device.serial_number }}</td></tr>
+            <tr><td>Data Sprzedaży:</td><td>{{ device.sale_date|date:"Y-m-d" }}</td></tr>
+            <tr><td>Status:</td><td>{{ device.get_status_display }}</td></tr>
+            <tr><td>Sposób użytkowania:</td><td>{{ device.operating_instructions|default:"-" }}</td></tr>
+            <tr><td>Uwagi:</td><td>{{ device.remarks|default:"-" }}</td></tr>
         </table>
     </div>
 
     <div class="report-section">
         <h2>Dane Właściciela</h2>
         <table class="details-table">
-            <tr>
-                <td>Nazwa:</td>
-                <td>{{ device.owner.name }}</td>
-            </tr>
-            <tr>
-                <td>NIP:</td>
-                <td>{{ device.owner.nip }}</td>
-            </tr>
-            <tr>
-                <td>Adres:</td>
-                <td>{{ device.owner.address }}</td>
-            </tr>
+            <tr><td>Nazwa:</td><td>{{ device.owner.name }}</td></tr>
+            <tr><td>NIP:</td><td>{{ device.owner.nip }}</td></tr>
+            <tr><td>Adres:</td><td>{{ device.owner.address }}</td></tr>
+        </table>
+    </div>
+
+    <!-- ########## NOWA SEKCJA: HISTORIA ZLECEŃ ########## -->
+    <div class="report-section">
+        <h2>Historia Zleceń Serwisowych</h2>
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Nr zlecenia</th>
+                    <th>Tytuł</th>
+                    <th>Typ</th>
+                    <th>Status</th>
+                    <th>Data utworzenia</th>
+                    <th>Data zakończenia</th>
+                    <th>Wynik</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in device.tickets.all %}
+                <tr>
+                    <td>{{ ticket.ticket_number }}</td>
+                    <td>{{ ticket.title }}</td>
+                    <td>{{ ticket.get_ticket_type_display }}</td>
+                    <td>{{ ticket.get_status_display }}</td>
+                    <td>{{ ticket.created_at|date:"Y-m-d" }}</td>
+                    <td>{{ ticket.completed_at|date:"Y-m-d"|default:"--" }}</td>
+                    <td>{{ ticket.get_resolution_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-data">Brak zarejestrowanych zleceń dla tego urządzenia.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ########## NOWA SEKCJA: DZIENNIK ZDARZEŃ ########## -->
+    <div class="report-section">
+        <h2>Dziennik Zdarzeń (Historia Przeglądów i Akcji)</h2>
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Data i czas</th>
+                    <th>Rodzaj akcji</th>
+                    <th>Opis</th>
+                    <th>Wykonane przez</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in device.history_entries.all %}
+                <tr>
+                    <td>{{ entry.event_date|date:"Y-m-d H:i" }}</td>
+                    <td>{{ entry.get_action_type_display }}</td>
+                    <td>{{ entry.description }}</td>
+                    <td>{{ entry.actor.username|default:"System" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="no-data">Brak wpisów w historii dla tego urządzenia.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 
