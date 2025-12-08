@@ -312,11 +312,25 @@ class CertificationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+from django_filters import rest_framework as df_filters
+from django_filters.rest_framework import DjangoFilterBackend
+
+class NumberInFilter(df_filters.BaseInFilter, df_filters.NumberFilter):
+    pass
+
+class FiscalDeviceFilter(df_filters.FilterSet):
+    owner__id__in = NumberInFilter(field_name='owner_id', lookup_expr='in')
+    brand__id__in = NumberInFilter(field_name='brand_id', lookup_expr='in')
+
+    class Meta:
+        model = FiscalDevice
+        fields = ['status', 'brand', 'owner__id__in', 'brand__id__in']
+
 
 class FiscalDeviceViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsCompanyAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'brand']
+    filterset_class = FiscalDeviceFilter
     search_fields = ['model_name', 'serial_number', 'unique_number', 'owner__name']
     ordering = ['-sale_date']
 
@@ -1180,78 +1194,77 @@ class ReportFilterOptionsView(APIView):
                                    ServiceTicket.Resolution.choices],
         })
 
+from django.db.models import Prefetch
+
 
 class GenerateReportView(APIView):
     """
-    Generuje raport na podstawie dostarczonych filtrów.
-    Obsługuje formaty JSON, CSV i PDF.
+    Generuje kompleksowy raport dla wybranych urządzeń i klientów,
+    naśladując strukturę raportu pojedynczego urządzenia.
     """
     permission_classes = [IsAuthenticated, IsCompanyAdmin]
-    renderer_classes = [JSONRenderer, CSVRenderer]  # Dodajemy nasz renderer CSV
+    renderer_classes = [JSONRenderer]
 
     def post(self, request, *args, **kwargs):
         serializer = ReportParameterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         params = serializer.validated_data
-
         company = request.user.technician_profile.company
-        queryset = ServiceTicket.objects.select_related(
-            'client', 'device', 'device__brand', 'assigned_technician'
-        ).filter(client__company=company)
 
-        # --- DYNAMICZNE BUDOWANIE ZAPYTANIA ---
-        if params.get('date_from'):
-            queryset = queryset.filter(created_at__gte=params['date_from'])
-        if params.get('date_to'):
-            # Dodajemy jeden dzień, aby uwzględnić cały dzień 'date_to'
-            queryset = queryset.filter(created_at__lt=params['date_to'] + timedelta(days=1))
+        queryset = FiscalDevice.objects.filter(owner__company=company)
 
+        # Filtrowanie głównego querysetu
         if params.get('clients'):
-            queryset = queryset.filter(client_id__in=params['clients'])
-        if params.get('technicians'):
-            queryset = queryset.filter(assigned_technician_id__in=params['technicians'])
+            queryset = queryset.filter(owner_id__in=params['clients'])
+        if params.get('devices'):
+            queryset = queryset.filter(id__in=params['devices'])
         if params.get('device_brands'):
-            queryset = queryset.filter(device__brand_id__in=params['device_brands'])
+            queryset = queryset.filter(brand_id__in=params['device_brands'])
 
-        if params.get('ticket_statuses'):
-            queryset = queryset.filter(status__in=params['ticket_statuses'])
-        if params.get('ticket_types'):
-            queryset = queryset.filter(ticket_type__in=params['ticket_types'])
-        if params.get('ticket_resolutions'):
-            queryset = queryset.filter(resolution__in=params['ticket_resolutions'])
+        # ZMIANA: Optymalizacja zapytań z użyciem `Prefetch`
+        prefetch_list = [
+            'owner',  # Użyj prefetch zamiast select_related, gdy będziesz pobierać więcej pól z ownera
+            'brand'
+        ]
 
-        # Sortowanie dla spójności wyników
-        queryset = queryset.order_by('-created_at')
+        if params.get('include_service_history'):
+            # Przygotuj queryset dla zleceń, uwzględniając filtry dat
+            tickets_queryset = ServiceTicket.objects.select_related('assigned_technician').order_by('-created_at')
+            if params.get('history_date_from'):
+                tickets_queryset = tickets_queryset.filter(created_at__date__gte=params['history_date_from'])
+            if params.get('history_date_to'):
+                tickets_queryset = tickets_queryset.filter(created_at__date__lte=params['history_date_to'])
 
-        # --- OBSŁUGA FORMATU WYJŚCIOWEGO ---
+            # Dodaj filtrowany prefetch do listy
+            prefetch_list.append(
+                Prefetch('tickets', queryset=tickets_queryset, to_attr='filtered_tickets')
+            )
+
+        if params.get('include_event_log'):
+            prefetch_list.append(Prefetch('history_entries',
+                                          queryset=DeviceHistoryEntry.objects.select_related('actor').order_by(
+                                              '-event_date')))
+
+        # Wykonaj jedno, zoptymalizowane zapytanie
+        devices = queryset.prefetch_related(*prefetch_list).order_by('owner__name', 'model_name')
+
         output_format = params.get('output_format', 'json')
 
-        # Przygotowujemy dane wynikowe za pomocą naszego serializera
-        report_data = ReportResultSerializer(queryset, many=True).data
-
-        # 1. Obsługa PDF
         if output_format == 'pdf':
             context = {
-                'report_data': report_data,
+                'devices': devices,
                 'params': params,
                 'generation_date': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'company_name': company.name
             }
-            # Będziemy potrzebować nowego szablonu HTML dla tego raportu
             html_string = render_to_string('reports/generic_report.html', context)
             pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
             response = HttpResponse(pdf_file, content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="raport_aktywnosci.pdf"'
+            response['Content-Disposition'] = 'attachment; filename="raport_zbiorczy_urzadzen.pdf"'
             return response
 
-        # 2. Obsługa CSV - zostanie obsłużona przez nasz CSVRenderer
-        if output_format == 'csv':
-            response = Response(report_data)
-            response['Content-Disposition'] = 'attachment; filename="raport_aktywnosci.csv"'
-            return response
-
-        # 3. Domyślna obsługa JSON - obsłużona przez domyślny renderer DRF
+        report_data = FiscalDeviceReadSerializer(devices, many=True).data
         return Response(report_data)
 
 from .tasks import send_email_task

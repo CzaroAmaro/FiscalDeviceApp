@@ -1,14 +1,21 @@
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
 import api from '@/api';
-// WAŻNE: Importujemy oba typy - do odczytu (FiscalDevice) i zapisu (DevicePayload)
+import { getDevicesForSelect } from '@/api/devices.ts'
 import type { DevicePayload,FiscalDevice } from '@/types';
 
-// Definicja stanu pozostaje bez zmian
 interface DevicesState {
   devices: FiscalDevice[];
   isLoading: boolean;
   error: string | null;
+  filteredForSelect: DeviceForSelect[];
+  isLoadingForSelect: boolean;
+}
+
+interface DeviceForSelect {
+  id: number;
+  display_name: string;
 }
 
 export const useDevicesStore = defineStore('devices', {
@@ -16,6 +23,8 @@ export const useDevicesStore = defineStore('devices', {
     devices: [],
     isLoading: false,
     error: null,
+    filteredForSelect: [],
+    isLoadingForSelect: false,
   }),
 
   getters: {
@@ -28,7 +37,6 @@ export const useDevicesStore = defineStore('devices', {
      * @param {boolean} force - Jeśli true, wymusza ponowne pobranie danych, ignorując pamięć podręczną.
      */
     async fetchDevices(force = false) {
-      // DOBRA PRAKTYKA: Unikaj ponownego pobierania danych, jeśli już są w stanie.
       if (this.devices.length > 0 && !force) {
         return;
       }
@@ -41,9 +49,32 @@ export const useDevicesStore = defineStore('devices', {
       } catch (err) {
         console.error('Błąd podczas pobierania urządzeń:', err);
         this.error = 'Nie udało się załadować danych urządzeń. Spróbuj ponownie później.';
-        // Usunięto `this.devices = []`, aby nie czyścić starych danych w przypadku błędu sieci.
       } finally {
         this.isLoading = false;
+      }
+    },
+
+    async fetchFilteredForSelect(filters: { clients?: number[], brands?: number[] } = {}) {
+      if (!filters.clients?.length && !filters.brands?.length) {
+        this.filteredForSelect = [];
+        return;
+      }
+
+      this.isLoadingForSelect = true;
+      this.error = null;
+      try {
+        const devices = await getDevicesForSelect(filters);
+        // zawsze mapujemy po tablicy (domyślnie []), żeby uniknąć błędów
+        this.filteredForSelect = (devices || []).map(d => ({
+          id: d.id,
+          display_name: `${d.owner?.name || '—'} - ${d.model_name || '—'} (${d.unique_number || '—'})`
+        }));
+      } catch (error) {
+        console.error('Błąd pobierania filtrowanych urządzeń dla selecta:', error);
+        this.error = 'Nie udało się załadować listy urządzeń.';
+        this.filteredForSelect = []; // zapewnienie, że zawsze jest tablica
+      } finally {
+        this.isLoadingForSelect = false;
       }
     },
 
@@ -53,14 +84,11 @@ export const useDevicesStore = defineStore('devices', {
      */
     async addDevice(deviceData: DevicePayload) {
       try {
-        // Używamy `FiscalDevice` jako typu odpowiedzi, bo serwer zwróci pełny obiekt.
         const response = await api.post<FiscalDevice>('/devices/', deviceData);
-        // Optymistyczne dodanie do stanu dla natychmiastowego efektu w UI.
         this.devices.unshift(response.data);
         return response.data;
       } catch (error) {
         console.error('Błąd dodawania urządzenia:', error);
-        // Rzucamy błąd dalej, aby komponent mógł na niego zareagować (np. pokazać powiadomienie).
         throw error;
       }
     },
@@ -75,10 +103,8 @@ export const useDevicesStore = defineStore('devices', {
         const response = await api.put<FiscalDevice>(`/devices/${deviceId}/`, deviceData);
         const index = this.devices.findIndex(d => d.id === deviceId);
         if (index !== -1) {
-          // Optymistyczna aktualizacja stanu.
           this.devices[index] = response.data;
         }
-        // Zwracamy zaktualizowany obiekt, co może być przydatne w komponencie.
         return response.data;
       } catch (error) {
         console.error('Błąd aktualizacji urządzenia:', error);
@@ -100,7 +126,6 @@ export const useDevicesStore = defineStore('devices', {
     async deleteDevice(deviceId: number) {
       try {
         await api.delete(`/devices/${deviceId}/`);
-        // Optymistyczne usunięcie ze stanu.
         this.devices = this.devices.filter(d => d.id !== deviceId);
       } catch (error) {
         console.error('Błąd usuwania urządzenia:', error);

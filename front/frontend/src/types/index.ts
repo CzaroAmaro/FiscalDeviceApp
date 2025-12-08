@@ -227,11 +227,12 @@ export interface ReportParameters {
   date_from?: string;
   date_to?: string;
   clients?: number[];
-  technicians?: number[];
+  devices?: number[];
   device_brands?: number[];
-  ticket_statuses?: string[];
-  ticket_types?: string[];
-  ticket_resolutions?: string[];
+  include_service_history?: boolean;
+  history_date_from?: string;
+  history_date_to?: string;
+  include_event_log?: boolean;
   output_format?: 'json' | 'csv' | 'pdf';
 }
 

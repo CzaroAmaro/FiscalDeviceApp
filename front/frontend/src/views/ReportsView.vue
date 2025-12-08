@@ -1,202 +1,228 @@
 <template>
   <v-container fluid>
-    <v-row>
-      <!-- KOLUMNA Z FILTRAMI -->
-      <v-col cols="12" md="4" lg="3">
-        <v-card :loading="reportsStore.isLoadingOptions">
-          <v-card-title class="d-flex align-center">
-            <v-icon start>mdi-filter-variant</v-icon>
-            Parametry Raportu
-          </v-card-title>
-          <v-divider></v-divider>
+    <v-card>
+      <v-card-title class="d-flex align-center text-h5">
+        <v-icon start>mdi-file-chart-outline</v-icon>
+        Generator Raportów Zbiorczych
+      </v-card-title>
+      <v-card-subtitle>Wybierz kryteria, aby wygenerować raport PDF dla urządzeń.</v-card-subtitle>
+      <v-divider class="mt-4"></v-divider>
 
-          <v-form @submit.prevent="handleGenerateReport">
-            <v-card-text>
-              <!-- Filtry daty -->
-              <h3 class="text-subtitle-1 mb-2">Zakres dat utworzenia</h3>
-              <v-text-field
-                v-model="parameters.date_from"
-                label="Data od"
-                type="date"
-                clearable
-              ></v-text-field>
-              <v-text-field
-                v-model="parameters.date_to"
-                label="Data do"
-                type="date"
-                clearable
-              ></v-text-field>
+      <v-card-text>
+        <v-row>
+          <v-col cols="12" md="6">
+            <h3 class="text-subtitle-1 font-weight-medium mb-3">1. Wybierz zakres urządzeń</h3>
 
-              <v-divider class="my-4"></v-divider>
+            <!-- KLIENCI -->
+            <div class="mb-1 d-flex align-center justify-space-between">
+              <span>Klienci</span>
+              <div>
+                <v-btn size="x-small" variant="text" @click="selectAllClients">Zaznacz wszystko</v-btn>
+                <v-btn size="x-small" variant="text" @click="parameters.clients = []">Wyczyść</v-btn>
+              </div>
+            </div>
 
-              <!-- Filtry po relacjach -->
-              <h3 class="text-subtitle-1 mb-2">Filtry główne</h3>
-              <v-select
-                v-model="parameters.clients"
-                :items="filterOptions?.clients || []"
-                item-title="name"
-                item-value="id"
-                label="Klienci"
-                multiple
-                chips
-                clearable
-              ></v-select>
-              <v-select
-                v-model="parameters.technicians"
-                :items="filterOptions?.technicians || []"
-                item-title="name"
-                item-value="id"
-                label="Serwisanci"
-                multiple
-                chips
-                clearable
-              ></v-select>
-              <v-select
-                v-model="parameters.device_brands"
-                :items="filterOptions?.brands || []"
-                item-title="name"
-                item-value="id"
-                label="Producenci urządzeń"
-                multiple
-                chips
-                clearable
-              ></v-select>
+            <v-select
+              v-model="parameters.clients"
+              :items="filterOptions?.clients || []"
+              item-title="name"
+              item-value="id"
+              multiple
+              chips
+              clearable
+              class="scroll-select"
+              label="Klienci (opcjonalnie)"
+            ></v-select>
 
-              <v-divider class="my-4"></v-divider>
+            <!-- PRODUCENCI -->
+            <div class="mt-4 mb-1 d-flex align-center justify-space-between">
+              <span>Producenci</span>
+              <div>
+                <v-btn size="x-small" variant="text" @click="selectAllBrands">Zaznacz wszystko</v-btn>
+                <v-btn size="x-small" variant="text" @click="parameters.device_brands = []">Wyczyść</v-btn>
+              </div>
+            </div>
 
-              <!-- Filtry po statusach/typach -->
-              <h3 class="text-subtitle-1 mb-2">Szczegóły zgłoszenia</h3>
-              <v-select
-                v-model="parameters.ticket_statuses"
-                :items="filterOptions?.ticket_statuses || []"
-                item-title="text"
-                item-value="value"
-                label="Statusy zgłoszeń"
-                multiple
-                chips
-                clearable
-              ></v-select>
-              <v-select
-                v-model="parameters.ticket_types"
-                :items="filterOptions?.ticket_types || []"
-                item-title="text"
-                item-value="value"
-                label="Typy zgłoszeń"
-                multiple
-                chips
-                clearable
-              ></v-select>
-              <v-select
-                v-model="parameters.ticket_resolutions"
-                :items="filterOptions?.ticket_resolutions || []"
-                item-title="text"
-                item-value="value"
-                label="Wynik rozwiązania"
-                multiple
-                chips
-                clearable
-              ></v-select>
-            </v-card-text>
+            <v-select
+              v-model="parameters.device_brands"
+              :items="filterOptions?.brands || []"
+              item-title="name"
+              item-value="id"
+              multiple
+              chips
+              clearable
+              class="scroll-select"
+              label="Producenci (opcjonalnie)"
+            ></v-select>
 
-            <v-divider></v-divider>
+            <!-- URZĄDZENIA -->
+            <div class="mt-4 mb-1 d-flex align-center justify-space-between">
+              <span>Urządzenia</span>
+              <div>
+                <v-btn size="x-small" variant="text" @click="selectAllDevices">Zaznacz wszystko</v-btn>
+                <v-btn size="x-small" variant="text" @click="parameters.devices = []">Wyczyść</v-btn>
+              </div>
+            </div>
 
-            <v-card-actions>
-              <v-btn
-                variant="text"
-                @click="reportsStore.clearParameters"
-              >
-                Wyczyść
-              </v-btn>
-              <v-spacer></v-spacer>
-              <v-btn
-                color="primary"
-                type="submit"
-                variant="flat"
-                :loading="reportsStore.isLoading"
-                prepend-icon="mdi-play-circle-outline"
-              >
-                Generuj Raport
-              </v-btn>
-            </v-card-actions>
-          </v-form>
-        </v-card>
-      </v-col>
+            <v-select
+              v-model="parameters.devices"
+              :items="filteredDevicesForSelect"
+              :loading="isDevicesLoading"
+              item-title="display_name"
+              item-value="id"
+              multiple
+              chips
+              clearable
+              class="scroll-select"
+              label="Konkretne urządzenia (opcjonalnie)"
+              no-data-text="Brak urządzeń pasujących do filtrów"
+            ></v-select>
+          </v-col>
 
-      <!-- KOLUMNA Z WYNIKAMI -->
-      <v-col cols="12" md="8" lg="9">
-        <v-card>
-          <v-toolbar flat>
-            <v-toolbar-title>
-              Wyniki Raportu ({{ results.length }} {{ results.length === 1 ? 'rekord' : (results.length > 1 && results.length < 5 ? 'rekordy' : 'rekordów') }})
-            </v-toolbar-title>
-            <v-spacer></v-spacer>
-            <v-btn
-              variant="outlined"
-              prepend-icon="mdi-file-pdf-box"
-              :disabled="results.length === 0 || reportsStore.isLoading"
-              @click="reportsStore.exportReport('pdf')"
-            >
-              Eksportuj PDF
-            </v-btn>
-          </v-toolbar>
-          <v-divider></v-divider>
+          <!-- PRAWA KOLUMNA: ZAWARTOŚĆ I AKCJE -->
+          <v-col cols="12" md="6">
+            <h3 class="text-subtitle-1 font-weight-medium mb-3">2. Wybierz zawartość raportu</h3>
+            <v-checkbox
+              v-model="parameters.include_service_history"
+              label="Dołącz historię zleceń serwisowych"
+              hide-details
+            ></v-checkbox>
 
-          <v-alert v-if="reportsStore.error" type="error" closable class="ma-4">
-            {{ reportsStore.error }}
-          </v-alert>
+            <v-expand-transition>
+              <div v-if="parameters.include_service_history" class="ml-8 mt-2 date-range-box">
+                <p class="text-caption mb-2">Określ zakres dat dla historii zleceń:</p>
 
-          <DataTable
-            :items="results"
-            :headers="reportHeaders"
-            :loading="reportsStore.isLoading"
-            item-key="ticket_number"
-            no-data-text="Wprowadź parametry i wygeneruj raport, aby zobaczyć wyniki."
-          >
-          </DataTable>
-          </v-card>
-      </v-col>
-    </v-row>
+                <!-- Zamienione na Twój komponent DatePicker (od) -->
+                <DatePicker
+                  v-model="parameters.history_date_from"
+                  label="Historia od"
+                  clearable
+                ></DatePicker>
+
+                <!-- Zamienione na Twój komponent DatePicker (do) -->
+                <DatePicker
+                  v-model="parameters.history_date_to"
+                  label="Historia do"
+                  clearable
+                  class="mt-2"
+                ></DatePicker>
+              </div>
+            </v-expand-transition>
+
+            <v-checkbox
+              v-model="parameters.include_event_log"
+              label="Dołącz dziennik zdarzeń (przeglądy, itp.)"
+              class="mt-3"
+              hide-details
+            ></v-checkbox>
+          </v-col>
+        </v-row>
+      </v-card-text>
+
+      <v-divider></v-divider>
+
+      <v-card-actions class="pa-4">
+        <v-btn variant="text" @click="handleClearForm">Wyczyść formularz</v-btn>
+        <v-spacer></v-spacer>
+        <v-btn
+          color="primary"
+          size="large"
+          variant="flat"
+          :loading="reportsStore.isLoading"
+          :disabled="isExportDisabled"
+          prepend-icon="mdi-file-pdf-box"
+          @click="handleExportPdf"
+        >
+          Eksportuj PDF
+        </v-btn>
+      </v-card-actions>
+
+      <v-alert v-if="reportsStore.error || devicesStore.error" type="error" closable class="ma-4">
+        {{ reportsStore.error || devicesStore.error }}
+      </v-alert>
+
+    </v-card>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, computed, watch } from 'vue';
 import { useReportsStore } from '@/stores/reports';
+import { useDevicesStore } from '@/stores/devices';
 import { storeToRefs } from 'pinia';
-import DataTable from '@/components/DataTable.vue'; // Upewnij się, że ścieżka jest poprawna
+import DatePicker from '@/components/common/DatePicker.vue';
 
 const reportsStore = useReportsStore();
-const { parameters, filterOptions, results } = storeToRefs(reportsStore);
+const devicesStore = useDevicesStore();
 
-// Definicja nagłówków dla naszej tabeli wyników
-const reportHeaders = [
-  { title: 'Nr Zgłoszenia', key: 'ticket_number' },
-  { title: 'Tytuł', key: 'title', sortable: true },
-  { title: 'Data Utworzenia', key: 'created_at', sortable: true },
-  { title: 'Klient', key: 'client_name', sortable: true },
-  { title: 'NIP', key: 'client_nip' },
-  { title: 'Urządzenie', key: 'device_model' },
-  { title: 'Serwisant', key: 'assigned_technician_name', sortable: true },
-  { title: 'Status', key: 'status_display', sortable: true },
-  { title: 'Typ', key: 'ticket_type_display', sortable: true },
-  { title: 'Rozwiązanie', key: 'resolution_display', sortable: true },
-];
+const { parameters, filterOptions } = storeToRefs(reportsStore);
+const { filteredForSelect: filteredDevicesForSelect, isLoadingForSelect: isDevicesLoading } = storeToRefs(devicesStore);
+
+const isExportDisabled = computed(() => {
+  const noBaseFilters = !parameters.value.clients?.length && !parameters.value.device_brands?.length && !parameters.value.devices?.length;
+  return noBaseFilters || reportsStore.isLoading || isDevicesLoading.value;
+});
+
+const selectAllClients = () => {
+  parameters.value.clients = (filterOptions.value?.clients || []).map(c => c.id);
+};
+
+const selectAllBrands = () => {
+  parameters.value.device_brands = (filterOptions.value?.brands || []).map(b => b.id);
+};
+
+const selectAllDevices = () => {
+  parameters.value.devices = filteredDevicesForSelect.value.map(d => d.id);
+};
+
+watch(
+  () => [parameters.value.clients, parameters.value.device_brands],
+  async (newValue) => {
+    // Wyczyść wybrane urządzenia, jeśli zmienią się filtry nadrzędne
+    parameters.value.devices = [];
+
+    const [clients, brands] = newValue;
+    // Wywołaj akcję. Komponent automatycznie się zaktualizuje dzięki `storeToRefs`
+    await devicesStore.fetchFilteredForSelect({
+      clients: clients,
+      brands: brands
+    });
+  },
+  { deep: true }
+);
+
+const handleExportPdf = () => {
+  reportsStore.error = null;
+  devicesStore.error = null;
+  reportsStore.exportReport('pdf');
+};
+
+const handleClearForm = () => {
+  reportsStore.clearParameters();
+};
 
 onMounted(() => {
-  // Pobierz opcje dla filtrów przy pierwszym załadowaniu komponentu
   if (!reportsStore.filterOptions) {
     reportsStore.fetchFilterOptions();
   }
 });
-
-const handleGenerateReport = () => {
-  reportsStore.runReport();
-};
 </script>
 
 <style scoped>
-/* Możesz dodać tu specyficzne style dla widoku raportów */
-h3 {
-  color: rgba(0,0,0,0.6);
+.scroll-select :deep(.v-field__input) {
+  max-height: 110px !important;
+  overflow-y: auto !important;
+  align-items: flex-start !important; /* żeby nie rozciągało pola */
+}
+
+/* Zmniejsza odstępy między chipami */
+.scroll-select :deep(.v-select__selection) {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.date-range-box {
+  border-left: 2px solid #e0e0e0;
+  padding-left: 1rem;
 }
 </style>

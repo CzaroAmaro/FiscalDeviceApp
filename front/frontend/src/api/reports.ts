@@ -31,7 +31,7 @@ export async function downloadReport(params: ReportParameters, format: 'pdf' | '
   };
 
   const response = await api.post('/reports/generate/', finalParams, {
-    responseType: 'blob' // Ważne! Oczekujemy danych binarnych (pliku)
+    responseType: 'blob'
   });
 
   const blob = new Blob([response.data], { type: response.headers['content-type'] });
@@ -39,9 +39,8 @@ export async function downloadReport(params: ReportParameters, format: 'pdf' | '
   const link = document.createElement('a');
   link.href = url;
 
-  // Próba odczytania nazwy pliku z nagłówka
   const contentDisposition = response.headers['content-disposition'];
-  let fileName = format === 'pdf' ? 'report.pdf' : 'report.csv';
+  let fileName = format === 'pdf' ? 'raport.pdf' : 'raport.csv';
   if (contentDisposition) {
     const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
     if (fileNameMatch && fileNameMatch.length > 1) {
@@ -52,6 +51,6 @@ export async function downloadReport(params: ReportParameters, format: 'pdf' | '
   link.setAttribute('download', fileName);
   document.body.appendChild(link);
   link.click();
-  link.remove();
+  document.body.removeChild(link);
   window.URL.revokeObjectURL(url);
 }

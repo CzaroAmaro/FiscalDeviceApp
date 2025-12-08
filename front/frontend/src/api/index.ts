@@ -5,13 +5,11 @@ const api = axios.create({
   baseURL: "http://127.0.0.1:8000/api/",
 });
 
-// Interceptor do odpowiedzi API - kluczowy element!
 api.interceptors.response.use(
   (response) => {
     return response;
   },
   async (error) => {
-    // Jeśli serwer zwrócił błąd
     if (error.response && error.response.status === 401) {
       console.warn("Błąd 401 - Unauthorized. Wylogowywanie...");
 

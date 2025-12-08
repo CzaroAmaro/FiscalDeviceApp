@@ -1,6 +1,6 @@
 import download from 'downloadjs';
 
-import type { FiscalDevice, TechnicianSummary } from '@/types';
+import type { DevicePayload, FiscalDevice, PaginatedResponse,TechnicianSummary } from '@/types';
 
 import apiClient from './index';
 import api from './index';
@@ -10,6 +10,39 @@ export const sendInspectionReminders = async (deviceIds: number[]): Promise<any>
     device_ids: deviceIds,
   });
   return response.data;
+};
+
+export const getDevicesForSelect = async (filters: { clients?: number[], brands?: number[] } = {}): Promise<FiscalDevice[]> => {
+  const params = new URLSearchParams();
+  if (filters.clients && filters.clients.length > 0) {
+    params.append('owner__id__in', filters.clients.join(','));
+  }
+  if (filters.brands && filters.brands.length > 0) {
+    params.append('brand__id__in', filters.brands.join(','));
+  }
+  params.append('limit', '1000');
+
+  try {
+    const res = await api.get('/devices/', { params });
+
+    const data = res.data;
+    // przypadek: odpowiedź jest bezpośrednią tablicą
+    if (Array.isArray(data)) {
+      return data as FiscalDevice[];
+    }
+    // przypadek: paginacja DRF: { count, next, previous, results: [...] }
+    if (data && Array.isArray((data as any).results)) {
+      return (data as any).results as FiscalDevice[];
+    }
+
+    // Nieoczekiwany kształt odpowiedzi - logujemy i zwracamy pustą tablicę
+    console.warn('[getDevicesForSelect] Unexpected response shape for /devices/:', data);
+    return [];
+  } catch (error) {
+    console.error('[getDevicesForSelect] Błąd pobierania /devices/:', error);
+    // zamiast rzucać — zwracamy pustą tablicę aby UI nie crashował; można też przepuścić błąd dalej
+    return [];
+  }
 };
 
 /**
@@ -26,13 +59,11 @@ export const downloadDeviceReport = async (deviceId: number): Promise<void> => {
     let filename = `raport_urzadzenia_${deviceId}.pdf`;
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="(.+)"/);
-      if (filenameMatch && filenameMatch.length > 1) {
+      if (filenameMatch?.[1]) {
         filename = filenameMatch[1];
       }
     }
-
     download(response.data, filename, 'application/pdf');
-
   } catch (error) {
     console.error('Błąd podczas pobierania raportu PDF:', error);
     throw new Error('Nie udało się pobrać raportu.');

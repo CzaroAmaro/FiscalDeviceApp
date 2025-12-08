@@ -514,41 +514,36 @@ class ReportParameterSerializer(serializers.Serializer):
     """
     Waliduje parametry wejściowe dla generatora raportów.
     """
-    # Zakres dat
-    date_from = serializers.DateField(required=False)
-    date_to = serializers.DateField(required=False)
+    # Zakres dat (np. dla daty sprzedaży urządzenia)
+    date_from = serializers.DateField(required=False, help_text="Data sprzedaży od")
+    date_to = serializers.DateField(required=False, help_text="Data sprzedaży do")
 
     # Filtry po modelach
     clients = serializers.ListField(
         child=serializers.IntegerField(), required=False
     )
-    technicians = serializers.ListField(
+    # Zmieniamy nazwę dla jasności - będziemy filtrować urządzenia, nie zlecenia
+    devices = serializers.ListField(
         child=serializers.IntegerField(), required=False
     )
     device_brands = serializers.ListField(
         child=serializers.IntegerField(), required=False
     )
 
-    # Filtry po statusach/typach
-    ticket_statuses = serializers.ListField(
-        child=serializers.ChoiceField(choices=ServiceTicket.Status.choices), required=False
-    )
-    ticket_types = serializers.ListField(
-        child=serializers.ChoiceField(choices=ServiceTicket.TicketType.choices), required=False
-    )
-    ticket_resolutions = serializers.ListField(
-        child=serializers.ChoiceField(choices=ServiceTicket.Resolution.choices), required=False
-    )
+    # NOWE POLA: Wybór zawartości raportu
+    include_service_history = serializers.BooleanField(default=False, help_text="Dołącz historię zleceń serwisowych")
 
-    # Format wyjściowy
+    history_date_from = serializers.DateField(required=False)
+    history_date_to = serializers.DateField(required=False)
+
+    include_event_log = serializers.BooleanField(default=False, help_text="Dołącz dziennik zdarzeń (przeglądy, etc.)")
+
+    # Format wyjściowy - pozostaje bez zmian
     output_format = serializers.ChoiceField(
         choices=['json', 'csv', 'pdf'], default='json', required=False
     )
 
     def validate(self, data):
-        """
-        Możemy tu dodać walidację krzyżową, np. czy date_from nie jest późniejsze niż date_to.
-        """
         if 'date_from' in data and 'date_to' in data and data['date_from'] > data['date_to']:
             raise serializers.ValidationError("Data 'od' nie może być późniejsza niż data 'do'.")
         return data

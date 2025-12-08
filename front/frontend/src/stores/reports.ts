@@ -4,16 +4,24 @@ import { ref } from 'vue';
 import { downloadReport,generateReport, getReportFilterOptions } from '@/api/reports';
 import type { ReportFilterOptions, ReportParameters, ReportResult } from '@/types';
 
+const getDefaultParameters = (): ReportParameters => ({
+  clients: [],
+  device_brands: [],
+  devices: [],
+  include_service_history: false,
+  history_date_from: undefined,
+  history_date_to: undefined,
+  include_event_log: false,
+});
+
 export const useReportsStore = defineStore('reports', () => {
-  // --- STATE ---
-  const parameters = ref<ReportParameters>({});
+  const parameters = ref<ReportParameters>(getDefaultParameters());
   const filterOptions = ref<ReportFilterOptions | null>(null);
   const results = ref<ReportResult[]>([]);
   const isLoading = ref(false);
   const isLoadingOptions = ref(false);
   const error = ref<string | null>(null);
 
-  // --- ACTIONS ---
   async function fetchFilterOptions() {
     isLoadingOptions.value = true;
     error.value = null;
@@ -40,7 +48,7 @@ export const useReportsStore = defineStore('reports', () => {
   }
 
   async function exportReport(format: 'pdf' | 'csv') {
-    isLoading.value = true; // Używamy tego samego wskaźnika ładowania
+    isLoading.value = true;
     error.value = null;
     try {
       await downloadReport(parameters.value, format);
@@ -52,20 +60,17 @@ export const useReportsStore = defineStore('reports', () => {
   }
 
   function clearParameters() {
-    parameters.value = {};
+    parameters.value = getDefaultParameters();
   }
 
+
   return {
-    // state
     parameters,
     filterOptions,
-    results,
     isLoading,
     isLoadingOptions,
     error,
-    // actions
     fetchFilterOptions,
-    runReport,
     exportReport,
     clearParameters,
   };

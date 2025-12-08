@@ -1,73 +1,100 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-g">
-    <title>Raport Aktywności Serwisowej</title>
+    <meta charset="UTF-8">
+    <title>Raport Zbiorczy Urządzeń</title>
     <style>
-        @page { size: A4 landscape; margin: 1.5cm; }
-        body { font-family: sans-serif; font-size: 9pt; }
-        h1 { font-size: 18pt; text-align: center; }
-        h2 { font-size: 14pt; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-        th { background-color: #f2f2f2; font-weight: bold; }
-        .meta-info { font-size: 8pt; color: #555; margin-bottom: 20px; }
-        .header, .footer { position: fixed; width: 100%; }
-        .header { top: -1cm; text-align: left; }
-        .footer { bottom: -1cm; text-align: center; font-size: 8pt; }
-        .page-number:before { content: "Strona " counter(page); }
+        @page {
+            size: A4 portrait;
+            margin: 2cm 1.5cm;
+        }
+        body { font-family: sans-serif; font-size: 9pt; color: #333; }
+        h1 { font-size: 18pt; text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        h2 { font-size: 14pt; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin: 20px 0 10px 0; page-break-after: avoid; }
+        h3 { font-size: 11pt; border-bottom: 1px dotted #ddd; padding-bottom: 3px; margin: 15px 0 10px 0; }
+
+        .device-block { page-break-inside: avoid; margin-bottom: 30px; border-top: 3px solid #eee; padding-top: 15px;}
+        .device-block:first-of-type { border-top: none; padding-top: 0; }
+
+        .details-table, .history-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .details-table td, .history-table td, .history-table th { padding: 5px; border-bottom: 1px solid #eee; text-align: left; }
+        .details-table td:first-child { font-weight: bold; width: 25%; }
+        .history-table th { font-weight: bold; background-color: #f7f7f7; border-bottom: 1px solid #ddd; }
+
+        .no-data { color: #888; padding: 10px; text-align: center; }
+        .footer { position: fixed; bottom: -1.5cm; left: 0; right: 0; text-align: center; font-size: 8pt; color: #777; }
+        .page-number:after { content: "Strona " counter(page); }
     </style>
 </head>
 <body>
-    <div class="header">
-        Raport dla: {{ company_name }}
-    </div>
     <div class="footer">
         Wygenerowano: {{ generation_date }} | <span class="page-number"></span>
     </div>
 
-    <h1>Raport Aktywności Serwisowej</h1>
+    <h1>Raport Zbiorczy Urządzeń</h1>
 
-    <div class="meta-info">
-        <p><strong>Liczba wyników:</strong> {{ report_data|length }}</p>
-        <!-- Możesz tu dodać więcej informacji o zastosowanych filtrach -->
-    </div>
+    <p>Raport dla firmy: <strong>{{ company_name }}</strong></p>
+    <p>Liczba urządzeń w raporcie: <strong>{{ devices|length }}</strong></p>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Nr Zgłoszenia</th>
-                <th>Tytuł</th>
-                <th>Data Utworzenia</th>
-                <th>Klient</th>
-                <th>NIP</th>
-                <th>Urządzenie</th>
-                <th>Serwisant</th>
-                <th>Status</th>
-                <th>Typ</th>
-                <th>Rozwiązanie</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in report_data %}
-            <tr>
-                <td>{{ item.ticket_number }}</td>
-                <td>{{ item.title }}</td>
-                <td>{{ item.created_at|date:"Y-m-d" }}</td>
-                <td>{{ item.client_name }}</td>
-                <td>{{ item.client_nip }}</td>
-                <td>{{ item.device_model }} ({{ item.device_unique_number }})</td>
-                <td>{{ item.assigned_technician_name|default:"-" }}</td>
-                <td>{{ item.status_display }}</td>
-                <td>{{ item.ticket_type_display }}</td>
-                <td>{{ item.resolution_display }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="10" style="text-align: center;">Brak wyników spełniających kryteria.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <hr style="margin: 20px 0;">
+
+    {% for device in devices %}
+        <div class="device-block">
+            <h2>{{ device.brand.name }} {{ device.model_name }} ({{ device.unique_number }})</h2>
+
+            <!-- Sekcja Dane Urządzenia i Właściciela -->
+            <h3>Dane podstawowe</h3>
+            <table class="details-table">
+                <tr><td>Właściciel:</td><td>{{ device.owner.name }} (NIP: {{ device.owner.nip }})</td></tr>
+                <tr><td>Numer Seryjny:</td><td>{{ device.serial_number }}</td></tr>
+                <tr><td>Data Sprzedaży:</td><td>{{ device.sale_date|date:"Y-m-d" }}</td></tr>
+                <tr><td>Status:</td><td>{{ device.get_status_display }}</td></tr>
+            </table>
+
+            <!-- Sekcja Historia Zleceń Serwisowych (warunkowo) -->
+           {% if params.include_service_history %}
+                <h3>Historia Zleceń Serwisowych</h3>
+                <table class="history-table">
+                    <thead><tr><th>Nr zlecenia</th><th>Tytuł</th><th>Typ</th><th>Data utworzenia</th><th>Data zakończenia</th><th>Wynik</th></tr></thead>
+                    <tbody>
+                        {% for ticket in device.filtered_tickets %}
+                        <tr>
+                            <td>{{ ticket.ticket_number }}</td>
+                            <td>{{ ticket.title }}</td>
+                            <td>{{ ticket.get_ticket_type_display }}</td>
+                            <td>{{ ticket.created_at|date:"Y-m-d" }}</td>
+                            <td>{{ ticket.completed_at|date:"Y-m-d"|default:"--" }}</td>
+                            <td>{{ ticket.get_resolution_display }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="no-data">Brak zarejestrowanych zleceń w wybranym okresie.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+
+            <!-- Sekcja Dziennik Zdarzeń (warunkowo) -->
+            {% if params.include_event_log %}
+                <h3>Dziennik Zdarzeń (Przeglądy i akcje)</h3>
+                <table class="history-table">
+                    <thead><tr><th>Data i czas</th><th>Rodzaj akcji</th><th>Opis</th><th>Wykonane przez</th></tr></thead>
+                    <tbody>
+                        {% for entry in device.history_entries.all %}
+                        <tr>
+                            <td>{{ entry.event_date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ entry.get_action_type_display }}</td>
+                            <td>{{ entry.description }}</td>
+                            <td>{{ entry.actor.username|default:"System" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="no-data">Brak wpisów w historii.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p class="no-data">Brak urządzeń spełniających wybrane kryteria.</p>
+    {% endfor %}
 </body>
 </html>
