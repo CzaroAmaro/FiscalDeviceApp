@@ -6,12 +6,27 @@
       :actions="toolbarActions"
       @action="handleToolbarAction" />
 
+    <div class="mb-4 flex items-center gap-3">
+      <v-text-field
+        v-model="searchQuery"
+        density="compact"
+        hide-details
+        variant="solo"
+        prepend-inner-icon="mdi-magnify"
+        label="Szukaj producenta (nazwa)"
+        clearable
+        style="max-width: 360px;"
+        @click:clear="onClearSearch"
+      />
+    </div>
+
     <v-card>
       <DataTable
         v-model="selectedItems"
         :headers="manufacturerHeaders"
-        :items="items"
+        :items="filteredItems"
         :loading="isLoading"
+        :items-per-page="25"
       />
     </v-card>
 
@@ -39,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useManufacturersStore } from '@/stores/manufacturers';
@@ -76,12 +91,26 @@ const {
 });
 
 const manufacturerHeaders = computed(() => getManufacturerHeaders(t));
-
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('manufacturers.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('manufacturers.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'delete', label: t('manufacturers.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
 ]);
+
+const searchQuery = ref('');
+
+const filteredItems = computed(() => {
+  const q = (searchQuery.value || '').toString().trim().toLowerCase();
+  const all = items.value || [];
+  if (!q) return all;
+  return all.filter((m: Manufacturer) => {
+    return (m.name || '').toString().toLowerCase().includes(q);
+  });
+});
+
+function onClearSearch() {
+  searchQuery.value = '';
+}
 
 onMounted(() => fetchItems());
 </script>

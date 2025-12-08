@@ -6,12 +6,28 @@
       :actions="toolbarActions"
       @action="handleToolbarAction" />
 
+    <!-- Pole wyszukiwania -->
+    <div class="mb-4 flex items-center gap-3">
+      <v-text-field
+        v-model="searchQuery"
+        density="compact"
+        hide-details
+        variant="solo"
+        prepend-inner-icon="mdi-magnify"
+        label="Szukaj po numerze unikatowym lub właścicielu"
+        clearable
+        style="max-width: 360px;"
+        @click:clear="onClearSearch"
+      />
+    </div>
+
     <v-card>
       <DataTable
         v-model="selectedItems"
         :headers="deviceHeaders"
-        :items="items"
+        :items="filteredItems"
         :loading="isLoading"
+        :items-per-page="25"
       >
         <template #item.status="{ item }">
           <DeviceStatusChip :status="item.status" />
@@ -132,9 +148,7 @@ const {
         const ids = selected.map(device => device.id);
         const response = await sendInspectionReminders(ids);
         snackbarStore.showSuccess(response.detail || `Zlecono wysłanie ${response.sent_count} przypomnień.`);
-        // Możesz odświeżyć dane, aby zobaczyć zaktualizowane daty przypomnień, jeśli je wyświetlasz
-        // await fetchItems();
-        selectedItems.value = []; // Wyczyść zaznaczenie po udanej akcji
+        selectedItems.value = [];
       } catch (error: any) {
         snackbarStore.showError(error.message || 'Wystąpił błąd podczas wysyłania przypomnień.');
       } finally {
@@ -176,7 +190,6 @@ async function handlePerformServiceConfirm(technicianId: number) {
 
   try {
     const deviceId = itemToPerformService.value.id;
-    // Wywołaj zaktualizowaną funkcję API z ID technika
     const updatedDevice = await performDeviceService(deviceId, technicianId);
 
     devicesStore.updateDeviceInList(updatedDevice);
@@ -190,13 +203,31 @@ async function handlePerformServiceConfirm(technicianId: number) {
   }
 }
 
-
-
 function onClientSaveSuccess(message: string, newClient?: Client) {
   snackbarStore.showSuccess(message);
   if (newClient) {
     newlyCreatedClientId.value = newClient.id;
   }
+}
+
+const searchQuery = ref('');
+
+const filteredItems = computed(() => {
+  const q = (searchQuery.value || '').toString().trim().toLowerCase();
+  const all = items.value || [];
+
+  if (!q) return all;
+
+  return all.filter((d: FiscalDevice) => {
+    const unique = (d.unique_number || '').toString().toLowerCase();
+    const ownerName = (d.owner?.name || '').toString().toLowerCase();
+    const serial = (d.serial_number || '').toString().toLowerCase();
+    return unique.includes(q) || ownerName.includes(q) || serial.includes(q);
+  });
+});
+
+function onClearSearch() {
+  searchQuery.value = '';
 }
 
 onMounted(() => fetchItems());

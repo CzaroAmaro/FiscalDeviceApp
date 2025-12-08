@@ -1,10 +1,11 @@
 <template>
   <v-data-table
-    v-model="selectedItems"
+    v-model="internalSelected"
     :headers="headers"
     :items="items"
     :loading="loading"
     item-value="id"
+    :items-per-page="25"
     show-select
     return-object
     :loading-text="loadingText"
@@ -25,13 +26,14 @@ import type { VDataTable } from 'vuetify/components'
 type ReadonlyHeaders = InstanceType<typeof VDataTable>['headers']
 
 const props = withDefaults(defineProps<{
-  modelValue: T[]
+  modelValue?: T[]
   headers: ReadonlyHeaders
   items: T[]
   loading: boolean
   loadingText?: string
   noDataText?: string
 }>(), {
+  modelValue: () => [],
   loadingText: 'Ładowanie danych...',
   noDataText: 'Nie znaleziono danych',
 });
@@ -40,11 +42,11 @@ const emit = defineEmits<{
   (e: 'update:modelValue', selectedItems: T[]): void;
 }>();
 
-const selectedItems = computed({
+const internalSelected = computed<T[]>({
   get() {
-    return props.modelValue;
+    return props.modelValue ?? [];
   },
-  set(value) {
+  set(value: T[]) {
     emit('update:modelValue', value);
   },
 });

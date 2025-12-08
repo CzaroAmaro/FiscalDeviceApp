@@ -4,14 +4,30 @@
       :title="t('clients.title')"
       :selected-count="selectedItems.length"
       :actions="toolbarActions"
-      @action="handleToolbarAction"
+      @action="handleToolbarActionWrapper"
     />
 
+    <!-- Pole wyszukiwania (lupa) -->
+    <div class="mb-4 flex items-center gap-3">
+      <v-text-field
+        v-model="searchQuery"
+        density="compact"
+        hide-details
+        variant="solo"
+        prepend-inner-icon="mdi-magnify"
+        label="Szukaj po nazwie lub NIP"
+        clearable
+        style="max-width: 300px;"
+        @click:clear="onClearSearch"
+      />
+    </div>
+
     <v-card>
+      <!-- Używamy zwykłego v-model (modelValue) żeby dopasować do DataTable -->
       <DataTable
         v-model="selectedItems"
         :headers="headers"
-        :items="items"
+        :items="filteredItems"
         :loading="isLoading"
       />
     </v-card>
@@ -40,9 +56,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { useRouter } from 'vue-router';
 import { useClientsStore } from '@/stores/clients';
 import { useResourceView } from '@/composables/useResourceView'
 import { getClientHeaders } from '@/config/tables/clientHeaders'
@@ -53,6 +70,7 @@ import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue'
 import ClientFormModal from '@/components/clients/ClientFormModal.vue';
 
 const { t } = useI18n();
+const router = useRouter();
 const clientsStore = useClientsStore();
 const headers = computed(() => getClientHeaders(t));
 
@@ -64,7 +82,7 @@ const {
   isFormOpen,
   isConfirmOpen,
   isDeleting,
-  items,
+  items, // items === clients (przepuszczone z useResourceView)
   confirmMessage,
   handleToolbarAction,
   handleFormSave,
@@ -78,11 +96,60 @@ const {
   deleteItem: clientsStore.deleteClient,
 });
 
+/* -------------------- WYSZUKIWANIE (proste i reaktywne) -------------------- */
+const searchQuery = ref('');
+
+/**
+ * filteredItems jest teraz czystym computed — NIE próbujemy do niego przypisywać.
+ * Dzięki temu unikamy błędu "attempt to assign to readonly property".
+ */
+const filteredItems = computed(() => {
+  const q = (searchQuery.value || '').toString().trim().toLowerCase();
+  const all = items.value || [];
+
+  if (!q) return all;
+
+  return all.filter((c: Client) => {
+    const name = (c.name || '').toString().toLowerCase();
+    const nip = (c.nip || '').toString().toLowerCase();
+    return name.includes(q) || nip.includes(q);
+  });
+});
+
+function onClearSearch() {
+  searchQuery.value = '';
+}
+
+/* -------------------- toolbar + map button -------------------- */
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('clients.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('clients.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'delete', label: t('clients.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
+  { id: 'view-map', label: t('clients.toolbar.viewOnMap') || 'Zobacz na mapie', icon: 'mdi-map-marker', color: 'primary', requiresSelection: 'none' },
 ]);
 
+function handleToolbarActionWrapper(actionId: string) {
+  if (actionId === 'view-map') {
+    const selected = selectedItems?.value ?? [];
+    if (selected.length > 0) {
+      const ids = selected.map((s: any) => s.id).join(',');
+      router.push({ name: 'client-map', query: { clients: ids } });
+    } else {
+      router.push({ name: 'client-map' });
+    }
+    return;
+  }
+
+  handleToolbarAction(actionId);
+}
+
+/* -------------------- misc -------------------- */
 onMounted(() => fetchItems());
 </script>
+
+<style scoped>
+.search-field {
+  max-width: 480px;
+  width: 100%;
+}
+</style>

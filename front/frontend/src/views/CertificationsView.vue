@@ -6,12 +6,28 @@
       :actions="toolbarActions"
       @action="handleToolbarAction"
     />
+
+    <!-- Pole wyszukiwania certyfikatów -->
+    <div class="mb-4 flex items-center gap-3">
+      <v-text-field
+        v-model="searchQuery"
+        density="comfortable"
+        variant="solo-filled"
+        prepend-inner-icon="mdi-magnify"
+        placeholder="Szukaj po nazwie lub numerze"
+        clearable
+        style="max-width: 300px"
+        @click:clear="onClearSearch"
+      />
+    </div>
+
     <v-card>
       <DataTable
         v-model="selectedItems"
         :headers="certificationHeaders"
-        :items="items"
+        :items="filteredItems"
         :loading="isLoading"
+        :items-per-page="25"
       >
         <template #item.actions="{ item }">
           <div class="d-flex justify-end">
@@ -94,6 +110,23 @@ const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'edit', label: 'Edytuj', icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'delete', label: 'Usuń', icon: 'mdi-delete', requiresSelection: 'multiple' },
 ]);
+const searchQuery = ref('');
 
+const filteredItems = computed(() => {
+  const q = (searchQuery.value || '').toString().trim().toLowerCase();
+  const all = items.value || [];
+  if (!q) return all;
+  return all.filter((c: Certification) => {
+    const name = (c.technician_name || '').toString().toLowerCase();
+    const number = (c.certificate_number || '').toString().toLowerCase();
+    return name.includes(q) || number.includes(q);
+  });
+});
+
+function onClearSearch() {
+  searchQuery.value = '';
+}
+
+/* -------------------- lifecycle -------------------- */
 onMounted(() => fetchItems());
 </script>
