@@ -7,12 +7,12 @@
       @action="handleToolbarAction"
     />
 
-    <!-- Pole wyszukiwania certyfikatów -->
     <div class="mb-4 flex items-center gap-3">
       <v-text-field
         v-model="searchQuery"
-        density="comfortable"
-        variant="solo-filled"
+        density="compact"
+        variant="solo"
+        hide-details
         prepend-inner-icon="mdi-magnify"
         placeholder="Szukaj po nazwie lub numerze"
         clearable

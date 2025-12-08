@@ -56,6 +56,16 @@
           :to="{ name: 'manufacturer-list' }"
         />
       </v-col>
+      <v-col cols="12" sm="6" md="4" lg="3">
+        <DashboardStatCard
+          :title="t('dashboard.cards.certifications')"
+          :value="certificationsStore.certifications.length"
+          :loading="certificationsStore.isLoading"
+          icon="mdi-certificate"
+          color="teal"
+          :to="{ name: 'certification-list' }"
+        />
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -69,6 +79,7 @@ import { useTechniciansStore } from '@/stores/technicians'
 import { useTicketsStore } from '@/stores/tickets'
 import { useI18n } from 'vue-i18n';
 import { useManufacturersStore } from '@/stores/manufacturers.ts'
+import { useCertificationsStore } from '@/stores/certifications.ts'
 
 const { t } = useI18n();
 
@@ -77,6 +88,7 @@ const clientsStore = useClientsStore()
 const techniciansStore = useTechniciansStore()
 const ticketsStore = useTicketsStore()
 const manufacturersStore = useManufacturersStore()
+const certificationsStore = useCertificationsStore()
 
 onMounted(() => {
   devicesStore.fetchDevices()
@@ -84,5 +96,6 @@ onMounted(() => {
   techniciansStore.fetchTechnicians()
   ticketsStore.fetchTickets()
   manufacturersStore.fetchManufacturers()
+  certificationsStore.fetchCertifications()
 })
 </script>
