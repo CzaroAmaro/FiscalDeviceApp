@@ -167,6 +167,7 @@ export interface RegisterCredentials {
 export interface NestedTechnicianProfile {
   id: number;
   company: number;
+  is_admin: boolean
 }
 
 export interface UserProfile {

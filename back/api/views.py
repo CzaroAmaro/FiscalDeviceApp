@@ -958,7 +958,11 @@ def redeem_activation_code(request):
         order = activation.order
         company = order.company
 
-        # Krok 1: Jeśli firma dla tego zamówienia nie istnieje, stwórz ją.
+        # Krok 1: Określ czy to pierwszy użytkownik dla tej firmy/zamówienia
+        # Jeśli firma nie istnieje, to na pewno to pierwszy użytkownik
+        is_first_user = company is None
+
+        # Krok 2: Jeśli firma dla tego zamówienia nie istnieje, stwórz ją.
         if not company:
             company_name = f"Firma {order.email or request.user.email}"
             company = Company.objects.create(name=company_name)
@@ -967,7 +971,7 @@ def redeem_activation_code(request):
             order.company = company
             order.save(update_fields=['company'])
 
-        # Krok 2: Stwórz profil Technika.
+        # Krok 3: Stwórz profil Technika z odpowiednią rolą
         technician = Technician.objects.create(
             user=request.user,
             company=company,
@@ -975,17 +979,13 @@ def redeem_activation_code(request):
             last_name=request.user.last_name or '',
             email=request.user.email or '',
             is_active=True,
-            # Pierwszy użytkownik, który realizuje kod dla zamówienia, zostaje adminem.
-            # `used_by` na order jest tu jeszcze None, więc warunek jest spełniony.
-            role=Technician.ROLE_ADMIN
+            role=Technician.ROLE_ADMIN if is_first_user else Technician.ROLE_TECHNICIAN
         )
 
-        # Krok 3: Oznacz kod jako wykorzystany.
-        # Zakładam, że metoda .redeem() robi `self.used = True`, `self.used_by = user` i `self.save()`
+        # Krok 4: Oznacz kod jako wykorzystany.
         activation.redeem(request.user)
 
-    # Krok 4: Zwróć zaktualizowane dane użytkownika do frontendu.
-    # Musimy ponownie pobrać obiekt użytkownika z bazy, aby zobaczyć `technician_profile`.
+    # Krok 5: Zwróć zaktualizowane dane użytkownika do frontendu.
     request.user.refresh_from_db()
     user_data = UserProfileSerializer(instance=request.user, context={'request': request}).data
 
@@ -1425,3 +1425,29 @@ class GetAiSuggestionView(APIView):
                 error_message = "Wystąpił błąd po stronie serwera AI. Spróbuj ponownie później."
 
             return Response({"error": error_message}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+from .serializers import UserProfileUpdateSerializer
+class UpdateUserProfileView(generics.UpdateAPIView):
+    """
+    Widok do aktualizacji (PATCH) imienia i nazwiska zalogowanego użytkownika.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        # Zawsze operujemy na zalogowanym użytkowniku
+        return self.request.user
+
+    def update(self, request, *args, **kwargs):
+        # Nadpisujemy, aby zwrócić PEŁNE dane użytkownika po aktualizacji,
+        # używając UserProfileSerializer, a nie tylko imię i nazwisko.
+        # To pozwoli frontendowi odświeżyć wszystkie dane.
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        # Zwracamy zaktualizowany profil za pomocą głównego serializera
+        return Response(UserProfileSerializer(instance, context={'request': request}).data)

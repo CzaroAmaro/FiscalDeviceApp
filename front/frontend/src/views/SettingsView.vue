@@ -1,4 +1,3 @@
-<!-- front/frontend/src/views/SettingsView.vue -->
 <template>
   <v-container>
     <v-row justify="center">
@@ -14,10 +13,9 @@
           {{ error }}
         </v-alert>
 
-        <!-- Sekcje ustawień widoczne po załadowaniu danych -->
         <div v-else>
-          <!-- --- Karta Ustawień Firmy (bez zmian) --- -->
-          <v-card class="mt-6">
+          <!-- Company settings - only for admins -->
+          <v-card v-if="isAdmin" class="mt-6">
             <v-card-title>Ustawienia Firmy</v-card-title>
             <v-card-text>
               <v-form @submit.prevent="saveCompanySettings">
@@ -39,10 +37,25 @@
             </v-card-text>
           </v-card>
 
-          <!-- --- NOWA, ZINTEGROWANA SEKCJA ZMIANY E-MAIL --- -->
-          <!-- Zamiast starej karty, używamy nowego komponentu -->
-          <ChangeEmailForm class="mt-6" />
+          <!-- Read-only company info for non-admins -->
+          <v-card v-else class="mt-6">
+            <v-card-title>Informacje o firmie</v-card-title>
+            <v-card-text>
+              <v-text-field
+                v-model="companyData.name"
+                label="Nazwa firmy"
+                variant="outlined"
+                readonly
+                disabled
+              ></v-text-field>
+              <v-alert type="info" density="compact" variant="tonal">
+                Tylko administrator może edytować dane firmy.
+              </v-alert>
+            </v-card-text>
+          </v-card>
 
+          <EditProfileForm class="mt-6" />
+          <ChangeEmailForm class="mt-6" />
         </div>
       </v-col>
     </v-row>
@@ -54,17 +67,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import api from '@/api';
-
+import { useAuthStore } from '@/stores/auth';
 import ChangeEmailForm from '@/components/ChangeEmailForm.vue';
+import EditProfileForm from '@/components/EditProfileForm.vue';
 
 interface Company {
   id: string;
   name: string;
 }
 
-// Logika ładowania i zapisywania danych firmy (bez zmian)
+const authStore = useAuthStore();
+const isAdmin = computed(() => authStore.isAdmin);
+
 const isLoading = ref(true);
 const isSavingCompany = ref(false);
 const error = ref<string | null>(null);
@@ -96,6 +112,11 @@ onMounted(async () => {
 });
 
 const saveCompanySettings = async () => {
+  if (!isAdmin.value) {
+    showSnackbar('Brak uprawnień do edycji danych firmy.', 'error');
+    return;
+  }
+
   if (!companyData.name) {
     showSnackbar('Nazwa firmy nie może być pusta.', 'error');
     return;
@@ -118,8 +139,4 @@ const showSnackbar = (text: string, color: 'success' | 'error' = 'success') => {
   snackbar.color = color;
   snackbar.show = true;
 };
-
-// Usunięto logikę `currentUserEmail`, ponieważ formularz zmiany e-mail
-// jest teraz w osobnym, samowystarczalnym komponencie.
-
 </script>

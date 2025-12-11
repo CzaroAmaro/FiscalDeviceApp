@@ -126,13 +126,16 @@ class TechnicianWriteSerializer(serializers.ModelSerializer):
 
 
 class NestedTechnicianProfileSerializer(serializers.ModelSerializer):
+    is_admin = serializers.SerializerMethodField()
     """
     Prosty, zagnieżdżony serializer dla profilu technika,
     zwracający tylko ID i ID firmy.
     """
     class Meta:
         model = Technician
-        fields = ['id', 'company']
+        fields = ['id', 'company', 'is_admin']
+    def get_is_admin(self, obj):
+        return obj.is_admin
 
 class UserProfileSerializer(serializers.ModelSerializer):
     """
@@ -591,3 +594,26 @@ class ConfirmEmailChangeSerializer(serializers.Serializer):
 
 class AiSuggestionRequestSerializer(serializers.Serializer):
     description = serializers.CharField(required=True, min_length=10, max_length=2048, trim_whitespace=True)
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer do aktualizacji imienia i nazwiska zalogowanego użytkownika.
+    """
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name']
+
+    def update(self, instance, validated_data):
+        # Aktualizuj dane użytkownika
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.save()
+
+        # Jeśli użytkownik ma profil technika, zsynchronizuj dane
+        if hasattr(instance, 'technician_profile'):
+            profile = instance.technician_profile
+            profile.first_name = instance.first_name
+            profile.last_name = instance.last_name
+            profile.save(update_fields=['first_name', 'last_name'])
+
+        return instance

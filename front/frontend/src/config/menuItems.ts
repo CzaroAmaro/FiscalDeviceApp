@@ -7,6 +7,7 @@ export interface MenuItem {
   to?: RouteLocationRaw;
   divider?: boolean;
   children?: MenuItem[];
+  adminOnly?: boolean;
 }
 
 /**
@@ -26,30 +27,35 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     value: 'chart',
     icon: 'mdi-chart-line',
     to: { name: 'chart' },
+    adminOnly: true,
   },
   {
     title: t('menu.devices'),
     value: 'devices',
     icon: 'mdi-printer-pos',
     to: { name: 'device-list' },
+    adminOnly: true,
   },
   {
     title: t('menu.clients'),
     value: 'clients',
     icon: 'mdi-account-group-outline',
     to: { name: 'client-list' },
+    adminOnly: true,
   },
   {
     title: t('menu.clients-map'),
     value: 'clients-map',
     icon: 'mdi-map-marker-multiple',
     to: { name: 'client-map' },
+    adminOnly: true,
   },
   {
     title: t('menu.manufacturers'),
     value: 'manufacturers',
     icon: 'mdi-factory',
     to: { name: 'manufacturer-list' },
+    adminOnly: true,
   },
   {
     title: t('menu.employees'),
@@ -60,12 +66,14 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
         value: 'technicians',
         icon: 'mdi-account-hard-hat',
         to: { name: 'technician-list' },
+        adminOnly: true,
       },
       {
         title: t('menu.certifications'),
         value: 'certifications',
         icon: 'mdi-lock-check-outline',
         to: { name: 'certification-list' },
+        adminOnly: true,
       },
     ],
   },
@@ -86,5 +94,6 @@ export const getMenuItems = (t: (key: string) => string): MenuItem[] => [
     value: 'reports',
     icon: 'mdi-file-chart-outline',
     to: { name: 'reports' },
+    adminOnly: true,
   },
 ];

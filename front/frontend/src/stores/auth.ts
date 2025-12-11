@@ -19,6 +19,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.accessToken,
     isActivated: (state) => !!state.user?.technician_profile,
+    isAdmin: (state) => state.user?.technician_profile?.is_admin || false,
   },
   actions: {
     setUser(user: UserProfile) {
@@ -94,6 +95,9 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('accessToken');
       delete api.defaults.headers.common['Authorization'];
       window.location.href = '/login';
+    },
+    updateUser(userData: UserProfile) {
+      this.user = userData;
     },
   },
 });

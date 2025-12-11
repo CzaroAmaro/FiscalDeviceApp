@@ -33,7 +33,7 @@ urlpatterns = [
 # Stripe endpoints:
     path('create-checkout-session/', views.create_checkout_session, name='create-checkout-session'),
     path('handle-payment-success/', views.handle_payment_success, name='handle-payment-success'),
-    path('stripe/webhook/', views.stripe_webhook, name='stripe-webhook'),
+    path('stripe-webhook/', views.stripe_webhook, name='stripe-webhook'),
     path('redeem-activation-code/', views.redeem_activation_code, name='redeem-activation-code'),
     path('my-activation-codes/', views.my_activation_codes, name='my-activation-codes'),
 
@@ -47,4 +47,6 @@ urlpatterns = [
     path('users/change-email-confirm/', views.ConfirmEmailChangeView.as_view(), name='confirm-email-change'),
 
     path('ai/get-suggestion/', views.GetAiSuggestionView.as_view(), name='get-ai-suggestion'),
+
+    path('users/profile/', views.UpdateUserProfileView.as_view(), name='update-user-profile'),
 ]

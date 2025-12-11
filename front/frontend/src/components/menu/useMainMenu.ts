@@ -1,6 +1,7 @@
-import { computed, type MaybeRefOrGetter, ref, toValue, watchEffect } from 'vue'
+import { computed, type MaybeRefOrGetter,type Ref, ref, toValue, watchEffect } from 'vue'
 
-import type { MenuItem } from '@/components/menu/MainMenuItem.vue'
+import type { MenuItem } from '@/config/menuItems'
+import { useAuthStore } from '@/stores/auth.ts'
 
 export function findOpenGroupsBySearch (items: MenuItem[], query: string): string[] {
   const groupsToOpen = new Set<string>()
@@ -33,52 +34,80 @@ export function findOpenGroupsBySearch (items: MenuItem[], query: string): strin
   return Array.from(groupsToOpen)
 }
 
-export function useMenu (
-  items: MaybeRefOrGetter<MenuItem[]>,
-  searchQuery: MaybeRefOrGetter<string | null>
-) {
+export function useMenu(items: Ref<MenuItem[]>, searchQuery: Ref<string | null>) {
+  const authStore = useAuthStore()
   const openedGroups = ref<string[]>([])
-  const isSearching = computed<boolean>(() => !!toValue(searchQuery)?.trim())
 
-  watchEffect(() => {
-    if (isSearching.value) {
-      const currentItems = toValue(items)
-      const currentQuery = toValue(searchQuery)!
+  const isSearching = computed(() => !!searchQuery.value && searchQuery.value.trim().length > 0)
 
-      openedGroups.value = findOpenGroupsBySearch(currentItems, currentQuery.toLowerCase().trim())
-      return
-    }
-  })
-
-  const filterItems = (itemsToFilter: MenuItem[], query: string): MenuItem[] => {
-    const lowerCaseQuery = query.toLowerCase().trim()
-    return itemsToFilter
-      .map((item): MenuItem | null => {
-        if (item.divider) return null
-
-        const titleMatches = item.title?.toLowerCase().includes(lowerCaseQuery) ?? false
-        if (titleMatches) {
-          return item
+  const filterByRole = (menuItems: MenuItem[]): MenuItem[] => {
+    return menuItems
+      .filter(item => {
+        // Filter out admin-only items for non-admins
+        if (item.adminOnly && !authStore.isAdmin) {
+          return false
         }
-        if (item.children) {
-          const filteredChildren = filterItems(item.children, query)
-          if (filteredChildren.length > 0) {
-            return { ...item, children: filteredChildren }
+        return true
+      })
+      .map(item => {
+        if (item.children && item.children.length > 0) {
+          const filteredChildren = filterByRole(item.children)
+          // If all children were filtered out, hide the parent too
+          if (filteredChildren.length === 0) {
+            return null
           }
+          return { ...item, children: filteredChildren }
         }
-        return null
+        return item
       })
       .filter((item): item is MenuItem => item !== null)
   }
 
-  const filteredItems = computed<MenuItem[]>(() => {
-    const currentQuery = toValue(searchQuery)
-    const currentItems = toValue(items)
+  const filterBySearch = (menuItems: MenuItem[], query: string): MenuItem[] => {
+    const lowerQuery = query.toLowerCase()
 
-    return isSearching.value && currentQuery
-      ? filterItems(currentItems, currentQuery)
-      : currentItems.filter(item => !item.divider)
+    return menuItems
+      .map(item => {
+        const titleMatches = item.title?.toLowerCase().includes(lowerQuery) ?? false
+
+        if (item.children && item.children.length > 0) {
+          const filteredChildren = filterBySearch(item.children, query)
+
+          if (filteredChildren.length > 0) {
+            // Open the group if children match
+            if (item.title && !openedGroups.value.includes(item.title)) {
+              openedGroups.value = [...openedGroups.value, item.title]
+            }
+            return { ...item, children: filteredChildren }
+          }
+
+          if (titleMatches) {
+            return item
+          }
+
+          return null
+        }
+
+        return titleMatches ? item : null
+      })
+      .filter((item): item is MenuItem => item !== null)
+  }
+
+  const filteredItems = computed(() => {
+    // First filter by role
+    let result = filterByRole(items.value)
+
+    // Then filter by search query if present
+    if (isSearching.value && searchQuery.value) {
+      result = filterBySearch(result, searchQuery.value.trim())
+    }
+
+    return result
   })
 
-  return { filteredItems, openedGroups, isSearching }
+  return {
+    filteredItems,
+    openedGroups,
+    isSearching
+  }
 }

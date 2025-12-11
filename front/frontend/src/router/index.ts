@@ -34,31 +34,37 @@ const router = createRouter({
           path: 'chart',
           name: 'chart',
           component: () => import('@/views/ChartView.vue'),
+          meta: { requiresAdmin: true },
         },
         {
           path: 'clients',
           name: 'client-list',
           component: () => import('../views/ClientsListView.vue'),
+          meta: { requiresAdmin: true },
         },
         {
           path: 'clients-map',
           name: 'client-map',
           component: () => import('../views/ClientsMapView.vue'),
+          meta: { requiresAdmin: true },
         },
         {
           path: 'devices',
           name: 'device-list',
           component: () => import('../views/DevicesListView.vue'),
+          meta: { requiresAdmin: true },
         },
         {
           path: 'manufacturers',
           name: 'manufacturer-list',
           component: () => import('../views/ManufacturerListView.vue'),
+          meta: { requiresAdmin: true },
         },
         {
           path: 'technicians',
           name: 'technician-list',
           component: () => import('../views/TechnicianListView.vue'),
+          meta: { requiresAdmin: true },
         },
         {
           path: 'tickets',
@@ -76,14 +82,10 @@ const router = createRouter({
           component: () => import('@/views/SettingsView.vue'),
         },
         {
-          path: 'settings',
-          name: 'settings',
-          component: () => import('@/views/SettingsView.vue'),
-        },
-        {
           path: 'certifications',
           name: 'certification-list',
           component: () => import('@/views/CertificationsView.vue'),
+          meta: { requiresAdmin: true },
         },
         {
           path: 'chat',
@@ -94,6 +96,7 @@ const router = createRouter({
           path: '/reports',
           name: 'reports',
           component: () => import('../views/ReportsView.vue'),
+          meta: { requiresAdmin: true },
         },
       ],
     },
@@ -115,10 +118,16 @@ const router = createRouter({
       component: () => import('@/views/ConfirmEmailChangeView.vue'),
       meta: { isPublic: true },
     },
+    {
+      path: '/unauthorized',
+      name: 'unauthorized',
+      component: () => import('../views/UnauthorizedView.vue'),
+      meta: { requiresAuth: true },
+    },
   ],
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   const isAuthenticated = authStore.isAuthenticated;
 
@@ -127,9 +136,23 @@ router.beforeEach((to, from, next) => {
   if (isAuthenticated && isAuthRoute) {
     return next({ name: 'home' });
   }
+
   if (to.meta.requiresAuth && !isAuthenticated) {
     return next({ name: 'login', query: { redirect: to.fullPath } });
   }
+
+  // Sprawdź uprawnienia admina
+  if (to.meta.requiresAdmin) {
+    // Upewnij się, że dane użytkownika są załadowane
+    if (!authStore.user && isAuthenticated) {
+      await authStore.fetchUser();
+    }
+
+    if (!authStore.isAdmin) {
+      return next({ name: 'unauthorized' });
+    }
+  }
+
   next();
 });
 
