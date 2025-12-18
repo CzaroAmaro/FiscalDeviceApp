@@ -220,6 +220,7 @@
     "selected": "Zaznaczono: {count}"
   },
   "userMenu": {
+    "settings": "Ustawienia profilu",
     "preferences": "Preferencje",
     "language": "Język",
     "theme": "Motyw",

@@ -4,14 +4,25 @@
     permanent
     rail-width="72"
     width="280"
+    class="main-menu-drawer"
   >
+    <!-- Nagłówek - zawsze na górze -->
     <template #prepend>
       <MainMenuHeader v-model:mini="mini" />
+
+      <!-- Wyszukiwarka TUTAJ - zaraz pod headerem -->
+      <MainMenuSearch
+        v-if="!mini"
+        v-model="searchQuery"
+        class="mx-3 mb-2"
+      />
+      <v-divider v-if="!mini" />
     </template>
 
+    <!-- Scrollowalna lista menu -->
     <v-list
       v-model:opened="openedGroups"
-      class="pt-0"
+      class="pt-2"
       density="comfortable"
       nav
       open-strategy="multiple"
@@ -23,18 +34,11 @@
         :mini="mini"
         :search-query="searchQuery"
       />
-      <!-- NOWOŚĆ: Komunikat, gdy nic nie znaleziono -->
+
       <div v-else class="text-body-2 text-grey text-center pa-4">
         {{ t('menu.nothingFoundInMenu') }}
       </div>
     </v-list>
-
-    <template #append>
-      <MainMenuSearch
-        v-model="searchQuery"
-        @focused="mini = false"
-      />
-    </template>
   </v-navigation-drawer>
 </template>
 
@@ -43,7 +47,7 @@ import MainMenuHeader from '@/components/menu/MainMenuHeader.vue'
 import MainMenuItems from '@/components/menu/MainMenuItems.vue'
 import MainMenuSearch from '@/components/menu/MainMenuSearch.vue'
 import type { MenuItem } from '@/config/menuItems'
-import { useMenu } from '@/components/menu/useMainMenu.ts'
+import { useMenu } from '@/components/menu/useMainMenu'
 import { ref, toRefs } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -54,9 +58,20 @@ const props = defineProps<{
 const mini = defineModel<boolean>('mini', { default: false })
 
 const { items } = toRefs(props)
-const {t} = useI18n()
+const { t } = useI18n()
 const searchQuery = ref<string | null>(null)
 
-// NOWOŚĆ: Użycie composable do zarządzania logiką menu
 const { filteredItems, openedGroups, isSearching } = useMenu(items, searchQuery)
 </script>
+
+<style scoped>
+.main-menu-drawer :deep(.v-navigation-drawer__content) {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-menu-drawer :deep(.v-list) {
+  flex: 1;
+  overflow-y: auto;
+}
+</style>

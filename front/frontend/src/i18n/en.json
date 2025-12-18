@@ -220,6 +220,7 @@
     "selected": "Selected: {count}"
   },
   "userMenu": {
+    "settings": "Profile settings",
     "preferences": "Preferences",
     "language": "Language",
     "theme": "Theme",
