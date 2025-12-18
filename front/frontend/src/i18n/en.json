@@ -50,6 +50,7 @@
   "dashboard": {
     "title": "Dashboard",
     "cards": {
+      "certifications": "Certifications",
       "devices": "All Devices",
       "clients": "Clients",
       "technicians": "Active Technicians",

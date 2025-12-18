@@ -50,6 +50,7 @@
   "dashboard": {
     "title": "Pulpit",
     "cards": {
+      "certifications": "Certyfikaty",
       "devices": "Wszystkie urządzenia",
       "clients": "Klienci",
       "technicians": "Aktywni serwisanci",

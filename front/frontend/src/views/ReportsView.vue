@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <v-card>
+    <v-card class="report-card">
       <v-card-title class="d-flex align-center text-h5">
         <v-icon start>mdi-file-chart-outline</v-icon>
         Generator Raportów Zbiorczych
@@ -17,8 +17,8 @@
             <div class="mb-1 d-flex align-center justify-space-between">
               <span>Klienci</span>
               <div>
-                <v-btn size="x-small" variant="text" @click="selectAllClients">Zaznacz wszystko</v-btn>
-                <v-btn size="x-small" variant="text" @click="parameters.clients = []">Wyczyść</v-btn>
+                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllClients">Zaznacz wszystko</v-btn>
+                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.clients = []">Wyczyść</v-btn>
               </div>
             </div>
 
@@ -38,8 +38,8 @@
             <div class="mt-4 mb-1 d-flex align-center justify-space-between">
               <span>Producenci</span>
               <div>
-                <v-btn size="x-small" variant="text" @click="selectAllBrands">Zaznacz wszystko</v-btn>
-                <v-btn size="x-small" variant="text" @click="parameters.device_brands = []">Wyczyść</v-btn>
+                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllBrands">Zaznacz wszystko</v-btn>
+                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.device_brands = []">Wyczyść</v-btn>
               </div>
             </div>
 
@@ -59,8 +59,8 @@
             <div class="mt-4 mb-1 d-flex align-center justify-space-between">
               <span>Urządzenia</span>
               <div>
-                <v-btn size="x-small" variant="text" @click="selectAllDevices">Zaznacz wszystko</v-btn>
-                <v-btn size="x-small" variant="text" @click="parameters.devices = []">Wyczyść</v-btn>
+                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllDevices">Zaznacz wszystko</v-btn>
+                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.devices = []">Wyczyść</v-btn>
               </div>
             </div>
 
@@ -209,6 +209,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.btn-all{
+  background-color: #1976d2;
+  color: white;
+}
+.btn-clear{
+
+}
 .scroll-select :deep(.v-field__input) {
   max-height: 110px !important;
   overflow-y: auto !important;
