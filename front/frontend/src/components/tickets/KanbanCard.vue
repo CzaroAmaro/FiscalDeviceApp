@@ -1,79 +1,128 @@
 <template>
   <v-card
-    class="mb-3 ticket-card"
-    variant="outlined"
-    elevation="1"
+    class="kanban-card"
+    :class="{ 'is-moving': isMoving, 'is-closed': ticket.status === 'closed' }"
     :data-ticket-id="ticket.id"
-    :class="{ 'is-moving': isMoving }"
+    rounded="lg"
+    elevation="1"
   >
-    <!-- Nakładka pokazująca ładowanie -->
+    <!-- Overlay ładowania -->
     <v-overlay
       :model-value="isMoving"
       contained
-      scrim="#000000"
+      scrim="rgba(0,0,0,0.3)"
       class="align-center justify-center"
     >
-      <v-progress-circular indeterminate color="white" />
+      <v-progress-circular indeterminate color="white" size="32" />
     </v-overlay>
-    <v-card-title class="text-subtitle-2 py-2">
-      {{ ticket.title }}
-    </v-card-title>
-    <v-card-subtitle class="pb-2">
-      #{{ ticket.ticket_number }} | {{ ticket.client?.name || 'Brak klienta' }}
-    </v-card-subtitle>
 
-    <v-card-text class="py-2">
-      <div>
-        <v-chip :color="statusColor(ticket.status)" size="small" variant="flat" label>
-          {{ statusDisplayText }}
-        </v-chip>
-        <v-chip v-if="ticket.ticket_type" size="x-small" class="ml-2">
-          {{ ticketTypeDisplayText }}
-        </v-chip>
+    <!-- Górny pasek z priorytetem/typem -->
+    <div class="card-top-bar" :class="`bg-${priorityColor}`"></div>
+
+    <div class="card-content pa-3">
+      <!-- Nagłówek karty -->
+      <div class="d-flex align-start justify-space-between mb-2">
+        <div class="flex-grow-1 mr-2">
+          <h4 class="card-title text-subtitle-2 font-weight-bold mb-1">
+            {{ ticket.title }}
+          </h4>
+          <div class="d-flex align-center ga-2 flex-wrap">
+            <span class="text-caption text-medium-emphasis">
+              #{{ ticket.ticket_number }}
+            </span>
+            <v-chip
+              v-if="ticket.ticket_type"
+              size="x-small"
+              variant="tonal"
+              :color="typeColor"
+            >
+              {{ ticketTypeDisplayText }}
+            </v-chip>
+          </div>
+        </div>
       </div>
-      <div v-if="ticket.assigned_technician" class="d-flex align-center mt-3">
-        <v-avatar size="24" class="mr-2">
-          <v-icon>mdi-account-circle</v-icon>
+
+      <!-- Klient -->
+      <div class="client-info mb-3">
+        <v-icon size="14" class="mr-1 text-medium-emphasis">mdi-domain</v-icon>
+        <span class="text-body-2">
+          {{ ticket.client?.name || 'Brak klienta' }}
+        </span>
+      </div>
+
+      <!-- Przypisany technik -->
+      <div v-if="ticket.assigned_technician" class="technician-info mb-3">
+        <v-avatar size="24" :color="avatarColor" class="mr-2">
+          <span class="text-caption font-weight-bold white--text">
+            {{ getInitials(ticket.assigned_technician.full_name) }}
+          </span>
         </v-avatar>
-        <span class="text-caption">{{ ticket.assigned_technician?.full_name }}</span>
+        <span class="text-body-2">{{ ticket.assigned_technician.full_name }}</span>
       </div>
-    </v-card-text>
 
-    <v-divider />
+      <!-- Dolne informacje -->
+      <div class="card-footer d-flex align-center justify-space-between">
+        <div class="d-flex align-center ga-2">
+          <v-chip
+            :color="statusColor(ticket.status)"
+            size="x-small"
+            variant="flat"
+            label
+          >
+            <v-icon start size="10">{{ statusIcon }}</v-icon>
+            {{ statusDisplayText }}
+          </v-chip>
+        </div>
 
-    <v-card-actions class="px-3 py-1">
-      <v-spacer />
+        <!-- Akcje -->
+        <div class="card-actions">
+          <v-btn
+            v-if="ticket.status === 'closed'"
+            icon
+            size="x-small"
+            variant="text"
+            color="warning"
+            @click.stop="$emit('reopen', ticket)"
+          >
+            <v-icon size="16">mdi-undo-variant</v-icon>
+            <v-tooltip activator="parent" location="top">Przywróć</v-tooltip>
+          </v-btn>
 
-      <v-tooltip v-if="ticket.status === 'closed'" text="Przywróć (otwórz ponownie)" location="top">
-        <template #activator="{ props }">
-          <v-btn v-bind="props" icon="mdi-undo-variant" size="x-small" variant="text" @click="$emit('reopen', ticket)" />
-        </template>
-      </v-tooltip>
+          <v-btn
+            icon
+            size="x-small"
+            variant="text"
+            @click.stop="$emit('edit', ticket)"
+          >
+            <v-icon size="16">mdi-pencil-outline</v-icon>
+            <v-tooltip activator="parent" location="top">Edytuj</v-tooltip>
+          </v-btn>
 
-      <v-tooltip text="Edytuj" location="top">
-        <template #activator="{ props }">
-          <v-btn v-bind="props" icon="mdi-pencil" size="x-small" variant="text" @click="$emit('edit', ticket)" />
-        </template>
-      </v-tooltip>
-      <v-tooltip text="Zakończ" location="top">
-        <template #activator="{ props }">
           <v-btn
             v-if="ticket.status !== 'closed'"
-            v-bind="props"
-            icon="mdi-check-circle"
+            icon
             size="x-small"
-            color="primary"
             variant="text"
-            @click="$emit('resolve', ticket)"
-          />
-        </template>
-      </v-tooltip>
-      <v-tooltip text="Usuń" location="top">
-        <template #activator="{ props }">
-          <v-btn v-bind="props" icon="mdi-delete" size="x-small" color="error" variant="text" @click="$emit('delete', ticket)" />
-        </template>
-      </v-tooltip>
-    </v-card-actions>
+            color="success"
+            @click.stop="$emit('resolve', ticket)"
+          >
+            <v-icon size="16">mdi-check-circle-outline</v-icon>
+            <v-tooltip activator="parent" location="top">Zakończ</v-tooltip>
+          </v-btn>
+
+          <v-btn
+            icon
+            size="x-small"
+            variant="text"
+            color="error"
+            @click.stop="$emit('delete', ticket)"
+          >
+            <v-icon size="16">mdi-delete-outline</v-icon>
+            <v-tooltip activator="parent" location="top">Usuń</v-tooltip>
+          </v-btn>
+        </div>
+      </div>
+    </div>
   </v-card>
 </template>
 
@@ -94,46 +143,137 @@ defineEmits<{
   (e: 'reopen', ticket: ServiceTicket): void;
 }>();
 
-// Komputed properties dla wyświetlanych tekstów
 const statusDisplayText = computed(() => {
   switch (props.ticket.status) {
-    case 'open':
-      return 'Otwarte';
-    case 'in_progress':
-      return 'W toku';
-    case 'closed':
-      return 'Zamknięte';
-    default:
-      return props.ticket.status_display || 'Nieznany';
+    case 'open': return 'Otwarte';
+    case 'in_progress': return 'W toku';
+    case 'closed': return 'Zamknięte';
+    default: return props.ticket.status_display || 'Nieznany';
+  }
+});
+
+const statusIcon = computed(() => {
+  switch (props.ticket.status) {
+    case 'open': return 'mdi-alert-circle';
+    case 'in_progress': return 'mdi-progress-clock';
+    case 'closed': return 'mdi-check-circle';
+    default: return 'mdi-help-circle';
   }
 });
 
 const ticketTypeDisplayText = computed(() => {
-  if (props.ticket.ticket_type_display) {
-    return props.ticket.ticket_type_display;
-  }
-
+  if (props.ticket.ticket_type_display) return props.ticket.ticket_type_display;
   switch (props.ticket.ticket_type) {
-    case 'incident':
-      return 'Incydent';
-    case 'request':
-      return 'Zapytanie';
-    case 'problem':
-      return 'Problem';
-    default:
-      return props.ticket.ticket_type || 'Inny';
+    case 'incident': return 'Incydent';
+    case 'request': return 'Zapytanie';
+    case 'problem': return 'Problem';
+    default: return props.ticket.ticket_type || 'Inny';
   }
 });
+
+const typeColor = computed(() => {
+  switch (props.ticket.ticket_type) {
+    case 'incident': return 'error';
+    case 'request': return 'info';
+    case 'problem': return 'warning';
+    default: return 'grey';
+  }
+});
+
+const priorityColor = computed(() => {
+  // Możesz dostosować do pola priority jeśli je masz
+  switch (props.ticket.ticket_type) {
+    case 'incident': return 'error';
+    case 'problem': return 'warning';
+    default: return 'primary';
+  }
+});
+
+const avatarColors = ['primary', 'secondary', 'success', 'info', 'warning'];
+const avatarColor = computed(() => {
+  const id = props.ticket.assigned_technician?.id || 0;
+  return avatarColors[id % avatarColors.length];
+});
+
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 </script>
 
 <style scoped>
-.ticket-card {
+.kanban-card {
   cursor: grab;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  border: 1px solid rgba(var(--v-border-color), 0.08);
 }
-.ticket-card:active {
+
+.kanban-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.kanban-card:active {
   cursor: grabbing;
 }
-.is-moving {
-  /* opacity: 0.5; */
+
+.kanban-card.is-moving {
+  opacity: 0.7;
+}
+
+.kanban-card.is-closed {
+  opacity: 0.7;
+}
+
+.kanban-card.is-closed:hover {
+  opacity: 1;
+}
+
+/* Górny pasek kolorowy */
+.card-top-bar {
+  height: 4px;
+  width: 100%;
+}
+
+.card-title {
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.client-info,
+.technician-info {
+  display: flex;
+  align-items: center;
+}
+
+.card-footer {
+  padding-top: 8px;
+  border-top: 1px solid rgba(var(--v-border-color), 0.08);
+}
+
+.card-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.kanban-card:hover .card-actions {
+  opacity: 1;
+}
+
+/* Na urządzeniach dotykowych zawsze pokazuj */
+@media (hover: none) {
+  .card-actions {
+    opacity: 1;
+  }
 }
 </style>
