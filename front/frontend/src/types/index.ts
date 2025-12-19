@@ -272,3 +272,13 @@ export interface ClientStats {
   tickets_count: number;
   open_tickets_count: number;
 }
+
+export interface TechnicianStats {
+  assigned_tickets_count: number;
+  open_tickets_count: number;
+  in_progress_tickets_count: number;
+  closed_tickets_count: number;
+  valid_certifications_count: number;
+  expiring_soon_count: number;
+  expired_certifications_count: number;
+}

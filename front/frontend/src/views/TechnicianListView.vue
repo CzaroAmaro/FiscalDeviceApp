@@ -4,7 +4,8 @@
       :title="t('technicians.title')"
       :selected-count="selectedItems.length"
       :actions="toolbarActions"
-      @action="handleToolbarAction" />
+      @action="handleToolbarAction"
+    />
 
     <div class="mb-4 flex items-center gap-3">
       <v-text-field
@@ -47,6 +48,13 @@
       @save-success="handleFormSave"
     />
 
+    <!-- Panel boczny ze szczegółami -->
+    <TechnicianDetailsDrawer
+      v-model="isDetailsDrawerOpen"
+      :technician="itemToView"
+      @edit="handleEditFromDrawer"
+    />
+
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
         <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
@@ -76,10 +84,15 @@ import type { Technician } from '@/types';
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
 import TechnicianFormModal from '@/components/technicians/TechnicianFormModal.vue';
+import TechnicianDetailsDrawer from '@/components/technicians/TechnicianDetailsDrawer.vue';
 
 const { t } = useI18n();
 const techniciansStore = useTechniciansStore();
 const { technicians, isLoading } = storeToRefs(techniciansStore);
+
+// Panel szczegółów
+const isDetailsDrawerOpen = ref(false);
+const itemToView = ref<Technician | null>(null);
 
 const {
   selectedItems,
@@ -99,12 +112,21 @@ const {
   isLoading: isLoading,
   fetchItems: techniciansStore.fetchTechnicians,
   deleteItem: techniciansStore.deleteTechnician,
+  customActions: {
+    view_details: (selected) => {
+      if (selected.length !== 1) return;
+      itemToView.value = selected[0];
+      isDetailsDrawerOpen.value = true;
+    },
+  },
 });
 
 const technicianHeaders = computed(() => getTechnicianHeaders(t));
+
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('technicians.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('technicians.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'view_details', label: 'Podgląd', icon: 'mdi-eye', requiresSelection: 'single' },
   { id: 'delete', label: t('technicians.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
 ]);
 
@@ -127,8 +149,12 @@ function onClearSearch() {
   searchQuery.value = '';
 }
 
+// Handler z Drawera
+function handleEditFromDrawer(technician: Technician) {
+  isDetailsDrawerOpen.value = false;
+  itemToEdit.value = technician;
+  isFormOpen.value = true;
+}
+
 onMounted(() => fetchItems());
 </script>
-
-<style scoped>
-</style>

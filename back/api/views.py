@@ -202,6 +202,67 @@ class TechnicianViewSet(viewsets.ModelViewSet):
             return TechnicianWriteSerializer
         return TechnicianReadSerializer
 
+    @action(detail=True, methods=['get'])
+    def stats(self, request, pk=None):
+        """
+        Zwraca statystyki dla konkretnego serwisanta.
+        Endpoint: GET /api/technicians/{id}/stats/
+        """
+        technician = self.get_object()
+        today = timezone.now().date()
+
+        # Liczba przypisanych zgłoszeń
+        assigned_tickets_count = ServiceTicket.objects.filter(
+            assigned_technician=technician
+        ).count()
+
+        # Liczba otwartych zgłoszeń
+        open_tickets_count = ServiceTicket.objects.filter(
+            assigned_technician=technician,
+            status=ServiceTicket.Status.OPEN
+        ).count()
+
+        # Liczba zgłoszeń w toku
+        in_progress_tickets_count = ServiceTicket.objects.filter(
+            assigned_technician=technician,
+            status=ServiceTicket.Status.IN_PROGRESS
+        ).count()
+
+        # Liczba zamkniętych zgłoszeń
+        closed_tickets_count = ServiceTicket.objects.filter(
+            assigned_technician=technician,
+            status=ServiceTicket.Status.CLOSED
+        ).count()
+
+        # Liczba ważnych certyfikatów
+        valid_certifications_count = Certification.objects.filter(
+            technician=technician,
+            expiry_date__gte=today
+        ).count()
+
+        # Liczba wygasających certyfikatów (w ciągu 30 dni)
+        expiring_soon_count = Certification.objects.filter(
+            technician=technician,
+            expiry_date__gte=today,
+            expiry_date__lte=today + timedelta(days=30)
+        ).count()
+
+        # Liczba wygasłych certyfikatów
+        expired_certifications_count = Certification.objects.filter(
+            technician=technician,
+            expiry_date__lt=today
+        ).count()
+
+        return Response({
+            'assigned_tickets_count': assigned_tickets_count,
+            'open_tickets_count': open_tickets_count,
+            'in_progress_tickets_count': in_progress_tickets_count,
+            'closed_tickets_count': closed_tickets_count,
+            'valid_certifications_count': valid_certifications_count,
+            'expiring_soon_count': expiring_soon_count,
+            'expired_certifications_count': expired_certifications_count,
+        })
+
 
 # -------------------------
 # Clients, Manufacturers (używają teraz CompanyScopedViewSet)
