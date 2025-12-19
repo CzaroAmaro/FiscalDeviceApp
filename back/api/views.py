@@ -229,14 +229,11 @@ class ClientViewSet(CompanyScopedViewSet):
         Zwraca uproszczoną listę klientów z lokalizacjami i informacją
         o otwartych zgłoszeniach, do użycia na mapie.
         """
-        # Adnotacja sprawdzająca, czy dla danego klienta istnieje
-        # przynajmniej jedno zgłoszenie o statusie 'OPEN'.
         open_tickets_subquery = ServiceTicket.objects.filter(
             client=OuterRef('pk'),
             status=ServiceTicket.Status.OPEN
         )
 
-        # Pobieramy tylko klientów, którzy mają współrzędne
         queryset = self.get_queryset().filter(
             latitude__isnull=False,
             longitude__isnull=False
@@ -246,6 +243,28 @@ class ClientViewSet(CompanyScopedViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], url_path='stats')
+    def stats(self, request, pk=None):
+        """
+        Zwraca statystyki dla konkretnego klienta:
+        - Liczba urządzeń
+        - Liczba zgłoszeń (wszystkich i otwartych)
+        """
+        client = self.get_object()
+
+        devices_count = FiscalDevice.objects.filter(owner=client).count()
+        tickets_count = ServiceTicket.objects.filter(client=client).count()
+        open_tickets_count = ServiceTicket.objects.filter(
+            client=client,
+            status=ServiceTicket.Status.OPEN
+        ).count()
+
+        return Response({
+            'devices_count': devices_count,
+            'tickets_count': tickets_count,
+            'open_tickets_count': open_tickets_count,
+        })
 
 
 class ManufacturerViewSet(CompanyScopedViewSet):

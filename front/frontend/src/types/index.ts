@@ -266,3 +266,9 @@ export interface TechnicianSummary {
   id: number;
   full_name: string;
 }
+
+export interface ClientStats {
+  devices_count: number;
+  tickets_count: number;
+  open_tickets_count: number;
+}

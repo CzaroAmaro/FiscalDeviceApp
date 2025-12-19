@@ -47,7 +47,6 @@ export function useResourceView<T extends ResourceItem>(
       return;
     }
 
-    // 2. Jeśli nie, obsłuż domyślne akcje
     switch (actionId) {
       case 'add':
         itemToEdit.value = null;

@@ -76,7 +76,7 @@
           <v-divider />
 
           <div class="clients-list">
-            <div class="pa-3 bg-grey-lighten-4">
+            <div class="pa-3">
               <span class="text-caption font-weight-medium text-medium-emphasis">
                 KLIENCI ({{ filteredClients.length }})
               </span>

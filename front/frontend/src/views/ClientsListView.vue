@@ -37,6 +37,14 @@
       @save-success="handleFormSave"
     />
 
+    <!-- Panel boczny ze szczegółami -->
+    <ClientDetailsDrawer
+      v-model="isDetailsDrawerOpen"
+      :client="itemToView"
+      @edit="handleEditFromDrawer"
+      @show-on-map="handleShowOnMapFromDrawer"
+    />
+
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
         <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
@@ -67,6 +75,7 @@ import type { Client } from '@/types';
 import DataTable from "@/components/DataTable.vue";
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
 import ClientFormModal from '@/components/clients/ClientFormModal.vue';
+import ClientDetailsDrawer from '@/components/clients/ClientDetailsDrawer.vue';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -74,6 +83,10 @@ const clientsStore = useClientsStore();
 const headers = computed(() => getClientHeaders(t));
 
 const { clients, isLoading } = storeToRefs(clientsStore);
+
+// Panel szczegółów
+const isDetailsDrawerOpen = ref(false);
+const itemToView = ref<Client | null>(null);
 
 const {
   selectedItems,
@@ -93,6 +106,13 @@ const {
   isLoading: isLoading,
   fetchItems: clientsStore.fetchClients,
   deleteItem: clientsStore.deleteClient,
+  customActions: {
+    view_details: (selected) => {
+      if (selected.length !== 1) return;
+      itemToView.value = selected[0];
+      isDetailsDrawerOpen.value = true;
+    },
+  },
 });
 
 const searchQuery = ref('');
@@ -118,14 +138,13 @@ function onClearSearch() {
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('clients.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('clients.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'view_details', label: 'Podgląd', icon: 'mdi-eye', requiresSelection: 'single' },
   { id: 'delete', label: t('clients.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
-  // Zmienione na 'single' - wymaga zaznaczenia dokładnie jednego klienta
   { id: 'view-map', label: t('clients.toolbar.viewOnMap') || 'Zobacz na mapie', icon: 'mdi-map-marker', color: 'primary', requiresSelection: 'single' },
 ]);
 
 function handleToolbarActionWrapper(actionId: string) {
   if (actionId === 'view-map') {
-    // Teraz wiemy, że jest dokładnie jeden zaznaczony klient
     const selected = selectedItems.value[0];
     if (selected) {
       router.push({
@@ -137,6 +156,21 @@ function handleToolbarActionWrapper(actionId: string) {
   }
 
   handleToolbarAction(actionId);
+}
+
+// Handlers z Drawera
+function handleEditFromDrawer(client: Client) {
+  isDetailsDrawerOpen.value = false;
+  itemToEdit.value = client;
+  isFormOpen.value = true;
+}
+
+function handleShowOnMapFromDrawer(client: Client) {
+  isDetailsDrawerOpen.value = false;
+  router.push({
+    name: 'client-map',
+    query: { clientId: client.id.toString() }
+  });
 }
 
 onMounted(() => fetchItems());
