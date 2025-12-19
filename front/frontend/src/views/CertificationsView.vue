@@ -29,18 +29,28 @@
         :loading="isLoading"
         :items-per-page="25"
       >
-        <template #item.actions="{ item }">
-          <div class="d-flex justify-end">
-            <v-tooltip text="Edytuj">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" icon="mdi-pencil-outline" variant="text" size="small" @click="handleEdit(item)" />
-              </template>
-            </v-tooltip>
-            <v-tooltip text="Usuń">
-              <template #activator="{ props }">
-                <v-btn v-bind="props" icon="mdi-delete-outline" variant="text" size="small" color="error" @click="handleDeleteRequest(item)" />
-              </template>
-            </v-tooltip>
+        <!-- Status ważności -->
+        <template #item.expiry_date="{ item }">
+          <div class="d-flex align-center">
+            <span>{{ formatDate(item.expiry_date) }}</span>
+            <v-chip
+              v-if="isExpired(item.expiry_date)"
+              color="error"
+              size="x-small"
+              variant="flat"
+              class="ml-2"
+            >
+              Wygasł
+            </v-chip>
+            <v-chip
+              v-else-if="isExpiringSoon(item.expiry_date)"
+              color="warning"
+              size="x-small"
+              variant="flat"
+              class="ml-2"
+            >
+              Wkrótce
+            </v-chip>
           </div>
         </template>
       </DataTable>
@@ -50,6 +60,15 @@
       v-model="isFormOpen"
       :editing-certification="itemToEdit"
       @save-success="handleFormSave"
+    />
+
+    <!-- Panel boczny ze szczegółami -->
+    <CertificationDetailsDrawer
+      v-model="isDetailsDrawerOpen"
+      :certification="itemToView"
+      @edit="handleEditFromDrawer"
+      @renew="handleRenewFromDrawer"
+      @delete="handleDeleteFromDrawer"
     />
 
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
@@ -74,13 +93,19 @@ import { useCertificationsStore } from '@/stores/certifications';
 import { useResourceView } from '@/composables/useResourceView';
 import { getCertificationHeaders } from '@/config/tables/certificationHeaders';
 import type { Certification } from '@/types';
+
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
 import CertificationFormModal from '@/components/certifications/CertificationFormModal.vue';
+import CertificationDetailsDrawer from '@/components/certifications/CertificationDetailsDrawer.vue';
 
 const { t } = useI18n();
 const certificationsStore = useCertificationsStore();
 const { certifications, isLoading } = storeToRefs(certificationsStore);
+
+// Panel szczegółów
+const isDetailsDrawerOpen = ref(false);
+const itemToView = ref<Certification | null>(null);
 
 const {
   selectedItems,
@@ -93,7 +118,6 @@ const {
   handleToolbarAction,
   handleFormSave,
   handleDeleteConfirm,
-  handleEdit,
   handleDeleteRequest,
   fetchItems,
 } = useResourceView<Certification>({
@@ -102,14 +126,24 @@ const {
   isLoading: isLoading,
   fetchItems: certificationsStore.fetchCertifications,
   deleteItem: certificationsStore.deleteCertification,
+  customActions: {
+    view_details: (selected) => {
+      if (selected.length !== 1) return;
+      itemToView.value = selected[0];
+      isDetailsDrawerOpen.value = true;
+    },
+  },
 });
 
 const certificationHeaders = computed(() => getCertificationHeaders(t));
+
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: 'Dodaj certyfikat', icon: 'mdi-plus', requiresSelection: 'none' },
+  { id: 'add', label: 'Dodaj certyfikat', icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: 'Edytuj', icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'delete', label: 'Usuń', icon: 'mdi-delete', requiresSelection: 'multiple' },
+  { id: 'view_details', label: 'Podgląd', icon: 'mdi-eye', requiresSelection: 'single' },
+  { id: 'delete', label: 'Usuń', icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
 ]);
+
 const searchQuery = ref('');
 
 const filteredItems = computed(() => {
@@ -119,7 +153,8 @@ const filteredItems = computed(() => {
   return all.filter((c: Certification) => {
     const name = (c.technician_name || '').toString().toLowerCase();
     const number = (c.certificate_number || '').toString().toLowerCase();
-    return name.includes(q) || number.includes(q);
+    const manufacturer = (c.manufacturer_name || '').toString().toLowerCase();
+    return name.includes(q) || number.includes(q) || manufacturer.includes(q);
   });
 });
 
@@ -127,6 +162,44 @@ function onClearSearch() {
   searchQuery.value = '';
 }
 
-/* -------------------- lifecycle -------------------- */
+// Date helpers
+function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString('pl-PL');
+}
+
+function isExpired(expiryDate: string): boolean {
+  return new Date(expiryDate) < new Date();
+}
+
+function isExpiringSoon(expiryDate: string): boolean {
+  if (isExpired(expiryDate)) return false;
+  const expiry = new Date(expiryDate);
+  const today = new Date();
+  const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  return diffDays <= 30;
+}
+
+// Handlers z Drawera
+function handleEditFromDrawer(certification: Certification) {
+  isDetailsDrawerOpen.value = false;
+  itemToEdit.value = certification;
+  isFormOpen.value = true;
+}
+
+function handleRenewFromDrawer(certification: Certification) {
+  isDetailsDrawerOpen.value = false;
+  itemToEdit.value = {
+    ...certification,
+    issue_date: new Date().toISOString().split('T')[0],
+    expiry_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
+  };
+  isFormOpen.value = true;
+}
+
+function handleDeleteFromDrawer(certification: Certification) {
+  isDetailsDrawerOpen.value = false;
+  handleDeleteRequest(certification);
+}
+
 onMounted(() => fetchItems());
 </script>
