@@ -4,7 +4,8 @@
       :title="t('devices.title')"
       :selected-count="selectedItems.length"
       :actions="toolbarActions"
-      @action="handleToolbarAction" />
+      @action="handleToolbarAction"
+    />
 
     <!-- Pole wyszukiwania -->
     <div class="mb-4 flex items-center gap-3">
@@ -35,6 +36,7 @@
       </DataTable>
     </v-card>
 
+    <!-- Formularze i modale -->
     <DeviceFormModal
       v-model="isFormOpen"
       :editing-device="itemToEdit"
@@ -42,15 +44,22 @@
       @save-success="handleFormSave"
       @request-new-client="isClientModalOpen = true"
     />
+
     <ClientFormModal
       v-model="isClientModalOpen"
       :editing-client="null"
       @save-success="onClientSaveSuccess"
     />
-    <DeviceDetailsModal
-      v-model="isDetailsModalOpen"
+
+    <!-- NOWY: Panel boczny ze szczegółami -->
+    <DeviceDetailsDrawer
+      v-model="isDetailsDrawerOpen"
       :device="itemToView"
+      @edit="handleEditFromDrawer"
+      @perform-service="handlePerformServiceFromDrawer"
+      @export-pdf="handleExportPdfFromDrawer"
     />
+
     <PerformServiceModal
       v-model="isServiceModalOpen"
       :device="itemToPerformService"
@@ -83,24 +92,26 @@ import { useSnackbarStore } from '@/stores/snackbar';
 import { useResourceView } from '@/composables/useResourceView';
 import { getDeviceHeaders } from '@/config/tables/deviceHeaders';
 import type { FiscalDevice, Client } from '@/types';
-import { downloadDeviceReport, sendInspectionReminders } from '@/api/devices';
-import { performDeviceService } from '@/api/devices';
-import DeviceDetailsModal from '@/components/devices/DeviceDetailsModal.vue';
-import PerformServiceModal from '@/components/devices/PerformServiceModal.vue';
+import { downloadDeviceReport, sendInspectionReminders, performDeviceService } from '@/api/devices';
 
 import DataTable from '@/components/DataTable.vue';
 import TableToolbar, { type ToolbarAction } from '@/components/TableToolbar.vue';
 import DeviceFormModal from '@/components/devices/DeviceFormModal.vue';
 import DeviceStatusChip from '@/components/devices/DeviceStatusChip.vue';
 import ClientFormModal from '@/components/clients/ClientFormModal.vue';
+import DeviceDetailsDrawer from '@/components/devices/DeviceDetailsDrawer.vue';
+import PerformServiceModal from '@/components/devices/PerformServiceModal.vue';
 
 const { t } = useI18n();
 const snackbarStore = useSnackbarStore();
 const devicesStore = useDevicesStore();
+
 const isExporting = ref(false);
 const isSendingReminders = ref(false);
 const isPerformingService = ref(false);
-const isDetailsModalOpen = ref(false);
+
+// Panel szczegółów
+const isDetailsDrawerOpen = ref(false);
 const itemToView = ref<FiscalDevice | null>(null);
 
 const isServiceModalOpen = ref(false);
@@ -129,16 +140,7 @@ const {
   customActions: {
     export_pdf: async (selected) => {
       if (selected.length !== 1) return;
-
-      isExporting.value = true;
-      try {
-        await downloadDeviceReport(selected[0].id);
-        snackbarStore.showSuccess('Raport PDF został wygenerowany.');
-      } catch (error: any) {
-        snackbarStore.showError(error.message || 'Wystąpił błąd podczas eksportu.');
-      } finally {
-        isExporting.value = false;
-      }
+      await handleExportPdf(selected[0]);
     },
     send_email: async (selected) => {
       if (selected.length === 0) return;
@@ -149,8 +151,9 @@ const {
         const response = await sendInspectionReminders(ids);
         snackbarStore.showSuccess(response.detail || `Zlecono wysłanie ${response.sent_count} przypomnień.`);
         selectedItems.value = [];
-      } catch (error: any) {
-        snackbarStore.showError(error.message || 'Wystąpił błąd podczas wysyłania przypomnień.');
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Wystąpił błąd podczas wysyłania przypomnień.';
+        snackbarStore.showError(message);
       } finally {
         isSendingReminders.value = false;
       }
@@ -158,7 +161,7 @@ const {
     view_details: (selected) => {
       if (selected.length !== 1) return;
       itemToView.value = selected[0];
-      isDetailsModalOpen.value = true;
+      isDetailsDrawerOpen.value = true;
     },
     perform_service: (selected) => {
       if (selected.length !== 1) return;
@@ -172,21 +175,53 @@ const isClientModalOpen = ref(false);
 const newlyCreatedClientId = ref<number | null>(null);
 
 const deviceHeaders = computed(() => getDeviceHeaders(t));
+
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('devices.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'export_pdf', label: t('devices.toolbar.exportPdf'), icon: 'mdi-file-pdf-box', requiresSelection: 'single' },
+  { id: 'export_pdf', label: t('devices.toolbar.exportPdf'), icon: 'mdi-file-pdf-box', requiresSelection: 'single', loading: isExporting.value },
   { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
-  { id: 'send_email', label: ('Wyslij email'), icon: 'mdi-email', requiresSelection: 'multiple', loading: isSendingReminders.value },
-  { id: 'perform_service', label: ('Wykonaj przegląd'), icon: 'mdi-check-decagram',  requiresSelection: 'single', loading: isPerformingService.value },
-  { id: 'view_details', label: ('Podgląd'), icon: 'mdi-eye', requiresSelection: 'single' },
+  { id: 'send_email', label: 'Wyślij email', icon: 'mdi-email', requiresSelection: 'multiple', loading: isSendingReminders.value },
+  { id: 'perform_service', label: 'Wykonaj przegląd', icon: 'mdi-check-decagram', requiresSelection: 'single', loading: isPerformingService.value },
+  { id: 'view_details', label: 'Podgląd', icon: 'mdi-eye', requiresSelection: 'single' },
 ]);
+
+// Export PDF helper
+async function handleExportPdf(device: FiscalDevice) {
+  isExporting.value = true;
+  try {
+    await downloadDeviceReport(device.id);
+    snackbarStore.showSuccess('Raport PDF został wygenerowany.');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Wystąpił błąd podczas eksportu.';
+    snackbarStore.showError(message);
+  } finally {
+    isExporting.value = false;
+  }
+}
+
+// Handlers z Drawera
+function handleEditFromDrawer(device: FiscalDevice) {
+  isDetailsDrawerOpen.value = false;
+  itemToEdit.value = device;
+  isFormOpen.value = true;
+}
+
+function handlePerformServiceFromDrawer(device: FiscalDevice) {
+  isDetailsDrawerOpen.value = false;
+  itemToPerformService.value = device;
+  isServiceModalOpen.value = true;
+}
+
+function handleExportPdfFromDrawer(device: FiscalDevice) {
+  handleExportPdf(device);
+}
 
 async function handlePerformServiceConfirm(technicianId: number) {
   if (!itemToPerformService.value) return;
 
   isPerformingService.value = true;
-  isServiceModalOpen.value = false; // Zamknij modal od razu
+  isServiceModalOpen.value = false;
 
   try {
     const deviceId = itemToPerformService.value.id;
@@ -195,11 +230,17 @@ async function handlePerformServiceConfirm(technicianId: number) {
     devicesStore.updateDeviceInList(updatedDevice);
     snackbarStore.showSuccess('Przegląd został wykonany.');
     selectedItems.value = [];
-  } catch (error: any) {
-    snackbarStore.showError(error.message || 'Wystąpił błąd podczas aktualizacji.');
+
+    // Aktualizuj też widok w drawerze jeśli otwarty
+    if (itemToView.value?.id === deviceId) {
+      itemToView.value = updatedDevice;
+    }
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Wystąpił błąd podczas aktualizacji.';
+    snackbarStore.showError(message);
   } finally {
     isPerformingService.value = false;
-    itemToPerformService.value = null; // Wyczyść stan
+    itemToPerformService.value = null;
   }
 }
 

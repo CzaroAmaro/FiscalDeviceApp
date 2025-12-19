@@ -7,7 +7,7 @@
       @action="handleToolbarActionWrapper"
     />
 
-    <!-- Pole wyszukiwania (lupa) -->
+    <!-- Pole wyszukiwania -->
     <div class="mb-4 flex items-center gap-3">
       <v-text-field
         v-model="searchQuery"
@@ -23,7 +23,6 @@
     </div>
 
     <v-card>
-      <!-- Używamy zwykłego v-model (modelValue) żeby dopasować do DataTable -->
       <DataTable
         v-model="selectedItems"
         :headers="headers"
@@ -82,7 +81,7 @@ const {
   isFormOpen,
   isConfirmOpen,
   isDeleting,
-  items, // items === clients (przepuszczone z useResourceView)
+  items,
   confirmMessage,
   handleToolbarAction,
   handleFormSave,
@@ -96,13 +95,8 @@ const {
   deleteItem: clientsStore.deleteClient,
 });
 
-/* -------------------- WYSZUKIWANIE (proste i reaktywne) -------------------- */
 const searchQuery = ref('');
 
-/**
- * filteredItems jest teraz czystym computed — NIE próbujemy do niego przypisywać.
- * Dzięki temu unikamy błędu "attempt to assign to readonly property".
- */
 const filteredItems = computed(() => {
   const q = (searchQuery.value || '').toString().trim().toLowerCase();
   const all = items.value || [];
@@ -120,22 +114,24 @@ function onClearSearch() {
   searchQuery.value = '';
 }
 
-/* -------------------- toolbar + map button -------------------- */
+/* -------------------- Toolbar actions -------------------- */
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('clients.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('clients.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'delete', label: t('clients.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
-  { id: 'view-map', label: t('clients.toolbar.viewOnMap') || 'Zobacz na mapie', icon: 'mdi-map-marker', color: 'primary', requiresSelection: 'none' },
+  // Zmienione na 'single' - wymaga zaznaczenia dokładnie jednego klienta
+  { id: 'view-map', label: t('clients.toolbar.viewOnMap') || 'Zobacz na mapie', icon: 'mdi-map-marker', color: 'primary', requiresSelection: 'single' },
 ]);
 
 function handleToolbarActionWrapper(actionId: string) {
   if (actionId === 'view-map') {
-    const selected = selectedItems?.value ?? [];
-    if (selected.length > 0) {
-      const ids = selected.map((s: any) => s.id).join(',');
-      router.push({ name: 'client-map', query: { clients: ids } });
-    } else {
-      router.push({ name: 'client-map' });
+    // Teraz wiemy, że jest dokładnie jeden zaznaczony klient
+    const selected = selectedItems.value[0];
+    if (selected) {
+      router.push({
+        name: 'client-map',
+        query: { clientId: selected.id.toString() }
+      });
     }
     return;
   }
@@ -143,7 +139,6 @@ function handleToolbarActionWrapper(actionId: string) {
   handleToolbarAction(actionId);
 }
 
-/* -------------------- misc -------------------- */
 onMounted(() => fetchItems());
 </script>
 

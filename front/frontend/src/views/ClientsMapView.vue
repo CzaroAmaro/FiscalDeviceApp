@@ -1,12 +1,26 @@
 <template>
   <v-container fluid class="map-container pa-4">
-    <!-- Nagłówek strony -->
     <div class="page-header mb-4">
       <div class="d-flex align-center justify-space-between flex-wrap ga-4">
         <div>
-          <h1 class="text-h4 font-weight-bold mb-1">
-            {{ t('clientsMap.title') }}
-          </h1>
+          <div class="d-flex align-center ga-2 mb-1">
+            <v-btn
+              v-if="focusedClientId"
+              icon
+              variant="text"
+              size="small"
+              @click="clearFocus"
+            >
+              <v-icon>mdi-arrow-left</v-icon>
+              <v-tooltip activator="parent" location="bottom">Wróć do widoku wszystkich</v-tooltip>
+            </v-btn>
+            <h1 class="text-h4 font-weight-bold mb-0">
+              {{ focusedClient ? focusedClient.name : t('clientsMap.title') }}
+            </h1>
+          </div>
+          <p class="text-body-2 text-medium-emphasis mb-0">
+            {{ focusedClient ? 'Lokalizacja klienta na mapie' : 'Lokalizacje klientów na mapie interaktywnej' }}
+          </p>
         </div>
 
         <div class="d-flex align-center ga-3">
@@ -14,12 +28,20 @@
             <v-icon start size="14">mdi-map-marker</v-icon>
             {{ clientsStore.clientLocations.length }} lokalizacji
           </v-chip>
+          <v-chip
+            v-if="clientsWithOpenTickets > 0"
+            color="warning"
+            variant="tonal"
+            size="small"
+          >
+            <v-icon start size="14">mdi-alert-circle</v-icon>
+            {{ clientsWithOpenTickets }} z otwartymi zgłoszeniami
+          </v-chip>
         </div>
       </div>
     </div>
 
     <v-row>
-      <!-- Panel boczny -->
       <v-col cols="12" md="3" lg="3" xl="2" order="2" order-md="1">
         <v-card rounded="lg" class="sidebar-card">
           <div class="pa-4">
@@ -53,9 +75,8 @@
 
           <v-divider />
 
-          <!-- Lista klientów -->
           <div class="clients-list">
-            <div class="pa-3">
+            <div class="pa-3 bg-grey-lighten-4">
               <span class="text-caption font-weight-medium text-medium-emphasis">
                 KLIENCI ({{ filteredClients.length }})
               </span>
@@ -120,10 +141,8 @@
         </v-card>
       </v-col>
 
-      <!-- Mapa -->
       <v-col cols="12" md="9" lg="9" xl="10" order="1" order-md="2">
         <v-card rounded="lg" class="map-card">
-          <!-- Toolbar mapy - uproszczony -->
           <div class="map-toolbar pa-3">
             <div class="d-flex align-center justify-space-between">
               <div class="d-flex align-center ga-2">
@@ -199,7 +218,6 @@
             {{ clientsStore.error }}
           </v-alert>
 
-          <!-- Kontener mapy -->
           <div class="map-wrapper">
             <l-map
               ref="mapRef"
@@ -245,11 +263,14 @@
               </l-marker>
             </l-map>
 
-            <!-- Legenda -->
             <div class="map-legend">
               <div class="legend-item">
                 <span class="legend-marker default"></span>
                 <span class="text-caption">Klient</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-marker warning"></span>
+                <span class="text-caption">Z otwartymi zgłoszeniami</span>
               </div>
             </div>
           </div>
@@ -262,6 +283,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import { useClientsStore } from '@/stores/clients';
 import type { ClientLocation } from '@/types';
 
@@ -279,21 +301,30 @@ interface LeafletMapInstance {
 }
 
 const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const clientsStore = useClientsStore();
 
-// Map refs
 const mapRef = ref<LeafletMapInstance | null>(null);
 const mapReady = ref(false);
 
-// Map state - używamy zwykłych ref bez v-model
 const currentZoom = ref(6);
 const currentCenter = ref<[number, number]>([52.237049, 21.017532]);
 const mapStyle = ref<'street' | 'satellite'>('street');
 
-// UI state
 const selectedClientId = ref<number | null>(null);
 const searchQuery = ref('');
 const visibleClientsCount = ref(20);
+
+const focusedClientId = computed(() => {
+  const id = route.query.clientId;
+  return id ? Number(id) : null;
+});
+
+const focusedClient = computed(() => {
+  if (!focusedClientId.value) return null;
+  return clientsStore.clientLocations.find(c => c.id === focusedClientId.value) || null;
+});
 
 // Map options
 const mapOptions = {
@@ -303,7 +334,6 @@ const mapOptions = {
 
 const attribution = '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors';
 
-// Tile layer URL
 const tileLayerUrl = computed(() => {
   if (mapStyle.value === 'satellite') {
     return 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -311,7 +341,6 @@ const tileLayerUrl = computed(() => {
   return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 });
 
-// Filtered clients
 const filteredClients = computed<ClientLocation[]>(() => {
   let clients = clientsStore.clientLocations;
 
@@ -325,17 +354,14 @@ const filteredClients = computed<ClientLocation[]>(() => {
   return clients;
 });
 
-// Visible clients (for pagination)
 const visibleClients = computed(() => {
   return filteredClients.value.slice(0, visibleClientsCount.value);
 });
 
-// Stats
 const clientsWithOpenTickets = computed(() => {
   return clientsStore.clientLocations.filter(c => c.has_open_tickets).length;
 });
 
-// Event handlers dla mapy - nie używamy v-model żeby uniknąć błędów
 function onZoomUpdate(newZoom: number) {
   currentZoom.value = newZoom;
 }
@@ -344,20 +370,26 @@ function onCenterUpdate(newCenter: [number, number]) {
   currentCenter.value = newCenter;
 }
 
-// Map ready handler
 function onMapReady() {
   mapReady.value = true;
 
   nextTick(() => {
     setTimeout(() => {
-      if (filteredClients.value.length > 0) {
+      if (focusedClient.value) {
+        focusOnClient(focusedClient.value);
+      } else if (filteredClients.value.length > 0) {
         handleFitBounds();
       }
     }, 500);
   });
 }
 
-// Zoom handlers
+watch(focusedClient, (client) => {
+  if (client && mapReady.value) {
+    focusOnClient(client);
+  }
+});
+
 function handleZoomIn() {
   if (mapRef.value?.leafletObject) {
     mapRef.value.leafletObject.zoomIn();
@@ -370,7 +402,6 @@ function handleZoomOut() {
   }
 }
 
-// Fit bounds
 function handleFitBounds() {
   if (!mapRef.value?.leafletObject || filteredClients.value.length === 0) return;
 
@@ -384,30 +415,37 @@ function handleFitBounds() {
   }
 }
 
-// Focus on client
 function focusOnClient(client: ClientLocation) {
   selectedClientId.value = client.id;
 
   if (mapRef.value?.leafletObject) {
     mapRef.value.leafletObject.setView(
       [client.latitude, client.longitude],
-      14,
+      15,
       { animate: true }
     );
   }
 }
 
-// Refresh data
+function clearFocus() {
+  router.push({ name: 'client-map' });
+  selectedClientId.value = null;
+
+  nextTick(() => {
+    setTimeout(() => {
+      handleFitBounds();
+    }, 100);
+  });
+}
+
 function refreshData() {
   clientsStore.fetchClientLocations(true);
 }
 
-// Reset visible count when filter changes
 watch(searchQuery, () => {
   visibleClientsCount.value = 20;
 });
 
-// Mount
 onMounted(() => {
   clientsStore.fetchClientLocations();
 });
@@ -422,7 +460,6 @@ onMounted(() => {
   padding-bottom: 8px;
 }
 
-/* Sidebar */
 .sidebar-card {
   height: calc(100vh - 180px);
   display: flex;
@@ -449,7 +486,6 @@ onMounted(() => {
   border-left: 3px solid rgb(var(--v-theme-primary));
 }
 
-/* Map card */
 .map-card {
   height: calc(100vh - 180px);
   display: flex;
@@ -474,7 +510,6 @@ onMounted(() => {
   z-index: 0;
 }
 
-/* Legend */
 .map-legend {
   position: absolute;
   bottom: 24px;
@@ -509,7 +544,6 @@ onMounted(() => {
   background-color: #FB8C00;
 }
 
-/* Popup styles */
 .popup-content {
   padding: 8px;
   min-width: 200px;
@@ -573,7 +607,6 @@ onMounted(() => {
   border-radius: 3px;
 }
 
-/* Responsywność */
 @media (max-width: 960px) {
   .sidebar-card {
     height: auto;
