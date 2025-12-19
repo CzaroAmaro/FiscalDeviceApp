@@ -135,11 +135,9 @@ function onDragEnd(event: DraggableEndEvent) {
 
 <style scoped>
 .kanban-column {
-  flex: 1 1 340px;
-  min-width: 320px;
-  max-width: 400px;
   display: flex;
   flex-direction: column;
+  min-width: 0; /* Ważne dla grid */
 }
 
 .column-card {

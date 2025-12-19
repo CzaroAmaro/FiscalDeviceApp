@@ -1,6 +1,5 @@
 <template>
   <v-container fluid class="kanban-container pa-4">
-    <!-- Nagłówek strony -->
     <div class="page-header mb-6">
       <div class="d-flex align-center justify-space-between flex-wrap ga-4">
         <div>
@@ -10,7 +9,6 @@
         </div>
 
         <div class="d-flex align-center ga-3">
-          <!-- Statystyki -->
           <div class="d-flex ga-2">
             <v-chip color="warning" variant="tonal" size="small">
               <v-icon start size="14">mdi-alert-circle</v-icon>
@@ -26,7 +24,6 @@
             </v-chip>
           </div>
 
-          <!-- Przycisk dodawania -->
           <v-btn
             color="primary"
             prepend-icon="mdi-plus"
@@ -38,13 +35,11 @@
       </div>
     </div>
 
-    <!-- Loader -->
     <div v-if="isLoading && tickets.length === 0" class="loading-state">
       <v-progress-circular indeterminate size="64" color="primary" />
       <p class="text-body-1 text-medium-emphasis mt-4">Ładowanie zgłoszeń...</p>
     </div>
 
-    <!-- Tablica Kanban -->
     <div v-else class="kanban-board">
       <KanbanColumn
         v-for="column in columns"
@@ -64,7 +59,6 @@
       />
     </div>
 
-    <!-- Modale -->
     <TicketFormModal
       v-model="isFormOpen"
       :editing-ticket="itemToEdit"
@@ -78,7 +72,6 @@
       @save-success="handleResolveSuccess"
     />
 
-    <!-- Dialog potwierdzenia usunięcia -->
     <v-dialog v-model="isConfirmOpen" max-width="450" persistent>
       <v-card rounded="lg">
         <v-card-title class="d-flex align-center pa-4">
@@ -264,7 +257,7 @@ async function handleDeleteConfirm() {
 
 <style scoped>
 .kanban-container {
-  max-width: 1800px;
+  max-width: 100%; /* Zmiana z 1800px */
 }
 
 .page-header {
@@ -281,9 +274,9 @@ async function handleDeleteConfirm() {
 }
 
 .kanban-board {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 równe kolumny */
   gap: 20px;
-  overflow-x: auto;
   padding: 8px 0 16px;
   min-height: calc(100vh - 220px);
 }
@@ -300,6 +293,19 @@ async function handleDeleteConfirm() {
 .kanban-board::-webkit-scrollbar-thumb {
   background: rgba(var(--v-theme-on-surface), 0.2);
   border-radius: 4px;
+}
+
+/* Responsywność */
+@media (max-width: 1200px) {
+  .kanban-board {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 960px) {
