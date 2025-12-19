@@ -1,142 +1,338 @@
 <template>
-  <v-container>
+  <v-container fluid class="settings-container">
     <v-row justify="center">
-      <v-col cols="12" md="8" lg="6">
-        <h1>Ustawienia</h1>
-
-        <div v-if="isLoading" class="text-center pa-10">
-          <v-progress-circular indeterminate color="primary"></v-progress-circular>
-          <p class="mt-4">Ładowanie danych...</p>
+      <v-col cols="12" lg="10" xl="8">
+        <!-- Nagłówek strony -->
+        <div class="page-header mb-6">
+          <div class="d-flex align-center">
+            <v-avatar color="primary" size="56" variant="tonal" class="mr-4">
+              <v-icon size="28">mdi-cog</v-icon>
+            </v-avatar>
+            <div>
+              <h1 class="text-h4 font-weight-bold mb-1">
+                {{ t('settings.title') }}
+              </h1>
+              <p class="text-body-2 text-medium-emphasis mb-0">
+                {{ t('settings.subtitle') }}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <v-alert v-else-if="error" type="error" class="mt-4">
-          {{ error }}
+        <!-- Loading state -->
+        <div v-if="isLoading" class="loading-state">
+          <v-card rounded="lg" class="pa-8 text-center">
+            <v-progress-circular
+              indeterminate
+              color="primary"
+              size="48"
+              class="mb-4"
+            />
+            <p class="text-body-1 text-medium-emphasis mb-0">
+              {{ t('common.loading') }}
+            </p>
+          </v-card>
+        </div>
+
+        <!-- Error state -->
+        <v-alert
+          v-else-if="error"
+          type="error"
+          variant="tonal"
+          rounded="lg"
+          class="mb-6"
+        >
+          <template #prepend>
+            <v-icon>mdi-alert-circle</v-icon>
+          </template>
+          <div class="d-flex align-center justify-space-between">
+            <span>{{ error }}</span>
+            <v-btn
+              variant="text"
+              size="small"
+              @click="retryFetch"
+            >
+              {{ t('common.retry') }}
+            </v-btn>
+          </div>
         </v-alert>
 
-        <div v-else>
-          <!-- Company settings - only for admins -->
-          <v-card v-if="isAdmin" class="mt-6">
-            <v-card-title>Ustawienia Firmy</v-card-title>
-            <v-card-text>
-              <v-form @submit.prevent="saveCompanySettings">
-                <v-text-field
-                  v-model="companyData.name"
-                  label="Nazwa firmy"
-                  variant="outlined"
-                  :rules="[rules.required]"
-                ></v-text-field>
-                <v-btn
-                  type="submit"
-                  color="primary"
-                  :loading="isSavingCompany"
-                  :disabled="isSavingCompany"
-                >
-                  Zapisz zmiany w firmie
-                </v-btn>
-              </v-form>
-            </v-card-text>
-          </v-card>
+        <!-- Main content -->
+        <div v-else class="settings-content">
+          <v-row>
+            <!-- Sidebar navigation (desktop) -->
+            <v-col cols="12" md="3" class="d-none d-md-block">
+              <v-card rounded="lg" class="settings-nav sticky-nav">
+                <v-list nav density="comfortable" class="pa-2">
+                  <v-list-item
+                    v-for="section in navigationSections"
+                    :key="section.id"
+                    :value="section.id"
+                    :active="activeSection === section.id"
+                    rounded="lg"
+                    @click="scrollToSection(section.id)"
+                  >
+                    <template #prepend>
+                      <v-avatar
+                        :color="activeSection === section.id ? 'primary' : 'grey'"
+                        size="32"
+                        variant="tonal"
+                      >
+                        <v-icon size="16">{{ section.icon }}</v-icon>
+                      </v-avatar>
+                    </template>
+                    <v-list-item-title class="text-body-2">
+                      {{ section.title }}
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-card>
+            </v-col>
 
-          <!-- Read-only company info for non-admins -->
-          <v-card v-else class="mt-6">
-            <v-card-title>Informacje o firmie</v-card-title>
-            <v-card-text>
-              <v-text-field
-                v-model="companyData.name"
-                label="Nazwa firmy"
-                variant="outlined"
-                readonly
-                disabled
-              ></v-text-field>
-              <v-alert type="info" density="compact" variant="tonal">
-                Tylko administrator może edytować dane firmy.
-              </v-alert>
-            </v-card-text>
-          </v-card>
+            <!-- Settings sections -->
+            <v-col cols="12" md="9">
+              <!-- Company Settings Section -->
+              <section id="company" class="settings-section">
+                <CompanySettingsCard
+                  :company-data="companyData"
+                  :is-admin="isAdmin"
+                  :is-saving="isSavingCompany"
+                  @save="saveCompanySettings"
+                  @update:company-data="updateCompanyData"
+                />
+              </section>
 
-          <EditProfileForm class="mt-6" />
-          <ChangeEmailForm class="mt-6" />
+              <!-- Profile Section -->
+              <section id="profile" class="settings-section">
+                <EditProfileCard />
+              </section>
+
+              <!-- Email Section -->
+              <section id="email" class="settings-section">
+                <ChangeEmailCard />
+              </section>
+            </v-col>
+          </v-row>
         </div>
       </v-col>
     </v-row>
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
-      {{ snackbar.text }}
+    <!-- Snackbar -->
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      :timeout="3000"
+      location="bottom right"
+    >
+      <div class="d-flex align-center">
+        <v-icon class="mr-2">
+          {{ snackbar.color === 'success' ? 'mdi-check-circle' : 'mdi-alert-circle' }}
+        </v-icon>
+        {{ snackbar.text }}
+      </div>
     </v-snackbar>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
-import ChangeEmailForm from '@/components/ChangeEmailForm.vue';
-import EditProfileForm from '@/components/EditProfileForm.vue';
+import CompanySettingsCard from '@/components/settings/CompanySettingsCard.vue';
+import EditProfileCard from '@/components/settings/EditProfileForm.vue';
+import ChangeEmailCard from '@/components/settings/ChangeEmailForm.vue';
 
 interface Company {
   id: string;
   name: string;
 }
 
+// Composables
+const { t } = useI18n();
 const authStore = useAuthStore();
-const isAdmin = computed(() => authStore.isAdmin);
 
+// State
 const isLoading = ref(true);
 const isSavingCompany = ref(false);
 const error = ref<string | null>(null);
+const activeSection = ref('company');
 
 const companyData = reactive<Partial<Company>>({
   name: '',
 });
 
-const rules = {
-  required: (value: string) => !!value || 'To pole jest wymagane.',
-};
-
 const snackbar = reactive({
   show: false,
   text: '',
-  color: 'success',
+  color: 'success' as 'success' | 'error',
 });
 
-onMounted(async () => {
+// Computed
+const isAdmin = computed(() => authStore.isAdmin);
+
+const navigationSections = computed(() => [
+  { id: 'company', title: t('settings.nav.company'), icon: 'mdi-office-building' },
+  { id: 'profile', title: t('settings.nav.profile'), icon: 'mdi-account' },
+  { id: 'email', title: t('settings.nav.email'), icon: 'mdi-email' },
+]);
+
+// Methods
+function updateCompanyData(data: Partial<Company>) {
+  Object.assign(companyData, data);
+}
+
+async function fetchCompanyData() {
+  isLoading.value = true;
+  error.value = null;
+
   try {
     const response = await api.get<Company>('/company/me/');
     Object.assign(companyData, response.data);
   } catch (err) {
-    error.value = 'Nie udało się pobrać danych firmy. Upewnij się, że Twoje konto jest aktywne.';
+    error.value = t('settings.errors.loadFailed');
     console.error(err);
   } finally {
     isLoading.value = false;
   }
-});
+}
 
-const saveCompanySettings = async () => {
+async function retryFetch() {
+  await fetchCompanyData();
+}
+
+async function saveCompanySettings(name: string) {
   if (!isAdmin.value) {
-    showSnackbar('Brak uprawnień do edycji danych firmy.', 'error');
+    showSnackbar(t('settings.errors.noPermission'), 'error');
     return;
   }
 
-  if (!companyData.name) {
-    showSnackbar('Nazwa firmy nie może być pusta.', 'error');
+  if (!name.trim()) {
+    showSnackbar(t('settings.errors.emptyName'), 'error');
     return;
   }
 
   isSavingCompany.value = true;
   try {
-    await api.patch('/company/me/', { name: companyData.name });
-    showSnackbar('Dane firmy zostały zaktualizowane!', 'success');
+    await api.patch('/company/me/', { name });
+    companyData.name = name;
+    showSnackbar(t('settings.company.saveSuccess'), 'success');
   } catch (err) {
-    showSnackbar('Wystąpił błąd podczas zapisywania danych.', 'error');
+    showSnackbar(t('settings.errors.saveFailed'), 'error');
     console.error(err);
   } finally {
     isSavingCompany.value = false;
   }
-};
+}
 
-const showSnackbar = (text: string, color: 'success' | 'error' = 'success') => {
+function scrollToSection(sectionId: string) {
+  activeSection.value = sectionId;
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function showSnackbar(text: string, color: 'success' | 'error') {
   snackbar.text = text;
   snackbar.color = color;
   snackbar.show = true;
-};
+}
+
+// Intersection Observer for active section
+let observer: IntersectionObserver | null = null;
+
+function setupIntersectionObserver() {
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          activeSection.value = entry.target.id;
+        }
+      });
+    },
+    { threshold: 0.3 }
+  );
+
+  navigationSections.value.forEach((section) => {
+    const element = document.getElementById(section.id);
+    if (element) {
+      observer?.observe(element);
+    }
+  });
+}
+
+// Lifecycle
+onMounted(async () => {
+  await fetchCompanyData();
+  setupIntersectionObserver();
+});
+
+onUnmounted(() => {
+  observer?.disconnect();
+});
 </script>
+
+<style scoped>
+.settings-container {
+  min-height: 100vh;
+  background: rgba(var(--v-theme-on-surface), 0.02);
+}
+
+.page-header {
+  padding: 24px 0;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.settings-content {
+  padding-bottom: 48px;
+}
+
+.settings-nav {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+}
+
+.sticky-nav {
+  position: sticky;
+  top: 80px;
+}
+
+.settings-section {
+  margin-bottom: 24px;
+  scroll-margin-top: 80px;
+}
+
+.settings-card {
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  transition: all 0.3s ease;
+}
+
+.settings-card:hover {
+  border-color: rgba(var(--v-theme-primary), 0.2);
+}
+
+.card-header {
+  padding: 20px 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--v-theme-primary), 0.04) 0%,
+    rgba(var(--v-theme-primary), 0.01) 100%
+  );
+}
+
+/* Mobile */
+@media (max-width: 960px) {
+  .page-header {
+    padding: 16px 0;
+  }
+
+  .settings-section {
+    margin-bottom: 16px;
+  }
+}
+</style>
