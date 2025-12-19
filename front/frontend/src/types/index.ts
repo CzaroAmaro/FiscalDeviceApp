@@ -122,11 +122,16 @@ export interface ServiceTicket {
   resolution_display: string;
 }
 
-export type ClientPayload = Omit<Client, 'id' | 'created_at'> & {
-  regon?: string;
+export interface ClientPayload {
+  name: string;
+  address: string;
+  nip: string;
   phone_number?: string;
   email?: string;
-};
+  regon?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+}
 
 export type DevicePayload = Pick<
   FiscalDevice,

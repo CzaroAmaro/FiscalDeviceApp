@@ -7,3 +7,4 @@ class ApiConfig(AppConfig):
 
     def ready(self):
         import api.admin
+        import api.signals

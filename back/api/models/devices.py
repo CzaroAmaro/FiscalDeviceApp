@@ -46,6 +46,7 @@ class DeviceHistoryEntry(models.Model):
         DEVICE_CREATED = 'DEVICE_CREATED', 'Utworzono urządzenie'
         SERVICE_PERFORMED = 'SERVICE_PERFORMED', 'Wykonano przegląd'
         TICKET_COMPLETED = 'TICKET_COMPLETED', 'Zakończono zlecenie'
+        TICKET_CREATED = 'TICKET_CREATED', 'Utworzono zlecenie'
         STATUS_CHANGED = 'STATUS_CHANGED', 'Zmieniono status'
         # Można tu dodawać kolejne typy akcji w przyszłości
 

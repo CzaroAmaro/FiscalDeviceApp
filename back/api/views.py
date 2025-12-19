@@ -671,7 +671,8 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='resolve')
     def resolve(self, request, pk=None):
         """
-        Oznacza zgłoszenie jako rozwiązane i DODAJĘ WPIS DO HISTORII.
+        Oznacza zgłoszenie jako rozwiązane.
+        Status urządzenia zostanie automatycznie zaktualizowany przez sygnał.
         """
         ticket = self.get_object()
 
@@ -684,16 +685,14 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Używamy transakcji dla spójności danych
         with transaction.atomic():
             ticket.resolution = serializer.validated_data['resolution']
             ticket.resolution_notes = serializer.validated_data.get('resolution_notes', ticket.resolution_notes)
             ticket.status = ServiceTicket.Status.CLOSED
             ticket.completed_at = timezone.now()
-            ticket.save()
+            ticket.save()  # Sygnał post_save automatycznie zaktualizuje status urządzenia
 
-            # <<< NOWA LOGIKA >>>
-            # Jeśli zlecenie jest powiązane z konkretnym urządzeniem, dodaj wpis do jego historii
+            # Wpis do historii o zakończeniu zlecenia
             if ticket.device:
                 DeviceHistoryEntry.objects.create(
                     device=ticket.device,
@@ -701,7 +700,7 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
                     description=f"Zakończono zlecenie serwisowe nr {ticket.ticket_number} ('{ticket.title}'). Wynik: {ticket.get_resolution_display()}.",
                     actor=request.user
                 )
-        # Zwracamy pełne, zaktualizowane dane zgłoszenia
+
         return Response(ServiceTicketReadSerializer(instance=ticket).data, status=status.HTTP_200_OK)
 
 
