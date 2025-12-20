@@ -15,7 +15,7 @@
         hide-details
         variant="solo"
         prepend-inner-icon="mdi-magnify"
-        label="Szukaj po numerze unikatowym lub właścicielu"
+        :label="t('devices.search.placeholder')"
         clearable
         style="max-width: 360px;"
         @click:clear="onClearSearch"
@@ -51,7 +51,7 @@
       @save-success="onClientSaveSuccess"
     />
 
-    <!-- NOWY: Panel boczny ze szczegółami -->
+    <!-- Panel boczny ze szczegółami -->
     <DeviceDetailsDrawer
       v-model="isDetailsDrawerOpen"
       :device="itemToView"
@@ -110,7 +110,6 @@ const isExporting = ref(false);
 const isSendingReminders = ref(false);
 const isPerformingService = ref(false);
 
-// Panel szczegółów
 const isDetailsDrawerOpen = ref(false);
 const itemToView = ref<FiscalDevice | null>(null);
 
@@ -149,10 +148,12 @@ const {
       try {
         const ids = selected.map(device => device.id);
         const response = await sendInspectionReminders(ids);
-        snackbarStore.showSuccess(response.detail || `Zlecono wysłanie ${response.sent_count} przypomnień.`);
+        snackbarStore.showSuccess(
+          response.detail || t('devices.messages.remindersSent', { count: response.sent_count })
+        );
         selectedItems.value = [];
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Wystąpił błąd podczas wysyłania przypomnień.';
+        const message = error instanceof Error ? error.message : t('devices.errors.sendRemindersFailed');
         snackbarStore.showError(message);
       } finally {
         isSendingReminders.value = false;
@@ -181,26 +182,24 @@ const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'edit', label: t('devices.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
   { id: 'export_pdf', label: t('devices.toolbar.exportPdf'), icon: 'mdi-file-pdf-box', requiresSelection: 'single', loading: isExporting.value },
   { id: 'delete', label: t('devices.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
-  { id: 'send_email', label: 'Wyślij email', icon: 'mdi-email', requiresSelection: 'multiple', loading: isSendingReminders.value },
-  { id: 'perform_service', label: 'Wykonaj przegląd', icon: 'mdi-check-decagram', requiresSelection: 'single', loading: isPerformingService.value },
-  { id: 'view_details', label: 'Podgląd', icon: 'mdi-eye', requiresSelection: 'single' },
+  { id: 'send_email', label: t('devices.toolbar.sendEmail'), icon: 'mdi-email', requiresSelection: 'multiple', loading: isSendingReminders.value },
+  { id: 'perform_service', label: t('devices.toolbar.performService'), icon: 'mdi-check-decagram', requiresSelection: 'single', loading: isPerformingService.value },
+  { id: 'view_details', label: t('devices.toolbar.viewDetails'), icon: 'mdi-eye', requiresSelection: 'single' },
 ]);
 
-// Export PDF helper
 async function handleExportPdf(device: FiscalDevice) {
   isExporting.value = true;
   try {
     await downloadDeviceReport(device.id);
-    snackbarStore.showSuccess('Raport PDF został wygenerowany.');
+    snackbarStore.showSuccess(t('devices.messages.pdfGenerated'));
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Wystąpił błąd podczas eksportu.';
+    const message = error instanceof Error ? error.message : t('devices.errors.exportFailed');
     snackbarStore.showError(message);
   } finally {
     isExporting.value = false;
   }
 }
 
-// Handlers z Drawera
 function handleEditFromDrawer(device: FiscalDevice) {
   isDetailsDrawerOpen.value = false;
   itemToEdit.value = device;
@@ -228,15 +227,14 @@ async function handlePerformServiceConfirm(technicianId: number) {
     const updatedDevice = await performDeviceService(deviceId, technicianId);
 
     devicesStore.updateDeviceInList(updatedDevice);
-    snackbarStore.showSuccess('Przegląd został wykonany.');
+    snackbarStore.showSuccess(t('devices.messages.servicePerformed'));
     selectedItems.value = [];
 
-    // Aktualizuj też widok w drawerze jeśli otwarty
     if (itemToView.value?.id === deviceId) {
       itemToView.value = updatedDevice;
     }
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Wystąpił błąd podczas aktualizacji.';
+    const message = error instanceof Error ? error.message : t('devices.errors.updateFailed');
     snackbarStore.showError(message);
   } finally {
     isPerformingService.value = false;

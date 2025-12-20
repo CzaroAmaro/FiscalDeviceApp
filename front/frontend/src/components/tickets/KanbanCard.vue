@@ -6,7 +6,6 @@
     rounded="lg"
     elevation="1"
   >
-    <!-- Overlay ładowania -->
     <v-overlay
       :model-value="isMoving"
       contained
@@ -16,11 +15,9 @@
       <v-progress-circular indeterminate color="white" size="32" />
     </v-overlay>
 
-    <!-- Górny pasek z priorytetem/typem -->
     <div class="card-top-bar" :class="`bg-${priorityColor}`"></div>
 
     <div class="card-content pa-3">
-      <!-- Nagłówek karty -->
       <div class="d-flex align-start justify-space-between mb-2">
         <div class="flex-grow-1 mr-2">
           <h4 class="card-title text-subtitle-2 font-weight-bold mb-1">
@@ -42,7 +39,6 @@
         </div>
       </div>
 
-      <!-- Klient -->
       <div class="client-info mb-3">
         <v-icon size="14" class="mr-1 text-medium-emphasis">mdi-domain</v-icon>
         <span class="text-body-2">
@@ -50,7 +46,6 @@
         </span>
       </div>
 
-      <!-- Przypisany technik -->
       <div v-if="ticket.assigned_technician" class="technician-info mb-3">
         <v-avatar size="24" :color="avatarColor" class="mr-2">
           <span class="text-caption font-weight-bold white--text">
@@ -60,7 +55,6 @@
         <span class="text-body-2">{{ ticket.assigned_technician.full_name }}</span>
       </div>
 
-      <!-- Dolne informacje -->
       <div class="card-footer d-flex align-center justify-space-between">
         <div class="d-flex align-center ga-2">
           <v-chip
@@ -74,7 +68,6 @@
           </v-chip>
         </div>
 
-        <!-- Akcje -->
         <div class="card-actions">
           <v-btn
             v-if="ticket.status === 'closed'"
@@ -181,7 +174,6 @@ const typeColor = computed(() => {
 });
 
 const priorityColor = computed(() => {
-  // Możesz dostosować do pola priority jeśli je masz
   switch (props.ticket.ticket_type) {
     case 'incident': return 'error';
     case 'problem': return 'warning';
@@ -234,7 +226,6 @@ const getInitials = (name: string) => {
   opacity: 1;
 }
 
-/* Górny pasek kolorowy */
 .card-top-bar {
   height: 4px;
   width: 100%;
@@ -270,7 +261,6 @@ const getInitials = (name: string) => {
   opacity: 1;
 }
 
-/* Na urządzeniach dotykowych zawsze pokazuj */
 @media (hover: none) {
   .card-actions {
     opacity: 1;

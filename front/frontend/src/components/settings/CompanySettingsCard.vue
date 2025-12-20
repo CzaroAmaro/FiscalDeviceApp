@@ -1,6 +1,5 @@
 <template>
   <v-card rounded="lg" class="settings-card">
-    <!-- Header -->
     <div class="card-header">
       <div class="d-flex align-center justify-space-between">
         <div class="d-flex align-center">
@@ -31,7 +30,6 @@
 
     <v-divider />
 
-    <!-- Content -->
     <v-card-text class="pa-6">
       <v-form ref="formRef" @submit.prevent="handleSave">
         <div class="form-field-group">
@@ -63,7 +61,6 @@
           </v-text-field>
         </div>
 
-        <!-- Admin-only info -->
         <v-alert
           v-if="!isAdmin"
           type="info"
@@ -79,7 +76,6 @@
           </span>
         </v-alert>
 
-        <!-- Save button (admin only) -->
         <div v-if="isAdmin" class="mt-6 d-flex justify-end">
           <v-btn
             type="submit"
@@ -106,7 +102,6 @@ interface Company {
   name?: string;
 }
 
-// Props & Emits
 const props = defineProps<{
   companyData: Partial<Company>;
   isAdmin: boolean;
@@ -118,22 +113,17 @@ const emit = defineEmits<{
   (e: 'update:company-data', data: Partial<Company>): void;
 }>();
 
-// Composables
 const { t } = useI18n();
 
-// Refs
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 const localName = ref(props.companyData.name || '');
 
-// Computed
 const hasChanges = computed(() => localName.value !== props.companyData.name);
 
-// Validation rules
 const rules = {
   required: (v: string) => !!v?.trim() || t('validation.required'),
 };
 
-// Methods
 async function handleSave() {
   if (!props.isAdmin) return;
 
@@ -143,7 +133,6 @@ async function handleSave() {
   emit('save', localName.value);
 }
 
-// Watch for external changes
 watch(() => props.companyData.name, (newName) => {
   if (newName !== undefined) {
     localName.value = newName;

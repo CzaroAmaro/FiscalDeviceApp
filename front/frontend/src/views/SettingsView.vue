@@ -2,7 +2,6 @@
   <v-container fluid class="settings-container">
     <v-row justify="center">
       <v-col cols="12" lg="10" xl="8">
-        <!-- Nagłówek strony -->
         <div class="page-header mb-6">
           <div class="d-flex align-center">
             <v-avatar color="primary" size="56" variant="tonal" class="mr-4">
@@ -19,7 +18,6 @@
           </div>
         </div>
 
-        <!-- Loading state -->
         <div v-if="isLoading" class="loading-state">
           <v-card rounded="lg" class="pa-8 text-center">
             <v-progress-circular
@@ -325,7 +323,6 @@ onUnmounted(() => {
   );
 }
 
-/* Mobile */
 @media (max-width: 960px) {
   .page-header {
     padding: 16px 0;

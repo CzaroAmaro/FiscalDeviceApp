@@ -6,7 +6,6 @@
     :fullscreen="isMobile"
   >
     <v-card class="device-form-card" rounded="lg">
-      <!-- Nagłówek -->
       <div class="form-header">
         <div class="d-flex align-center">
           <v-avatar
@@ -39,10 +38,8 @@
 
       <v-divider />
 
-      <!-- Formularz -->
       <v-card-text class="form-content">
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
-          <!-- Alert błędu -->
           <v-alert
             v-if="state.error"
             type="error"
@@ -58,7 +55,6 @@
             {{ state.error }}
           </v-alert>
 
-          <!-- Sekcja: Identyfikacja urządzenia -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-card-account-details</v-icon>
@@ -66,7 +62,6 @@
             </h3>
 
             <v-row dense>
-              <!-- Marka/Producent -->
               <v-col cols="12" sm="6">
                 <v-select
                   v-model="formData.brand"
@@ -114,7 +109,6 @@
                 </v-select>
               </v-col>
 
-              <!-- Model -->
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.model_name"
@@ -130,7 +124,6 @@
                 </v-text-field>
               </v-col>
 
-              <!-- Numer unikatowy -->
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.unique_number"
@@ -146,7 +139,6 @@
                 </v-text-field>
               </v-col>
 
-              <!-- Numer seryjny -->
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.serial_number"
@@ -165,7 +157,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Właściciel -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-domain</v-icon>
@@ -240,7 +231,6 @@
               </v-col>
             </v-row>
 
-            <!-- Alert gdy wybrano klienta -->
             <v-expand-transition>
               <v-alert
                 v-if="selectedClient"
@@ -266,7 +256,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Status i daty -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-calendar-clock</v-icon>
@@ -274,7 +263,6 @@
             </h3>
 
             <v-row dense>
-              <!-- Status -->
               <v-col cols="12" sm="4">
                 <v-select
                   v-model="formData.status"
@@ -314,7 +302,6 @@
                 </v-select>
               </v-col>
 
-              <!-- Data sprzedaży -->
               <v-col cols="12" sm="4">
                 <DatePicker
                   v-model="formData.sale_date"
@@ -324,7 +311,6 @@
                 />
               </v-col>
 
-              <!-- Data ostatniego serwisu -->
               <v-col cols="12" sm="4">
                 <DatePicker
                   v-model="formData.last_service_date"
@@ -335,7 +321,6 @@
               </v-col>
             </v-row>
 
-            <!-- Alert o statusie -->
             <v-expand-transition>
               <v-alert
                 v-if="formData.status === 'decommissioned'"
@@ -356,7 +341,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Dodatkowe informacje -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-text-box-multiple</v-icon>
@@ -364,7 +348,6 @@
             </h3>
 
             <v-row dense>
-              <!-- Instrukcja obsługi -->
               <v-col cols="12">
                 <v-textarea
                   v-model="formData.operating_instructions"
@@ -383,7 +366,6 @@
                 </v-textarea>
               </v-col>
 
-              <!-- Uwagi -->
               <v-col cols="12">
                 <v-textarea
                   v-model="formData.remarks"
@@ -404,7 +386,6 @@
             </v-row>
           </div>
 
-          <!-- Podgląd urządzenia -->
           <div v-if="formData.model_name && formData.unique_number" class="preview-section mt-6">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-eye</v-icon>
@@ -457,7 +438,6 @@
 
       <v-divider />
 
-      <!-- Stopka -->
       <v-card-actions class="form-footer">
         <v-btn
           variant="text"
@@ -488,7 +468,6 @@
       </v-card-actions>
     </v-card>
 
-    <!-- Modal dodawania producenta -->
     <ManufacturerFormModal
       v-model="isManufacturerModalOpen"
       :editing-manufacturer="null"
@@ -509,7 +488,6 @@ import type { FiscalDevice, DevicePayload, Manufacturer, Client } from '@/types'
 import ManufacturerFormModal from '@/components/manufacturers/ManufacturerFormModal.vue';
 import DatePicker from '@/components/common/DatePicker.vue';
 
-// Props & Emits
 const props = defineProps<{
   modelValue: boolean;
   editingDevice: FiscalDevice | null;
@@ -522,7 +500,6 @@ const emit = defineEmits<{
   (e: 'request-new-client'): void;
 }>();
 
-// Composables
 const { t } = useI18n();
 const devicesStore = useDevicesStore();
 const clientsStore = useClientsStore();
@@ -530,20 +507,16 @@ const manufacturersStore = useManufacturersStore();
 const snackbarStore = useSnackbarStore();
 const display = useDisplay();
 
-// Responsive
 const isMobile = computed(() => display.smAndDown.value);
 
-// Refs
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }>; reset: () => void } | null>(null);
 const isManufacturerModalOpen = ref(false);
 
-// State
 const state = ref({
   isSaving: false,
   error: '',
 });
 
-// Initial form data
 const getInitialFormData = (): DevicePayload => ({
   brand: 0,
   model_name: '',
@@ -557,10 +530,8 @@ const getInitialFormData = (): DevicePayload => ({
   owner: 0,
 });
 
-// Form data
 const formData = ref<DevicePayload>(getInitialFormData());
 
-// Computed
 const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => emit('update:modelValue', val),
@@ -605,7 +576,6 @@ const statusOptions = computed(() => [
   { title: t('devices.forms.statusOptions.decommissioned'), value: 'decommissioned' },
 ]);
 
-// Validation rules
 const rules = {
   required: (v: unknown) => {
     if (typeof v === 'number') return v > 0 || t('validation.required');
@@ -614,7 +584,6 @@ const rules = {
   },
 };
 
-// Methods
 function getInitials(name: string): string {
   if (!name) return '?';
   return name
@@ -720,14 +689,12 @@ function onManufacturerSaveSuccess(message: string, newManufacturer?: Manufactur
   }
 }
 
-// Watchers
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     if (props.editingDevice) {
       populateFormFromDevice(props.editingDevice);
     } else {
       handleResetForm();
-      // Ustaw właściciela, jeśli dopiero dodany klient
       if (props.newlyAddedClientId) {
         formData.value.owner = props.newlyAddedClientId;
       }
@@ -741,7 +708,6 @@ watch(() => props.editingDevice, (newDevice) => {
   }
 }, { immediate: true });
 
-// Lifecycle
 onMounted(() => {
   clientsStore.fetchClients();
   manufacturersStore.fetchManufacturers();
@@ -753,7 +719,6 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* Header */
 .form-header {
   display: flex;
   align-items: center;
@@ -766,14 +731,12 @@ onMounted(() => {
   );
 }
 
-/* Content */
 .form-content {
   padding: 24px;
   max-height: calc(100vh - 300px);
   overflow-y: auto;
 }
 
-/* Section */
 .form-section,
 .preview-section {
   margin-bottom: 8px;
@@ -790,13 +753,11 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-/* Footer */
 .form-footer {
   padding: 16px 24px;
   background: rgb(var(--v-theme-surface));
 }
 
-/* Preview card */
 .preview-card {
   border-radius: 12px;
   background: rgba(var(--v-theme-primary), 0.02);
@@ -808,7 +769,6 @@ onMounted(() => {
   border-color: rgba(var(--v-theme-primary), 0.4);
 }
 
-/* Form fields */
 :deep(.v-field) {
   border-radius: 10px;
 }
@@ -817,13 +777,11 @@ onMounted(() => {
   padding-right: 8px;
 }
 
-/* Textarea icon alignment */
 :deep(.v-textarea .v-field__prepend-inner) {
   padding-top: 12px;
   align-items: flex-start;
 }
 
-/* Scrollbar */
 .form-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -841,7 +799,6 @@ onMounted(() => {
   background: rgba(var(--v-theme-on-surface), 0.3);
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .form-header {
     padding: 16px;
@@ -864,7 +821,6 @@ onMounted(() => {
   }
 }
 
-/* Transitions */
 .v-expand-transition-enter-active,
 .v-expand-transition-leave-active {
   transition: all 0.3s ease;

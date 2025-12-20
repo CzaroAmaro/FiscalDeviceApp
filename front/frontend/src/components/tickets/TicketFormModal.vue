@@ -6,7 +6,6 @@
     :fullscreen="isMobile"
   >
     <v-card class="ticket-form-card" rounded="lg">
-      <!-- Nagłówek -->
       <div class="form-header">
         <div class="d-flex align-center">
           <v-avatar
@@ -39,10 +38,8 @@
 
       <v-divider />
 
-      <!-- Formularz -->
       <v-card-text class="form-content">
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
-          <!-- Alert błędu -->
           <v-alert
             v-if="state.error"
             type="error"
@@ -58,7 +55,6 @@
             {{ state.error }}
           </v-alert>
 
-          <!-- Sekcja: Podstawowe informacje -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-information</v-icon>
@@ -66,7 +62,6 @@
             </h3>
 
             <v-row dense>
-              <!-- Tytuł -->
               <v-col cols="12">
                 <v-text-field
                   v-model="formData.title"
@@ -82,7 +77,6 @@
                 </v-text-field>
               </v-col>
 
-              <!-- Opis -->
               <v-col cols="12">
                 <v-textarea
                   v-model="formData.description"
@@ -100,7 +94,6 @@
                   </template>
                 </v-textarea>
 
-                <!-- Przycisk AI -->
                 <v-btn
                   size="small"
                   variant="tonal"
@@ -114,7 +107,6 @@
                 </v-btn>
               </v-col>
 
-              <!-- Typ zgłoszenia -->
               <v-col cols="12" sm="6">
                 <v-select
                   v-model="formData.ticket_type"
@@ -155,7 +147,6 @@
                 </v-select>
               </v-col>
 
-              <!-- Data zaplanowana -->
               <v-col cols="12" sm="6">
                 <DatePicker
                   v-model="formData.scheduled_for"
@@ -169,7 +160,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Klient i urządzenie -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-domain</v-icon>
@@ -177,7 +167,6 @@
             </h3>
 
             <v-row dense>
-              <!-- Klient -->
               <v-col cols="12" sm="6">
                 <v-autocomplete
                   v-model="formData.client"
@@ -222,7 +211,6 @@
                 </v-autocomplete>
               </v-col>
 
-              <!-- Urządzenie -->
               <v-col cols="12" sm="6">
                 <v-autocomplete
                   v-model="formData.device"
@@ -262,7 +250,6 @@
               </v-col>
             </v-row>
 
-            <!-- Alert gdy nie wybrano klienta -->
             <v-alert
               v-if="!formData.client"
               type="info"
@@ -278,7 +265,6 @@
               </span>
             </v-alert>
 
-            <!-- Info o wybranym urządzeniu -->
             <v-expand-transition>
               <v-alert
                 v-if="selectedDevice && selectedDevice.status === 'serviced'"
@@ -299,7 +285,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Przypisanie -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-account-hard-hat</v-icon>
@@ -307,7 +292,6 @@
             </h3>
 
             <v-row dense>
-              <!-- Serwisant -->
               <v-col cols="12">
                 <v-autocomplete
                   v-model="formData.assigned_technician"
@@ -362,7 +346,6 @@
               </v-col>
             </v-row>
 
-            <!-- Podpowiedź o przypisaniu -->
             <v-alert
               v-if="!formData.assigned_technician"
               type="info"
@@ -379,7 +362,6 @@
             </v-alert>
           </div>
 
-          <!-- Podgląd zgłoszenia -->
           <div v-if="formData.title && formData.client && formData.device" class="preview-section mt-6">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-eye</v-icon>
@@ -445,7 +427,6 @@
 
       <v-divider />
 
-      <!-- Stopka -->
       <v-card-actions class="form-footer">
         <v-btn
           variant="text"
@@ -476,7 +457,6 @@
       </v-card-actions>
     </v-card>
 
-    <!-- Modal AI -->
     <AiSuggestionModal
       v-model="isAiModalOpen"
       :description="formData.description"
@@ -497,7 +477,6 @@ import DatePicker from '@/components/common/DatePicker.vue';
 import DeviceStatusChip from '@/components/devices/DeviceStatusChip.vue';
 import AiSuggestionModal from '@/components/ai/AiSuggestionModal.vue';
 
-// Props & Emits
 const props = defineProps<{
   modelValue: boolean;
   editingTicket: ServiceTicket | null;
@@ -508,7 +487,6 @@ const emit = defineEmits<{
   (e: 'save-success', message: string): void;
 }>();
 
-// Composables
 const { t } = useI18n();
 const ticketsStore = useTicketsStore();
 const clientsStore = useClientsStore();
@@ -516,20 +494,16 @@ const devicesStore = useDevicesStore();
 const techniciansStore = useTechniciansStore();
 const display = useDisplay();
 
-// Responsive
 const isMobile = computed(() => display.smAndDown.value);
 
-// Refs
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }>; reset: () => void } | null>(null);
 const isAiModalOpen = ref(false);
 
-// State
 const state = ref({
   isSaving: false,
   error: '',
 });
 
-// Initial form data
 const getInitialFormData = (): ServiceTicketPayload => ({
   title: '',
   description: '',
@@ -542,10 +516,8 @@ const getInitialFormData = (): ServiceTicketPayload => ({
   resolution_notes: '',
 });
 
-// Form data
 const formData = ref<ServiceTicketPayload>(getInitialFormData());
 
-// Computed
 const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => emit('update:modelValue', val),
@@ -606,7 +578,6 @@ const typeOptions = computed(() => [
   { title: t('tickets.types.other'), value: 'other' },
 ]);
 
-// Validation rules
 const rules = {
   required: (v: unknown) => {
     if (typeof v === 'number') return v > 0 || t('validation.required');
@@ -615,7 +586,6 @@ const rules = {
   },
 };
 
-// Methods
 function getInitials(name: string): string {
   if (!name) return '?';
   return name
@@ -713,7 +683,6 @@ async function handleFormSubmit() {
   }
 }
 
-// Watchers
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     if (props.editingTicket) {
@@ -730,14 +699,12 @@ watch(() => props.editingTicket, (newTicket) => {
   }
 }, { immediate: true });
 
-// Czyść urządzenie gdy zmieni się klient
 watch(() => formData.value.client, (newClientId, oldClientId) => {
   if (newClientId !== oldClientId && !isEditing.value) {
     formData.value.device = 0;
   }
 });
 
-// Lifecycle
 onMounted(() => {
   clientsStore.fetchClients();
   devicesStore.fetchDevices();
@@ -750,7 +717,6 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* Header */
 .form-header {
   display: flex;
   align-items: center;
@@ -763,14 +729,12 @@ onMounted(() => {
   );
 }
 
-/* Content */
 .form-content {
   padding: 24px;
   max-height: calc(100vh - 300px);
   overflow-y: auto;
 }
 
-/* Section */
 .form-section,
 .preview-section {
   margin-bottom: 8px;
@@ -787,13 +751,11 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-/* Footer */
 .form-footer {
   padding: 16px 24px;
   background: rgb(var(--v-theme-surface));
 }
 
-/* Preview card */
 .preview-card {
   border-radius: 12px;
   background: rgba(var(--v-theme-primary), 0.02);
@@ -801,7 +763,6 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-/* Form fields */
 :deep(.v-field) {
   border-radius: 10px;
 }
@@ -815,7 +776,6 @@ onMounted(() => {
   align-items: flex-start;
 }
 
-/* Scrollbar */
 .form-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -829,7 +789,6 @@ onMounted(() => {
   border-radius: 3px;
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .form-header {
     padding: 16px;
@@ -852,7 +811,6 @@ onMounted(() => {
   }
 }
 
-/* Transitions */
 .v-expand-transition-enter-active,
 .v-expand-transition-leave-active {
   transition: all 0.3s ease;

@@ -6,7 +6,6 @@
     :fullscreen="isMobile"
   >
     <v-card class="resolve-form-card" rounded="lg">
-      <!-- Nagłówek -->
       <div class="form-header form-header--resolve">
         <div class="d-flex align-center">
           <v-avatar
@@ -37,7 +36,6 @@
 
       <v-divider />
 
-      <!-- Informacje o zgłoszeniu -->
       <div class="ticket-info-banner">
         <v-row dense align="center">
           <v-col cols="12" sm="6">
@@ -75,10 +73,8 @@
 
       <v-divider />
 
-      <!-- Formularz -->
       <v-card-text class="form-content">
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
-          <!-- Alert błędu -->
           <v-alert
             v-if="error"
             type="error"
@@ -94,7 +90,6 @@
             {{ error }}
           </v-alert>
 
-          <!-- Sekcja: Wynik rozwiązania -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-clipboard-check</v-icon>
@@ -145,7 +140,6 @@
               </v-col>
             </v-row>
 
-            <!-- Alert o konsekwencjach -->
             <v-expand-transition>
               <v-alert
                 v-if="formData.resolution"
@@ -166,7 +160,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Notatki -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-note-text</v-icon>
@@ -193,7 +186,6 @@
               </v-col>
             </v-row>
 
-            <!-- Podpowiedzi do notatek -->
             <div class="mt-3">
               <span class="text-caption text-medium-emphasis d-block mb-2">
                 {{ t('tickets.resolve.quickNotes') }}
@@ -213,7 +205,6 @@
             </div>
           </div>
 
-          <!-- Podsumowanie -->
           <div v-if="formData.resolution" class="summary-section mt-6">
             <v-card variant="outlined" class="summary-card">
               <div class="pa-4">
@@ -258,7 +249,6 @@
 
       <v-divider />
 
-      <!-- Stopka -->
       <v-card-actions class="form-footer">
         <v-btn
           variant="text"
@@ -289,7 +279,6 @@ import { useI18n } from 'vue-i18n';
 import { useTicketsStore } from '@/stores/tickets';
 import type { ServiceTicket, TicketResolutionPayload } from '@/types';
 
-// Props & Emits
 const props = defineProps<{
   modelValue: boolean;
   ticket: ServiceTicket;
@@ -300,26 +289,21 @@ const emit = defineEmits<{
   (e: 'save-success', message: string): void;
 }>();
 
-// Composables
 const { t } = useI18n();
 const ticketsStore = useTicketsStore();
 const display = useDisplay();
 
-// Responsive
 const isMobile = computed(() => display.smAndDown.value);
 
-// Refs
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 const isSaving = ref(false);
 const error = ref<string | null>(null);
 
-// Form data
 const formData = ref<TicketResolutionPayload>({
   resolution: '',
   resolution_notes: '',
 });
 
-// Quick notes templates
 const quickNotes = [
   'Wymieniono części',
   'Aktualizacja oprogramowania',
@@ -328,7 +312,6 @@ const quickNotes = [
   'Szkolenie użytkownika',
 ];
 
-// Computed
 const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => emit('update:modelValue', val),
@@ -350,12 +333,10 @@ const resolutionOptions = computed(() => [
   { title: t('tickets.resolutions.cancelled'), value: 'cancelled' },
 ]);
 
-// Validation rules
 const rules = {
   required: (v: string) => !!v || t('validation.required'),
 };
 
-// Methods
 function getTypeColor(type: string): string {
   const colors: Record<string, string> = {
     service: 'info',
@@ -456,7 +437,6 @@ async function handleFormSubmit() {
   }
 }
 
-// Watchers
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     resetForm();
@@ -469,7 +449,6 @@ watch(() => props.modelValue, (isOpen) => {
   overflow: hidden;
 }
 
-/* Header */
 .form-header {
   display: flex;
   align-items: center;
@@ -490,20 +469,17 @@ watch(() => props.modelValue, (isOpen) => {
   );
 }
 
-/* Ticket info banner */
 .ticket-info-banner {
   padding: 16px 24px;
   background: rgba(var(--v-theme-on-surface), 0.02);
 }
 
-/* Content */
 .form-content {
   padding: 24px;
   max-height: calc(100vh - 400px);
   overflow-y: auto;
 }
 
-/* Section */
 .form-section {
   margin-bottom: 8px;
 }
@@ -519,13 +495,11 @@ watch(() => props.modelValue, (isOpen) => {
   margin-bottom: 16px;
 }
 
-/* Footer */
 .form-footer {
   padding: 16px 24px;
   background: rgb(var(--v-theme-surface));
 }
 
-/* Summary */
 .summary-section {
   margin-top: 24px;
 }
@@ -560,7 +534,6 @@ watch(() => props.modelValue, (isOpen) => {
   font-weight: 500;
 }
 
-/* Form fields */
 :deep(.v-field) {
   border-radius: 10px;
 }
@@ -574,7 +547,6 @@ watch(() => props.modelValue, (isOpen) => {
   align-items: flex-start;
 }
 
-/* Scrollbar */
 .form-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -588,7 +560,6 @@ watch(() => props.modelValue, (isOpen) => {
   border-radius: 3px;
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .form-header {
     padding: 16px;
@@ -619,7 +590,6 @@ watch(() => props.modelValue, (isOpen) => {
   }
 }
 
-/* Transitions */
 .v-expand-transition-enter-active,
 .v-expand-transition-leave-active {
   transition: all 0.3s ease;

@@ -3,7 +3,7 @@
     <img src="@/assets/logo-fiscal.png" alt="Fiscal Service App Logo" class="auth-logo" />
     <v-card width="400" class="pa-5">
       <v-card-title class="text-h5 text-center mb-4">
-        Zaloguj się
+        {{ t('login.title') }}
       </v-card-title>
       <v-card-text>
         <v-form ref="form" @submit.prevent="handleLogin">
@@ -13,7 +13,7 @@
 
           <v-text-field
             v-model="username"
-            label="Nazwa użytkownika"
+            :label="t('login.username')"
             prepend-inner-icon="mdi-account"
             variant="outlined"
             :rules="[rules.required]"
@@ -22,7 +22,7 @@
 
           <v-text-field
             v-model="password"
-            label="Hasło"
+            :label="t('login.password')"
             prepend-inner-icon="mdi-lock"
             variant="outlined"
             type="password"
@@ -32,14 +32,14 @@
           ></v-text-field>
 
           <v-btn type="submit" color="primary" block class="mt-4" :loading="isLoading">
-            Zaloguj
+            {{ t('login.submit') }}
           </v-btn>
         </v-form>
       </v-card-text>
       <v-card-actions class="justify-center mt-2">
-        <span class="text-body-2">Nie masz konta?</span>
+        <span class="text-body-2">{{ t('login.noAccount') }}</span>
         <v-btn :to="{ name: 'register' }" variant="text" color="primary" size="small">
-          Zarejestruj się
+          {{ t('login.register') }}
         </v-btn>
       </v-card-actions>
 
@@ -51,7 +51,7 @@
             <div class="d-flex align-center">
               <v-icon start>mdi-weather-night</v-icon>
               <v-switch
-                v-model="themeStore.isDark"
+                :model-value="themeStore.isDark"
                 color="primary"
                 hide-details
                 inset
@@ -66,48 +66,49 @@
           </v-col>
         </v-row>
       </v-card-text>
-
     </v-card>
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { VForm } from 'vuetify/components';
-import { useAuthStore } from '@/stores/auth';
-import { useThemeStore } from '@/stores/theme'; // <-- NOWY IMPORT
-import LanguageSelect from '@/components/languageSelect/LanguageSelect.vue'; // <-- NOWY IMPORT
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import type { VForm } from 'vuetify/components'
+import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
+import LanguageSelect from '@/components/languageSelect/LanguageSelect.vue'
 
-const authStore = useAuthStore();
-const themeStore = useThemeStore(); // <-- INICJALIZACJA STORE'A
+const { t } = useI18n()
+const authStore = useAuthStore()
+const themeStore = useThemeStore()
 
-const form = ref<VForm | null>(null);
-const username = ref('');
-const password = ref('');
-const isLoading = ref(false);
-const error = ref<string | null>(null);
+const form = ref<VForm | null>(null)
+const username = ref('')
+const password = ref('')
+const isLoading = ref(false)
+const error = ref<string | null>(null)
 
 const rules = {
-  required: (value: string) => !!value || 'Pole jest wymagane.',
-};
+  required: (value: string) => !!value || t('validation.required'),
+}
 
 const handleLogin = async () => {
-  const { valid } = await form.value!.validate();
-  if (!valid) return;
+  const { valid } = await form.value!.validate()
+  if (!valid) return
 
-  isLoading.value = true;
-  error.value = null;
+  isLoading.value = true
+  error.value = null
   try {
     await authStore.login({
       username: username.value,
       password: password.value,
-    });
+    })
   } catch (err: any) {
-    error.value = err.response?.data?.detail || 'Nieprawidłowe dane logowania.';
+    error.value = err.response?.data?.detail || t('login.error')
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 </script>
 
 <style scoped>
@@ -135,7 +136,6 @@ const handleLogin = async () => {
     max-width: 280px;
   }
 }
-
 @media (max-width: 960px) {
   .auth-logo {
     top: 1rem;

@@ -1478,7 +1478,7 @@ class GetAiSuggestionView(APIView):
 
         try:
             # Używamy stabilnego i sprawdzonego modelu 'gemini-pro'
-            model = genai.GenerativeModel('gemini-2.0-flash')
+            model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
             generation_config = genai.types.GenerationConfig(
                 response_mime_type="application/json"

@@ -2,6 +2,32 @@
   "app": {
     "title": "Manager Urządzeń Fiskalnych"
   },
+  "charts": {
+    "title": "Pulpit - Wykresy",
+    "noData": "Brak danych do wyświetlenia",
+    "ticketsByStatus": {
+      "title": "Zgłoszenia wg statusu",
+      "datasetLabel": "Zgłoszenia"
+    },
+    "devicesByStatus": {
+      "title": "Urządzenia wg statusu",
+      "datasetLabel": "Urządzenia"
+    },
+    "workloadOverTime": {
+      "title": "Miesięczne obciążenie pracą wg typu zlecenia (ostatnie 12 m-cy)",
+      "yAxisLabel": "Liczba zleceń"
+    },
+    "expiringCertificates": {
+      "title": "Certyfikaty wygasające w ciągu 90 dni",
+      "noCertificates": "Brak certyfikatów wygasających w najbliższym czasie.",
+      "headers": {
+        "technician": "Serwisant",
+        "manufacturer": "Producent",
+        "certificateNumber": "Numer certyfikatu",
+        "expiryDate": "Data wygaśnięcia"
+      }
+    }
+  },
   "clients": {
     "title": "Klienci",
     "toolbar": {
@@ -39,13 +65,18 @@
     "delete": "Usuń",
     "save": "Zapisz",
     "cancel": "Anuluj",
+    "clear": "Wyczyść",
+    "preview": "Podgląd",
     "active": "Aktywny",
     "inactive": "Nieaktywny",
     "confirmDelete": "Potwierdź usunięcie",
     "confirmDeleteMsg": "Ta operacja jest nieodwracalna.",
     "loadingData": "Ładowanie danych...",
     "noDataFound": "Nie znaleziono danych",
-    "serverError": "Wystąpił błąd serwera. Spróbuj ponownie."
+    "serverError": "Wystąpił błąd serwera. Spróbuj ponownie.",
+    "errors": {
+      "unknown": "Wystąpił nieznany błąd."
+    }
   },
   "dashboard": {
     "title": "Pulpit",
@@ -63,7 +94,14 @@
     "toolbar": {
       "add": "Dodaj urządzenie",
       "edit": "Edytuj urządzenie",
-      "delete": "Usuń urządzenie"
+      "delete": "Usuń urządzenie",
+      "exportPdf": "Eksportuj PDF",
+      "sendEmail": "Wyślij email",
+      "performService": "Wykonaj przegląd",
+      "viewDetails": "Podgląd"
+    },
+    "search": {
+      "placeholder": "Szukaj po numerze unikatowym lub właścicielu"
     },
     "headers": {
       "brand": "Marka",
@@ -75,9 +113,17 @@
       "lastServiceDate": "Data ostatniego przeglądu",
       "nextServiceDate": "Data następnego przeglądu"
     },
+    "sections": {
+      "identification": "Identyfikacja urządzenia",
+      "owner": "Właściciel",
+      "statusAndDates": "Status i daty",
+      "additionalInfo": "Dodatkowe informacje"
+    },
     "forms": {
       "addTitle": "Dodaj nowe urządzenie",
       "editTitle": "Edytuj urządzenie",
+      "addSubtitle": "Wypełnij formularz, aby dodać nowe urządzenie fiskalne",
+      "editSubtitle": "Zmodyfikuj dane urządzenia fiskalnego",
       "brandLabel": "Marka",
       "modelLabel": "Model urządzenia",
       "uniqueNumberLabel": "Numer unikatowy",
@@ -101,11 +147,56 @@
         "uniqueNumber": "Numer unikatowy: {value}"
       }
     },
+    "placeholders": {
+      "brand": "Wybierz producenta",
+      "model": "np. Posnet Thermal XL2",
+      "uniqueNumber": "np. ABC12345678",
+      "serial": "np. SN-2024-001234",
+      "owner": "Wyszukaj klienta...",
+      "instructions": "Wprowadź instrukcje dotyczące użytkowania urządzenia...",
+      "remarks": "Dodatkowe uwagi dotyczące urządzenia..."
+    },
+    "actions": {
+      "add": "Dodaj urządzenie",
+      "addManufacturer": "Dodaj nowego producenta",
+      "addClient": "Dodaj nowego klienta"
+    },
+    "labels": {
+      "devicesCount": "urządzeń"
+    },
+    "hints": {
+      "clientSelected": "Wybrany klient: {name}"
+    },
+    "warnings": {
+      "decommissioned": "Urządzenie oznaczone jako wycofane nie będzie wyświetlane w aktywnych listach."
+    },
+    "messages": {
+      "pdfGenerated": "Raport PDF został wygenerowany.",
+      "remindersSent": "Zlecono wysłanie {count} przypomnień.",
+      "servicePerformed": "Przegląd został wykonany."
+    },
+    "errors": {
+      "exportFailed": "Wystąpił błąd podczas eksportu.",
+      "sendRemindersFailed": "Wystąpił błąd podczas wysyłania przypomnień.",
+      "updateFailed": "Wystąpił błąd podczas aktualizacji."
+    },
     "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\" (S/N: {serial})?",
     "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych urządzeń?",
     "deleteSuccessSingle": "Urządzenie \"{name}\" zostało usunięte.",
     "deleteSuccessMulti": "{count, plural, one {# urządzenie zostało usunięte} few {# urządzenia zostały usunięte} many {# urządzeń zostało usuniętych} other {# urządzeń zostało usuniętych}}.",
     "deleteError": "Wystąpił błąd podczas usuwania urządzeń."
+  },
+  "kanban": {
+    "noClient": "Brak klienta",
+    "noTickets": "Brak zgłoszeń",
+    "dragHint": "Przeciągnij tutaj zgłoszenie",
+    "ticketsCount": "{count, plural, one {# zgłoszenie} few {# zgłoszenia} many {# zgłoszeń} other {# zgłoszeń}}",
+    "actions": {
+      "reopen": "Przywróć",
+      "edit": "Edytuj",
+      "resolve": "Zakończ",
+      "delete": "Usuń"
+    }
   },
   "manufacturers": {
     "title": "Producenci",
@@ -118,12 +209,29 @@
       "id": "ID",
       "name": "Nazwa producenta"
     },
+    "sections": {
+      "basicInfo": "Dane producenta"
+    },
     "forms": {
       "addTitle": "Dodaj nowego producenta",
       "editTitle": "Edytuj producenta",
+      "addSubtitle": "Wypełnij formularz, aby dodać nowego producenta urządzeń",
+      "editSubtitle": "Zmodyfikuj dane producenta",
       "nameLabel": "Nazwa producenta",
       "addSuccess": "Producent został pomyślnie dodany.",
       "editSuccess": "Dane producenta zostały zaktualizowane."
+    },
+    "placeholders": {
+      "name": "np. Posnet, Elzab, Novitus..."
+    },
+    "actions": {
+      "add": "Dodaj producenta"
+    },
+    "hints": {
+      "nameInfo": "Nazwa producenta będzie wyświetlana przy urządzeniach fiskalnych i certyfikatach."
+    },
+    "preview": {
+      "willAppear": "Tak będzie wyświetlany producent na listach"
     }
   },
   "menu": {
@@ -140,6 +248,58 @@
     "clients-map": "Mapa klientów",
     "chart": "Wykresy",
     "searchPlaceholder": "Wyszukaj w menu"
+  },
+  "settings": {
+    "title": "Ustawienia profilu",
+    "subtitle": "Zarządzaj swoimi danymi i preferencjami",
+    "nav": {
+      "profile": "Profil",
+      "email": "E-mail",
+      "company": "Firma"
+    },
+    "company": {
+      "title": "Dane firmy",
+      "subtitleAdmin": "Zarządzaj informacjami o firmie",
+      "subtitleUser": "Podgląd informacji o firmie",
+      "nameLabel": "Nazwa firmy",
+      "namePlaceholder": "Wprowadź nazwę firmy",
+      "readonlyHint": "Tylko administrator może edytować te dane",
+      "adminOnlyInfo": "Tylko administratorzy mogą edytować dane firmy. Skontaktuj się z administratorem, jeśli potrzebujesz wprowadzić zmiany."
+    },
+    "profile": {
+      "title": "Dane profilu",
+      "subtitle": "Zaktualizuj swoje dane osobowe",
+      "noName": "Brak imienia i nazwiska",
+      "firstName": "Imię",
+      "lastName": "Nazwisko",
+      "firstNamePlaceholder": "Wprowadź imię",
+      "lastNamePlaceholder": "Wprowadź nazwisko",
+      "preview": "Podgląd",
+      "saveSuccess": "Profil został pomyślnie zaktualizowany."
+    },
+    "email": {
+      "title": "Zmiana adresu e-mail",
+      "subtitle": "Zaktualizuj swój adres e-mail",
+      "currentEmail": "Aktualny adres e-mail",
+      "verified": "Zweryfikowany",
+      "newEmailLabel": "Nowy adres e-mail",
+      "newEmailPlaceholder": "Wprowadź nowy adres e-mail",
+      "passwordLabel": "Aktualne hasło",
+      "passwordPlaceholder": "Wprowadź aktualne hasło",
+      "passwordHint": "Wymagane do potwierdzenia zmiany",
+      "processInfo": "Na nowy adres e-mail zostanie wysłany link weryfikacyjny. Zmiana zostanie wprowadzona po kliknięciu w link.",
+      "sendRequest": "Wyślij prośbę o zmianę",
+      "requestSuccess": "Link weryfikacyjny został wysłany na nowy adres e-mail.",
+      "mustBeDifferent": "Nowy adres e-mail musi być inny niż obecny"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "viewer": "Tylko podgląd"
+    },
+    "errors": {
+      "unknown": "Wystąpił nieznany błąd. Spróbuj ponownie.",
+      "saveFailed": "Nie udało się zapisać zmian. Spróbuj ponownie."
+    }
   },
   "technicians": {
     "title": "Serwisanci",
@@ -163,6 +323,10 @@
       "activeLabel": "Aktywny",
       "addSuccess": "Nowy serwisant został pomyślnie dodany.",
       "editSuccess": "Dane serwisanta zostały zaktualizowane."
+    },
+    "roles": {
+      "admin": "Administrator",
+      "technician": "Serwisant"
     }
   },
   "tickets": {
@@ -181,9 +345,16 @@
       "technician": "Serwisant",
       "created": "Utworzono"
     },
+    "sections": {
+      "basicInfo": "Podstawowe informacje",
+      "clientAndDevice": "Klient i urządzenie",
+      "assignment": "Przypisanie"
+    },
     "forms": {
       "addTitle": "Dodaj nowe zlecenie",
       "editTitle": "Edytuj zlecenie",
+      "addSubtitle": "Wypełnij formularz, aby utworzyć nowe zgłoszenie serwisowe",
+      "editSubtitle": "Zmodyfikuj dane zgłoszenia serwisowego",
       "titleLabel": "Tytuł zlecenia",
       "descriptionLabel": "Opis",
       "clientLabel": "Klient",
@@ -196,9 +367,29 @@
       "addSuccess": "Nowe zlecenie zostało pomyślnie dodane.",
       "editSuccess": "Zlecenie zostało zaktualizowane."
     },
+    "placeholders": {
+      "title": "np. Naprawa drukarki fiskalnej",
+      "description": "Opisz szczegółowo problem lub zakres prac...",
+      "client": "Wyszukaj klienta...",
+      "device": "Wybierz urządzenie klienta...",
+      "technician": "Wybierz serwisanta..."
+    },
+    "actions": {
+      "add": "Dodaj zlecenie",
+      "analyzeWithAi": "Analizuj z AI"
+    },
+    "hints": {
+      "selectClientFirst": "Najpierw wybierz klienta, aby wyświetlić listę jego urządzeń.",
+      "noTechnicianAssigned": "Zgłoszenie bez przypisanego serwisanta będzie widoczne dla wszystkich techników."
+    },
+    "warnings": {
+      "deviceInService": "Wybrane urządzenie jest obecnie w serwisie. Upewnij się, że to właściwe urządzenie."
+    },
     "status": {
       "new": "Nowe",
+      "open": "Otwarte",
       "in_progress": "W toku",
+      "closed": "Zamknięte",
       "completed": "Zakończone",
       "cancelled": "Anulowane",
       "pending_client": "Oczekujące na klienta"
@@ -210,9 +401,41 @@
     },
     "types": {
       "service": "Serwis",
+      "reading": "Odczyt",
+      "repair": "Naprawa",
       "installation": "Instalacja",
       "maintenance": "Przegląd",
+      "incident": "Incydent",
+      "request": "Zapytanie",
+      "problem": "Problem",
       "other": "Inne"
+    },
+    "resolve": {
+      "title": "Zamknij zgłoszenie",
+      "subtitle": "Zgłoszenie #{number}",
+      "resultSection": "Wynik rozwiązania",
+      "resultLabel": "Wynik",
+      "notesSection": "Notatki z rozwiązania",
+      "notesLabel": "Notatki",
+      "notesPlaceholder": "Opisz wykonane prace, wymienione części, uwagi...",
+      "quickNotes": "Szybkie notatki:",
+      "summary": "Podsumowanie zamknięcia",
+      "ticketNumber": "Numer zgłoszenia",
+      "result": "Wynik",
+      "closedAt": "Data zamknięcia",
+      "closedBy": "Zamknięte przez",
+      "confirm": "Zamknij zgłoszenie",
+      "success": "Zgłoszenie zostało pomyślnie zamknięte.",
+      "descriptions": {
+        "completed": "Zgłoszenie zostanie oznaczone jako zakończone pomyślnie.",
+        "failed": "Zgłoszenie zostanie oznaczone jako nieudane. Może wymagać ponownego otwarcia.",
+        "cancelled": "Zgłoszenie zostanie anulowane bez wykonania prac."
+      }
+    },
+    "resolutions": {
+      "completed": "Zakończone pomyślnie",
+      "failed": "Nieudane",
+      "cancelled": "Anulowane"
     }
   },
   "toolbar": {
@@ -226,7 +449,18 @@
     "theme": "Motyw",
     "logout": "Wyloguj",
     "placeholderName": "Jan Kowalski",
-    "placeholderEmail": "jan.kowalski@example.com"
+    "placeholderEmail": "jan.kowalski@example.com",
+    "defaultUser": "Użytkownik",
+    "noEmail": "Brak e-maila",
+    "license": {
+      "active": "Licencja aktywna",
+      "demo": "Wersja demo",
+      "activate": "Aktywuj"
+    },
+    "errors": {
+      "noStripeUrl": "Błąd: Nie otrzymano adresu URL od Stripe.",
+      "paymentFailed": "Nie udało się zainicjować płatności."
+    }
   },
   "validation": {
     "required": "Pole jest wymagane",

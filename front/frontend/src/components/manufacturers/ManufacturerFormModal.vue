@@ -197,12 +197,10 @@ const state = ref({
   error: '',
 });
 
-// Initial form data
 const getInitialFormData = (): ManufacturerPayload => ({
   name: '',
 });
 
-// Form data
 const formData = ref<ManufacturerPayload>(getInitialFormData());
 
 // Computed

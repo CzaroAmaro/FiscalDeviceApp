@@ -1,32 +1,39 @@
 import { defineStore } from 'pinia'
+import { computed } from 'vue'
 import { useTheme } from 'vuetify'
 
-type ThemeName = 'light' | 'dark';
+type ThemeName = 'light' | 'dark'
+
+const STORAGE_KEY = 'user-theme'
 
 export const useThemeStore = defineStore('theme', () => {
-  const vuetifyTheme = useTheme();
+  const vuetifyTheme = useTheme()
 
-  /**
-   * Zmienia globalny motyw aplikacji i zapisuje wybór.
-   * @param theme - Nazwa motywu ('light' lub 'dark')
-   */
+  const isDark = computed(() => vuetifyTheme.global.current.value.dark)
+
+  const currentThemeName = computed(() => vuetifyTheme.global.name.value as ThemeName)
+
   function setTheme(theme: ThemeName) {
     vuetifyTheme.global.name.value = theme
-    localStorage.setItem('user-theme', theme)
+    localStorage.setItem(STORAGE_KEY, theme)
+  }
+  function toggleTheme() {
+    const newTheme: ThemeName = isDark.value ? 'light' : 'dark'
+    setTheme(newTheme)
   }
 
-  /**
-   * Przełącza między motywem jasnym a ciemnym.
-   */
-  function toggleTheme() {
-    const newTheme = vuetifyTheme.global.current.value.dark ? 'light' : 'dark'
-    setTheme(newTheme);
+  function initTheme() {
+    const saved = localStorage.getItem(STORAGE_KEY) as ThemeName | null
+    if (saved && (saved === 'light' || saved === 'dark')) {
+      setTheme(saved)
+    }
   }
 
   return {
+    isDark,
+    currentThemeName,
     setTheme,
     toggleTheme,
-    isDark: vuetifyTheme.global.current.value.dark,
-    currentThemeName: vuetifyTheme.global.name,
+    initTheme,
   }
 })

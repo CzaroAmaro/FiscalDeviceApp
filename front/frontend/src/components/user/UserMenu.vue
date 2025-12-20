@@ -1,7 +1,6 @@
 <template>
   <v-card min-width="280" elevation="3" rounded="lg">
     <v-list density="compact" class="py-0">
-      <!-- Nagłówek użytkownika -->
       <v-list-item lines="two" class="px-4 py-3">
         <template #prepend>
           <v-avatar color="primary" size="42">
@@ -18,7 +17,6 @@
 
       <v-divider />
 
-      <!-- Status licencji -->
       <v-list-item class="px-4 py-2" @click.stop>
         <template #prepend>
           <v-icon
@@ -28,7 +26,7 @@
           />
         </template>
         <v-list-item-title class="text-body-2">
-          {{ authStore.isActivated ? 'Licencja aktywna' : 'Wersja demo' }}
+          {{ authStore.isActivated ? t('userMenu.license.active') : t('userMenu.license.demo') }}
         </v-list-item-title>
         <template #append>
           <v-btn
@@ -39,7 +37,7 @@
             :loading="isPurchasing"
             @click.stop="startPurchase"
           >
-            Aktywuj
+            {{ t('userMenu.license.activate') }}
           </v-btn>
           <v-icon v-else icon="mdi-check" color="success" size="18" />
         </template>
@@ -47,30 +45,29 @@
 
       <v-divider />
 
-      <!-- Sekcja preferencji - CAŁA SEKCJA BLOKUJE PROPAGACJĘ -->
       <div class="px-4 py-3" @click.stop>
         <div class="text-caption text-medium-emphasis mb-3 font-weight-medium">
           {{ t('userMenu.preferences') }}
         </div>
 
-        <!-- Przełącznik motywu -->
         <div class="d-flex align-center justify-space-between mb-3">
           <div class="d-flex align-center">
             <v-icon
-              :icon="isDarkMode ? 'mdi-weather-night' : 'mdi-white-balance-sunny'"
+              :icon="themeStore.isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny'"
               size="20"
               class="mr-3"
-              :color="isDarkMode ? 'blue-lighten-2' : 'orange'"
+              :color="themeStore.isDark ? 'blue-lighten-2' : 'orange'"
             />
             <span class="text-body-2">{{ t('userMenu.theme') }}</span>
           </div>
           <v-btn-toggle
-            v-model="themeToggle"
+            :model-value="themeStore.currentThemeName"
             mandatory
             density="compact"
             rounded="pill"
             color="primary"
             class="theme-toggle"
+            @update:model-value="handleThemeChange"
           >
             <v-btn size="small" value="light" min-width="40">
               <v-icon size="18">mdi-white-balance-sunny</v-icon>
@@ -81,19 +78,19 @@
           </v-btn-toggle>
         </div>
 
-        <!-- Przełącznik języka -->
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
             <v-icon icon="mdi-translate" size="20" class="mr-3" />
             <span class="text-body-2">{{ t('userMenu.language') }}</span>
           </div>
           <v-btn-toggle
-            v-model="currentLanguage"
+            :model-value="languageStore.currentLanguage"
             mandatory
             density="compact"
             rounded="pill"
             color="primary"
             class="language-toggle"
+            @update:model-value="handleLanguageChange"
           >
             <v-btn size="small" value="pl" min-width="44">
               PL
@@ -107,7 +104,6 @@
 
       <v-divider />
 
-      <!-- Te elementy MAJĄ zamykać menu (nawigacja) -->
       <v-list-item
         prepend-icon="mdi-cog-outline"
         :title="t('userMenu.settings')"
@@ -128,53 +124,41 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useThemeStore } from '@/stores/theme'
+import { useLanguageStore, type Language } from '@/stores/language'
 import { createCheckoutSession } from '@/api/payments'
 import { useAuthStore } from '@/stores/auth'
 import { useCompanyStore } from '@/stores/company'
 
 const emit = defineEmits<{ (e: 'logout'): void }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const themeStore = useThemeStore()
+const languageStore = useLanguageStore()
 const authStore = useAuthStore()
 const companyStore = useCompanyStore()
 
-// Dane użytkownika
 const displayName = computed(() => {
   if (authStore.isActivated) {
     return companyStore.companyName
   }
-  return authStore.user?.username || 'Użytkownik'
+  return authStore.user?.username || t('userMenu.defaultUser')
 })
 
 const userEmail = computed(() => {
-  return authStore.user?.email || 'Brak e-maila'
+  return authStore.user?.email || t('userMenu.noEmail')
 })
 
-// Motyw
-const isDarkMode = computed(() => themeStore.currentThemeName === 'dark')
+const handleThemeChange = (value: 'light' | 'dark') => {
+  themeStore.setTheme(value)
+}
 
-const themeToggle = computed({
-  get: () => themeStore.currentThemeName,
-  set: (value: string) => {
-    if (value !== themeStore.currentThemeName) {
-      themeStore.toggleTheme()
-    }
-  },
-})
+const handleLanguageChange = (value: Language) => {
+  languageStore.setLanguage(value)
+}
 
-// Język
-const currentLanguage = ref(locale.value)
-
-watch(currentLanguage, (newLocale) => {
-  locale.value = newLocale
-  localStorage.setItem('user-locale', newLocale)
-})
-
-// Płatności
 const isPurchasing = ref(false)
 
 const startPurchase = async () => {
@@ -184,16 +168,15 @@ const startPurchase = async () => {
     if (response.url) {
       window.location.href = response.url
     } else {
-      console.error('Błąd: Nie otrzymano adresu URL od Stripe.', response.error)
+      console.error(t('userMenu.errors.noStripeUrl'), response.error)
     }
   } catch (error) {
-    console.error('Nie udało się zainicjować płatności:', error)
+    console.error(t('userMenu.errors.paymentFailed'), error)
   } finally {
     isPurchasing.value = false
   }
 }
 
-// Wylogowanie
 const onLogout = () => {
   emit('logout')
 }

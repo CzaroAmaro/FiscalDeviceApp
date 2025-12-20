@@ -1,10 +1,10 @@
 <template>
   <div class="pa-4 pa-md-6">
-    <h1 class="text-h4 mb-6">Pulpit - Wykresy</h1>
+    <h1 class="text-h4 mb-6">{{ t('charts.title') }}</h1>
 
     <div v-if="loading" class="text-center">
       <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-      <p class="mt-4">Ładowanie danych...</p>
+      <p class="mt-4">{{ t('common.loadingData') }}</p>
     </div>
 
     <div v-else-if="error" class="text-center">
@@ -13,35 +13,36 @@
 
     <div v-else-if="chartData">
       <v-row>
-        <!-- Wykres 1: Zgłoszenia wg statusu -->
         <v-col cols="12" md="6" lg="5">
           <v-card class="fill-height">
             <v-card-text class="chart-container">
               <Pie
                 v-if="ticketsByStatus && ticketsByStatus.datasets[0].data.length > 0"
                 :data="ticketsByStatus"
-                :options="{...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'Zgłoszenia wg statusu'}}}"
+                :options="{...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: t('charts.ticketsByStatus.title')}}}"
               />
-              <div v-else class="d-flex align-center justify-center fill-height">Brak danych do wyświetlenia</div>
+              <div v-else class="d-flex align-center justify-center fill-height">
+                {{ t('charts.noData') }}
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
 
-        <!-- Wykres 2: Urządzenia wg statusu -->
         <v-col cols="12" md="6" lg="7">
           <v-card class="fill-height">
             <v-card-text class="chart-container">
               <Doughnut
                 v-if="devicesByStatus && devicesByStatus.datasets[0].data.length > 0"
                 :data="devicesByStatus"
-                :options="{...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: 'Urządzenia wg statusu'}}}"
+                :options="{...chartOptions, plugins: {...chartOptions.plugins, title: {...chartOptions.plugins.title, text: t('charts.devicesByStatus.title')}}}"
               />
-              <div v-else class="d-flex align-center justify-center fill-height">Brak danych do wyświetlenia</div>
+              <div v-else class="d-flex align-center justify-center fill-height">
+                {{ t('charts.noData') }}
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
 
-        <!-- Wykres 3: Zgłoszenia w czasie -->
         <v-col cols="12">
           <v-card>
             <v-card-text class="chart-container" style="height: 400px;">
@@ -50,23 +51,24 @@
                 :data="workloadOverTime"
                 :options="barChartOptions"
               />
-              <div v-else class="d-flex align-center justify-center fill-height">Brak danych do wyświetlenia</div>
+              <div v-else class="d-flex align-center justify-center fill-height">
+                {{ t('charts.noData') }}
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
 
-        <!-- Sekcja 4: Wygasające certyfikaty -->
         <v-col cols="12">
           <v-card>
-            <v-card-title>Certyfikaty wygasające w ciągu 90 dni</v-card-title>
+            <v-card-title>{{ t('charts.expiringCertificates.title') }}</v-card-title>
             <v-card-text>
               <v-table v-if="expiringCerts.length > 0" density="compact">
                 <thead>
                 <tr>
-                  <th class="text-left">Serwisant</th>
-                  <th class="text-left">Producent</th>
-                  <th class="text-left">Numer certyfikatu</th>
-                  <th class="text-left">Data wygaśnięcia</th>
+                  <th class="text-left">{{ t('charts.expiringCertificates.headers.technician') }}</th>
+                  <th class="text-left">{{ t('charts.expiringCertificates.headers.manufacturer') }}</th>
+                  <th class="text-left">{{ t('charts.expiringCertificates.headers.certificateNumber') }}</th>
+                  <th class="text-left">{{ t('charts.expiringCertificates.headers.expiryDate') }}</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -78,7 +80,7 @@
                 </tr>
                 </tbody>
               </v-table>
-              <p v-else>Brak certyfikatów wygasających w najbliższym czasie.</p>
+              <p v-else>{{ t('charts.expiringCertificates.noCertificates') }}</p>
             </v-card-text>
           </v-card>
         </v-col>
@@ -90,6 +92,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import { useChartsStore } from '@/stores/charts';
 import { Bar, Pie, Doughnut } from 'vue-chartjs';
 import {
@@ -106,7 +109,6 @@ import {
   Colors
 } from 'chart.js';
 
-// Rejestracja komponentów Chart.js - to zostaje tak samo
 ChartJS.register(
   Title,
   Tooltip,
@@ -120,12 +122,12 @@ ChartJS.register(
   Colors
 );
 
-// --- Store ---
+const { t } = useI18n();
+
 const chartsStore = useChartsStore();
 const { loading, data: chartData, error } = storeToRefs(chartsStore);
 
-// --- Chart Options ---
-const chartOptions = {
+const chartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -139,9 +141,9 @@ const chartOptions = {
       },
     },
   },
-};
+}));
 
-const barChartOptions = {
+const barChartOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -150,46 +152,43 @@ const barChartOptions = {
     },
     title: {
       display: true,
-      text: 'Miesięczne obciążenie pracą wg typu zlecenia (ostatnie 12 m-cy)',
+      text: t('charts.workloadOverTime.title'),
       font: {
         size: 16,
       },
     },
-    // Opcjonalnie: Tooltip, który pokazuje sumę dla całego słupka
     tooltip: {
-      mode: 'index' as const, // Pokazuje tooltip dla całej kategorii (miesiąca)
+      mode: 'index' as const,
       intersect: false,
     },
   },
   scales: {
     x: {
-      stacked: true, // PRAWIDŁOWO: Słupki w tej samej kategorii (miesiąc) będą stackowane
+      stacked: true,
     },
     y: {
-      stacked: true, // PRAWIDŁOWO: Wartości z różnych datasetów będą dodawane do siebie
+      stacked: true,
       beginAtZero: true,
       title: {
         display: true,
-        text: 'Liczba zleceń'
+        text: t('charts.workloadOverTime.yAxisLabel')
       }
     },
   },
-};
+}));
 
-// --- Computed properties for each chart (teraz odwołują się do store'a) ---
 const ticketsByStatus = computed(() => {
   if (!chartData.value?.tickets_by_status) return null;
   return {
     labels: chartData.value.tickets_by_status.labels,
     datasets: [{
-      label: 'Zgłoszenia',
+      label: t('charts.ticketsByStatus.datasetLabel'),
       data: chartData.value.tickets_by_status.data,
     }],
   };
 });
 
 const workloadOverTime = computed(() => {
-  // Sprawdzamy, czy dane istnieją i czy jest co najmniej jeden dataset
   if (!chartData.value?.workload_over_time || chartData.value.workload_over_time.datasets.length === 0) {
     return null;
   }
@@ -201,7 +200,7 @@ const devicesByStatus = computed(() => {
   return {
     labels: chartData.value.devices_by_status.labels,
     datasets: [{
-      label: 'Urządzenia',
+      label: t('charts.devicesByStatus.datasetLabel'),
       data: chartData.value.devices_by_status.data,
     }],
   };
@@ -211,9 +210,7 @@ const expiringCerts = computed(() => {
   return chartData.value?.expiring_certifications || [];
 });
 
-// --- Lifecycle ---
 onMounted(() => {
-  // Jedyne co robimy, to wywołujemy akcję ze store'a
   chartsStore.fetchChartData();
 });
 </script>

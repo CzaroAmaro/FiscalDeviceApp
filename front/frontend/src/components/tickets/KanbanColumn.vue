@@ -1,7 +1,6 @@
 <template>
   <div class="kanban-column">
     <v-card class="column-card" rounded="lg" elevation="0">
-      <!-- Nagłówek kolumny -->
       <div class="column-header" :class="`border-${color}`">
         <div class="d-flex align-center">
           <v-avatar :color="color" size="32" variant="tonal" class="mr-3">
@@ -21,7 +20,6 @@
         </v-chip>
       </div>
 
-      <!-- Zawartość kolumny -->
       <div class="column-content">
         <draggable
           :list="filteredTickets"
@@ -50,7 +48,6 @@
           </template>
         </draggable>
 
-        <!-- Stan pusty -->
         <div v-if="!isLoading && filteredTickets.length === 0" class="empty-column">
           <v-icon :color="color" size="48" class="mb-3 opacity-50">
             {{ icon }}
@@ -63,13 +60,11 @@
           </p>
         </div>
 
-        <!-- Loader -->
         <div v-if="isLoading && filteredTickets.length === 0" class="d-flex justify-center my-8">
           <v-progress-circular indeterminate :color="color" size="32" />
         </div>
       </div>
 
-      <!-- Stopka z podsumowaniem (opcjonalna) -->
       <div v-if="filteredTickets.length > 3" class="column-footer">
         <span class="text-caption text-medium-emphasis">
           {{ filteredTickets.length }} {{ filteredTickets.length === 1 ? 'zgłoszenie' : 'zgłoszeń' }}
@@ -137,7 +132,7 @@ function onDragEnd(event: DraggableEndEvent) {
 .kanban-column {
   display: flex;
   flex-direction: column;
-  min-width: 0; /* Ważne dla grid */
+  min-width: 0;
 }
 
 .column-card {
@@ -149,7 +144,6 @@ function onDragEnd(event: DraggableEndEvent) {
   overflow: hidden;
 }
 
-/* Nagłówek */
 .column-header {
   display: flex;
   align-items: center;
@@ -163,7 +157,6 @@ function onDragEnd(event: DraggableEndEvent) {
 .border-info { border-bottom-color: rgb(var(--v-theme-info)); }
 .border-success { border-bottom-color: rgb(var(--v-theme-success)); }
 
-/* Zawartość */
 .column-content {
   flex: 1;
   overflow-y: auto;
@@ -183,7 +176,6 @@ function onDragEnd(event: DraggableEndEvent) {
   margin-bottom: 0;
 }
 
-/* Pusta kolumna */
 .empty-column {
   display: flex;
   flex-direction: column;
@@ -193,7 +185,6 @@ function onDragEnd(event: DraggableEndEvent) {
   text-align: center;
 }
 
-/* Stopka */
 .column-footer {
   padding: 12px 16px;
   background: rgb(var(--v-theme-surface));
@@ -201,7 +192,6 @@ function onDragEnd(event: DraggableEndEvent) {
   text-align: center;
 }
 
-/* Drag & Drop styles */
 .ghost-card {
   opacity: 0.4;
   background: rgba(var(--v-theme-primary), 0.1);
@@ -218,7 +208,6 @@ function onDragEnd(event: DraggableEndEvent) {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* Scrollbar */
 .column-content::-webkit-scrollbar {
   width: 6px;
 }

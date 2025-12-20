@@ -1,6 +1,5 @@
 <template>
   <v-card rounded="lg" class="settings-card">
-    <!-- Header -->
     <div class="card-header">
       <div class="d-flex align-center">
         <v-avatar color="success" size="40" variant="tonal" class="mr-3">
@@ -19,9 +18,7 @@
 
     <v-divider />
 
-    <!-- Content -->
     <v-card-text class="pa-6">
-      <!-- Current user info -->
       <div class="user-info-banner mb-6">
         <div class="d-flex align-center">
           <v-avatar color="primary" size="56" variant="tonal" class="mr-4">
@@ -85,7 +82,6 @@
           </v-col>
         </v-row>
 
-        <!-- Preview -->
         <v-expand-transition>
           <div v-if="hasChanges" class="preview-section mt-4">
             <v-alert type="info" variant="tonal" density="compact">
@@ -102,7 +98,6 @@
           </div>
         </v-expand-transition>
 
-        <!-- Actions -->
         <div class="mt-6 d-flex justify-end ga-2">
           <v-btn
             v-if="hasChanges"
@@ -125,7 +120,6 @@
       </v-form>
     </v-card-text>
 
-    <!-- Snackbar -->
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
@@ -148,11 +142,9 @@ import { useI18n } from 'vue-i18n';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth.ts';
 
-// Composables
 const { t } = useI18n();
 const authStore = useAuthStore();
 
-// Refs
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 const isSaving = ref(false);
 
@@ -172,7 +164,6 @@ const snackbar = reactive({
   color: 'success' as 'success' | 'error',
 });
 
-// Computed
 const fullName = computed(() => {
   const firstName = form.first_name || authStore.user?.first_name || '';
   const lastName = form.last_name || authStore.user?.last_name || '';
@@ -193,7 +184,6 @@ const hasChanges = computed(() => {
     form.last_name !== originalForm.last_name;
 });
 
-// Methods
 function loadUserData() {
   if (authStore.user) {
     form.first_name = authStore.user.first_name || '';
@@ -235,7 +225,6 @@ async function saveProfile() {
   }
 }
 
-// Lifecycle
 onMounted(() => {
   loadUserData();
 });

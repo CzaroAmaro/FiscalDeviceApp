@@ -2,6 +2,32 @@
   "app": {
     "title": "Fiscal Device Manager"
   },
+  "charts": {
+    "title": "Dashboard - Charts",
+    "noData": "No data to display",
+    "ticketsByStatus": {
+      "title": "Tickets by Status",
+      "datasetLabel": "Tickets"
+    },
+    "devicesByStatus": {
+      "title": "Devices by Status",
+      "datasetLabel": "Devices"
+    },
+    "workloadOverTime": {
+      "title": "Monthly Workload by Ticket Type (Last 12 Months)",
+      "yAxisLabel": "Number of Tickets"
+    },
+    "expiringCertificates": {
+      "title": "Certificates Expiring Within 90 Days",
+      "noCertificates": "No certificates expiring soon.",
+      "headers": {
+        "technician": "Technician",
+        "manufacturer": "Manufacturer",
+        "certificateNumber": "Certificate Number",
+        "expiryDate": "Expiry Date"
+      }
+    }
+  },
   "clients": {
     "title": "Clients",
     "toolbar": {
@@ -39,13 +65,18 @@
     "delete": "Delete",
     "save": "Save",
     "cancel": "Cancel",
+    "clear": "Clear",
+    "preview": "Preview",
     "active": "Active",
     "inactive": "Inactive",
     "confirmDelete": "Confirm deletion",
     "confirmDeleteMsg": "This operation is irreversible.",
     "loadingData": "Loading data...",
     "noDataFound": "No data found",
-    "serverError": "A server error occurred. Please try again."
+    "serverError": "A server error occurred. Please try again.",
+    "errors": {
+      "unknown": "An unknown error occurred."
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -63,7 +94,14 @@
     "toolbar": {
       "add": "Add device",
       "edit": "Edit device",
-      "delete": "Delete device"
+      "delete": "Delete device",
+      "exportPdf": "Export PDF",
+      "sendEmail": "Send email",
+      "performService": "Perform service",
+      "viewDetails": "View details"
+    },
+    "search": {
+      "placeholder": "Search by unique number or owner"
     },
     "headers": {
       "brand": "Brand",
@@ -75,9 +113,17 @@
       "lastServiceDate": "Last Service Date",
       "nextServiceDate": "Next Service Date"
     },
+    "sections": {
+      "identification": "Device Identification",
+      "owner": "Owner",
+      "statusAndDates": "Status and Dates",
+      "additionalInfo": "Additional Information"
+    },
     "forms": {
       "addTitle": "Add New Device",
       "editTitle": "Edit Device",
+      "addSubtitle": "Fill out the form to add a new fiscal device",
+      "editSubtitle": "Modify the fiscal device details",
       "brandLabel": "Brand",
       "modelLabel": "Device model",
       "uniqueNumberLabel": "Unique number",
@@ -101,11 +147,56 @@
         "uniqueNumber": "Unique number: {value}"
       }
     },
+    "placeholders": {
+      "brand": "Select manufacturer",
+      "model": "e.g. Posnet Thermal XL2",
+      "uniqueNumber": "e.g. ABC12345678",
+      "serial": "e.g. SN-2024-001234",
+      "owner": "Search for client...",
+      "instructions": "Enter instructions for using the device...",
+      "remarks": "Additional remarks about the device..."
+    },
+    "actions": {
+      "add": "Add device",
+      "addManufacturer": "Add new manufacturer",
+      "addClient": "Add new client"
+    },
+    "labels": {
+      "devicesCount": "devices"
+    },
+    "hints": {
+      "clientSelected": "Selected client: {name}"
+    },
+    "warnings": {
+      "decommissioned": "A device marked as decommissioned will not be displayed in active lists."
+    },
+    "messages": {
+      "pdfGenerated": "PDF report has been generated.",
+      "remindersSent": "Scheduled sending of {count} reminders.",
+      "servicePerformed": "Service has been performed."
+    },
+    "errors": {
+      "exportFailed": "An error occurred during export.",
+      "sendRemindersFailed": "An error occurred while sending reminders.",
+      "updateFailed": "An error occurred during update."
+    },
     "deleteConfirm": "Are you sure you want to delete the device \"{name}\" (S/N: {serial})?",
     "deleteConfirmMulti": "Are you sure you want to delete {count} selected devices?",
     "deleteSuccessSingle": "Device \"{name}\" has been deleted.",
     "deleteSuccessMulti": "{count, plural, one {# device has been deleted} other {# devices have been deleted}}.",
     "deleteError": "An error occurred while deleting devices."
+  },
+  "kanban": {
+    "noClient": "No client",
+    "noTickets": "No tickets",
+    "dragHint": "Drag a ticket here",
+    "ticketsCount": "{count, plural, one {# ticket} other {# tickets}}",
+    "actions": {
+      "reopen": "Reopen",
+      "edit": "Edit",
+      "resolve": "Resolve",
+      "delete": "Delete"
+    }
   },
   "manufacturers": {
     "title": "Manufacturers",
@@ -118,12 +209,29 @@
       "id": "ID",
       "name": "Manufacturer Name"
     },
+    "sections": {
+      "basicInfo": "Manufacturer Information"
+    },
     "forms": {
       "addTitle": "Add New Manufacturer",
       "editTitle": "Edit Manufacturer",
+      "addSubtitle": "Fill out the form to add a new device manufacturer",
+      "editSubtitle": "Modify the manufacturer details",
       "nameLabel": "Manufacturer Name",
       "addSuccess": "Manufacturer has been successfully added.",
       "editSuccess": "Manufacturer details have been updated."
+    },
+    "placeholders": {
+      "name": "e.g. Posnet, Elzab, Novitus..."
+    },
+    "actions": {
+      "add": "Add manufacturer"
+    },
+    "hints": {
+      "nameInfo": "The manufacturer name will be displayed with fiscal devices and certificates."
+    },
+    "preview": {
+      "willAppear": "This is how the manufacturer will appear in lists"
     }
   },
   "menu": {
@@ -140,6 +248,58 @@
     "clients-map": "Clients Map",
     "chart": "Charts",
     "searchPlaceholder": "Search in menu"
+  },
+  "settings": {
+    "title": "Profile Settings",
+    "subtitle": "Manage your profile and company information",
+    "nav": {
+      "profile": "Profile",
+      "email": "E-mail",
+      "company": "Company"
+    },
+    "company": {
+      "title": "Company Information",
+      "subtitleAdmin": "Manage company information",
+      "subtitleUser": "View company information",
+      "nameLabel": "Company Name",
+      "namePlaceholder": "Enter company name",
+      "readonlyHint": "Only administrators can edit this data",
+      "adminOnlyInfo": "Only administrators can edit company data. Contact an administrator if you need to make changes."
+    },
+    "profile": {
+      "title": "Profile Information",
+      "subtitle": "Update your personal information",
+      "noName": "No name provided",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "firstNamePlaceholder": "Enter first name",
+      "lastNamePlaceholder": "Enter last name",
+      "preview": "Preview",
+      "saveSuccess": "Profile has been successfully updated."
+    },
+    "email": {
+      "title": "Change Email Address",
+      "subtitle": "Update your email address",
+      "currentEmail": "Current email address",
+      "verified": "Verified",
+      "newEmailLabel": "New email address",
+      "newEmailPlaceholder": "Enter new email address",
+      "passwordLabel": "Current password",
+      "passwordPlaceholder": "Enter your current password",
+      "passwordHint": "Required to confirm the change",
+      "processInfo": "A verification link will be sent to your new email address. The change will be applied after clicking the link.",
+      "sendRequest": "Send change request",
+      "requestSuccess": "Verification link has been sent to your new email address.",
+      "mustBeDifferent": "New email address must be different from the current one"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "viewer": "View Only"
+    },
+    "errors": {
+      "unknown": "An unknown error occurred. Please try again.",
+      "saveFailed": "Failed to save changes. Please try again."
+    }
   },
   "technicians": {
     "title": "Technicians",
@@ -163,6 +323,10 @@
       "activeLabel": "Active",
       "addSuccess": "New technician has been successfully added.",
       "editSuccess": "Technician details have been updated."
+    },
+    "roles": {
+      "admin": "Administrator",
+      "technician": "Technician"
     }
   },
   "tickets": {
@@ -181,9 +345,16 @@
       "technician": "Technician",
       "created": "Created"
     },
+    "sections": {
+      "basicInfo": "Basic Information",
+      "clientAndDevice": "Client and Device",
+      "assignment": "Assignment"
+    },
     "forms": {
       "addTitle": "Add New Ticket",
       "editTitle": "Edit Ticket",
+      "addSubtitle": "Fill out the form to create a new service ticket",
+      "editSubtitle": "Modify the service ticket details",
       "titleLabel": "Ticket Title",
       "descriptionLabel": "Description",
       "clientLabel": "Client",
@@ -196,9 +367,29 @@
       "addSuccess": "New ticket has been successfully added.",
       "editSuccess": "Ticket details have been updated."
     },
+    "placeholders": {
+      "title": "e.g. Fiscal printer repair",
+      "description": "Describe the problem or scope of work in detail...",
+      "client": "Search for client...",
+      "device": "Select client's device...",
+      "technician": "Select technician..."
+    },
+    "actions": {
+      "add": "Add ticket",
+      "analyzeWithAi": "Analyze with AI"
+    },
+    "hints": {
+      "selectClientFirst": "First select a client to display their device list.",
+      "noTechnicianAssigned": "A ticket without an assigned technician will be visible to all technicians."
+    },
+    "warnings": {
+      "deviceInService": "The selected device is currently in service. Make sure this is the correct device."
+    },
     "status": {
       "new": "New",
+      "open": "Open",
       "in_progress": "In Progress",
+      "closed": "Closed",
       "completed": "Completed",
       "cancelled": "Cancelled",
       "pending_client": "Pending Client"
@@ -207,12 +398,44 @@
       "open": "Open",
       "closed": "Closed",
       "in_progress": "In Progress"
-},
+    },
     "types": {
       "service": "Service",
+      "reading": "Reading",
+      "repair": "Repair",
       "installation": "Installation",
       "maintenance": "Maintenance",
+      "incident": "Incident",
+      "request": "Request",
+      "problem": "Problem",
       "other": "Other"
+    },
+    "resolve": {
+      "title": "Close Ticket",
+      "subtitle": "Ticket #{number}",
+      "resultSection": "Resolution Result",
+      "resultLabel": "Result",
+      "notesSection": "Resolution Notes",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Describe the work performed, replaced parts, remarks...",
+      "quickNotes": "Quick notes:",
+      "summary": "Closure Summary",
+      "ticketNumber": "Ticket Number",
+      "result": "Result",
+      "closedAt": "Closed At",
+      "closedBy": "Closed By",
+      "confirm": "Close Ticket",
+      "success": "Ticket has been successfully closed.",
+      "descriptions": {
+        "completed": "The ticket will be marked as successfully completed.",
+        "failed": "The ticket will be marked as failed. It may require reopening.",
+        "cancelled": "The ticket will be cancelled without performing any work."
+      }
+    },
+    "resolutions": {
+      "completed": "Completed Successfully",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
     }
   },
   "toolbar": {
@@ -226,7 +449,18 @@
     "theme": "Theme",
     "logout": "Logout",
     "placeholderName": "John Doe",
-    "placeholderEmail": "john.doe@example.com"
+    "placeholderEmail": "john.doe@example.com",
+    "defaultUser": "User",
+    "noEmail": "No email",
+    "license": {
+      "active": "License active",
+      "demo": "Demo version",
+      "activate": "Activate"
+    },
+    "errors": {
+      "noStripeUrl": "Error: No URL received from Stripe.",
+      "paymentFailed": "Failed to initialize payment."
+    }
   },
   "validation": {
     "required": "This field is required",

@@ -1,6 +1,5 @@
 <template>
   <v-card rounded="lg" class="settings-card">
-    <!-- Header -->
     <div class="card-header card-header--email">
       <div class="d-flex align-center">
         <v-avatar color="warning" size="40" variant="tonal" class="mr-3">
@@ -19,9 +18,7 @@
 
     <v-divider />
 
-    <!-- Content -->
     <v-card-text class="pa-6">
-      <!-- Current email display -->
       <div class="current-email-banner mb-6">
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
@@ -44,7 +41,6 @@
         </div>
       </div>
 
-      <!-- Success message -->
       <v-alert
         v-if="successMessage"
         type="success"
@@ -60,7 +56,6 @@
         {{ successMessage }}
       </v-alert>
 
-      <!-- Error message -->
       <v-alert
         v-if="errorMessage"
         type="error"
@@ -132,7 +127,6 @@
           </v-col>
         </v-row>
 
-        <!-- Info about the process -->
         <v-alert
           type="info"
           variant="tonal"
@@ -147,7 +141,6 @@
           </span>
         </v-alert>
 
-        <!-- Actions -->
         <div class="mt-6 d-flex justify-end">
           <v-btn
             type="submit"
@@ -171,11 +164,9 @@ import { useI18n } from 'vue-i18n';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth.ts';
 
-// Composables
 const { t } = useI18n();
 const authStore = useAuthStore();
 
-// Refs
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }>; reset: () => void } | null>(null);
 const newEmail = ref('');
 const password = ref('');
@@ -184,21 +175,18 @@ const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
 const successMessage = ref<string | null>(null);
 
-// Computed
 const isFormValid = computed(() => {
   return newEmail.value.trim() !== '' &&
     password.value.trim() !== '' &&
     newEmail.value !== authStore.user?.email;
 });
 
-// Validation rules
 const rules = {
   required: (v: string) => !!v?.trim() || t('validation.required'),
   email: (v: string) => /.+@.+\..+/.test(v) || t('validation.email'),
   different: (v: string) => v !== authStore.user?.email || t('settings.email.mustBeDifferent'),
 };
 
-// Methods
 async function requestChange() {
   const validation = await formRef.value?.validate();
   if (!validation?.valid) return;
@@ -215,7 +203,6 @@ async function requestChange() {
 
     successMessage.value = response.data.detail || t('settings.email.requestSuccess');
 
-    // Reset form
     newEmail.value = '';
     password.value = '';
     formRef.value?.reset();
