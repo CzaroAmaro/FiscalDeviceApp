@@ -6,7 +6,6 @@
     :fullscreen="isMobile"
   >
     <v-card class="certification-form-card" rounded="lg">
-      <!-- Nagłówek -->
       <div class="form-header">
         <div class="d-flex align-center">
           <v-avatar
@@ -23,7 +22,7 @@
               {{ formTitle }}
             </h2>
             <p class="text-body-2 text-medium-emphasis mb-0">
-              {{ isEditing ? 'Zaktualizuj dane certyfikatu' : 'Dodaj nowe uprawnienia serwisowe' }}
+              {{ isEditing ? t('certifications.forms.editSubtitle') : t('certifications.forms.addSubtitle') }}
             </p>
           </div>
         </div>
@@ -39,10 +38,8 @@
 
       <v-divider />
 
-      <!-- Formularz -->
       <v-card-text class="form-content">
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
-          <!-- Alert błędu -->
           <v-alert
             v-if="state.error"
             type="error"
@@ -58,23 +55,21 @@
             {{ state.error }}
           </v-alert>
 
-          <!-- Sekcja: Przypisanie -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-account-link</v-icon>
-              Przypisanie
+              {{ t('certifications.sections.assignment') }}
             </h3>
 
             <v-row dense>
-              <!-- Serwisant -->
               <v-col cols="12">
                 <v-select
                   v-model="formData.technician"
                   :items="techniciansStore.technicians"
                   item-title="full_name"
                   item-value="id"
-                  label="Serwisant"
-                  placeholder="Wybierz serwisanta"
+                  :label="t('certifications.forms.technicianLabel')"
+                  :placeholder="t('certifications.placeholders.technician')"
                   :rules="[rules.required]"
                   variant="outlined"
                   density="comfortable"
@@ -108,15 +103,14 @@
                 </v-select>
               </v-col>
 
-              <!-- Producent -->
               <v-col cols="12">
                 <v-select
                   v-model="formData.manufacturer"
                   :items="manufacturersStore.manufacturers"
                   item-title="name"
                   item-value="id"
-                  label="Producent / Marka"
-                  placeholder="Wybierz producenta"
+                  :label="t('certifications.forms.manufacturerLabel')"
+                  :placeholder="t('certifications.placeholders.manufacturer')"
                   :rules="[rules.required]"
                   variant="outlined"
                   density="comfortable"
@@ -141,19 +135,18 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Dane certyfikatu -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-card-account-details</v-icon>
-              Dane certyfikatu
+              {{ t('certifications.sections.certificateData') }}
             </h3>
 
             <v-row dense>
               <v-col cols="12">
                 <v-text-field
                   v-model="formData.certificate_number"
-                  label="Numer certyfikatu"
-                  placeholder="np. CERT-2024-001"
+                  :label="t('certifications.forms.certificateNumberLabel')"
+                  :placeholder="t('certifications.placeholders.certificateNumber')"
                   :rules="[rules.required]"
                   variant="outlined"
                   density="comfortable"
@@ -168,18 +161,17 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Okres ważności -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-calendar-range</v-icon>
-              Okres ważności
+              {{ t('certifications.sections.validity') }}
             </h3>
 
             <v-row dense>
               <v-col cols="12" sm="6">
                 <DatePicker
                   v-model="formData.issue_date"
-                  label="Data wydania"
+                  :label="t('certifications.forms.issueDateLabel')"
                   :rules="[rules.required]"
                   prepend-inner-icon="mdi-calendar-start"
                 />
@@ -187,7 +179,7 @@
               <v-col cols="12" sm="6">
                 <DatePicker
                   v-model="formData.expiry_date"
-                  label="Data ważności"
+                  :label="t('certifications.forms.expiryDateLabel')"
                   :rules="[rules.required, rules.afterIssueDate]"
                   prepend-inner-icon="mdi-calendar-end"
                   :min="formData.issue_date || undefined"
@@ -195,7 +187,6 @@
               </v-col>
             </v-row>
 
-            <!-- Podpowiedź o długości ważności -->
             <v-alert
               v-if="validityInfo"
               :type="validityInfo.type"
@@ -209,10 +200,9 @@
               {{ validityInfo.text }}
             </v-alert>
 
-            <!-- Szybkie przyciski dla typowych okresów -->
             <div v-if="formData.issue_date" class="mt-4">
               <span class="text-caption text-medium-emphasis d-block mb-2">
-                Szybkie ustawienie okresu ważności:
+                {{ t('certifications.quickValidityLabel') }}
               </span>
               <div class="d-flex flex-wrap ga-2">
                 <v-chip
@@ -233,13 +223,12 @@
 
       <v-divider />
 
-      <!-- Stopka -->
       <v-card-actions class="form-footer">
         <v-btn
           variant="text"
           @click="closeDialog"
         >
-          Anuluj
+          {{ t('common.cancel') }}
         </v-btn>
         <v-spacer />
         <v-btn
@@ -249,7 +238,7 @@
           @click="resetForm"
         >
           <v-icon start>mdi-refresh</v-icon>
-          Wyczyść
+          {{ t('common.clear') }}
         </v-btn>
         <v-btn
           color="primary"
@@ -258,7 +247,7 @@
           @click="handleFormSubmit"
         >
           <v-icon start>{{ isEditing ? 'mdi-content-save' : 'mdi-plus' }}</v-icon>
-          {{ isEditing ? 'Zapisz zmiany' : 'Dodaj certyfikat' }}
+          {{ isEditing ? t('common.save') : t('certifications.actions.add') }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -267,6 +256,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
 import { useCertificationsStore } from '@/stores/certifications';
 import { useTechniciansStore } from '@/stores/technicians';
@@ -274,7 +264,6 @@ import { useManufacturersStore } from '@/stores/manufacturers';
 import type { Certification, CertificationPayload } from '@/types';
 import DatePicker from '@/components/common/DatePicker.vue';
 
-// Props & Emits
 const props = defineProps<{
   modelValue: boolean;
   editingCertification: Certification | null;
@@ -285,25 +274,21 @@ const emit = defineEmits<{
   (e: 'save-success', message: string): void;
 }>();
 
-// Stores
+const { t } = useI18n();
 const certificationsStore = useCertificationsStore();
 const techniciansStore = useTechniciansStore();
 const manufacturersStore = useManufacturersStore();
 
-// Vuetify display - prawidłowe użycie w Composition API
 const display = useDisplay();
 const isMobile = computed(() => display.smAndDown.value);
 
-// Form ref
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 
-// State
 const state = ref({
   isSaving: false,
   error: '',
 });
 
-// Initial form data
 const getInitialFormData = (): CertificationPayload => ({
   technician: 0,
   manufacturer: 0,
@@ -312,10 +297,8 @@ const getInitialFormData = (): CertificationPayload => ({
   expiry_date: '',
 });
 
-// Form data - używamy ref bezpośrednio zamiast useForm
 const formData = ref<CertificationPayload>(getInitialFormData());
 
-// Computed
 const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => emit('update:modelValue', val),
@@ -323,18 +306,17 @@ const isDialogOpen = computed({
 
 const isEditing = computed(() => props.editingCertification !== null);
 
-const formTitle = computed(() => (isEditing.value ? 'Edytuj certyfikat' : 'Nowy certyfikat'));
+const formTitle = computed(() => (isEditing.value ? t('certifications.forms.editTitle') : t('certifications.forms.addTitle')));
 
-// Validity periods
-const validityPeriods = [
-  { months: 6, label: '6 miesięcy' },
-  { months: 12, label: '1 rok' },
-  { months: 24, label: '2 lata' },
-  { months: 36, label: '3 lata' },
-  { months: 60, label: '5 lat' },
-];
+// Mapowanie okresów ważności na klucze tłumaczeń
+const validityPeriods = computed(() => [
+  { months: 6, label: t('certifications.validityPeriods.6months') },
+  { months: 12, label: t('certifications.validityPeriods.1year') },
+  { months: 24, label: t('certifications.validityPeriods.2years') },
+  { months: 36, label: t('certifications.validityPeriods.3years') },
+  { months: 60, label: t('certifications.validityPeriods.5years') },
+]);
 
-// Validity info - z bezpiecznym dostępem do formData
 const validityInfo = computed(() => {
   const issueDate = formData.value?.issue_date;
   const expiryDate = formData.value?.expiry_date;
@@ -349,7 +331,7 @@ const validityInfo = computed(() => {
     return {
       type: 'error' as const,
       icon: 'mdi-alert-circle',
-      text: 'Data ważności musi być późniejsza niż data wydania',
+      text: t('certifications.validityInfo.dateError'),
     };
   }
 
@@ -357,6 +339,8 @@ const validityInfo = computed(() => {
   const years = Math.floor(months / 12);
   const remainingMonths = months % 12;
 
+  // Logika budowania tekstu okresu (np. "1 rok i 3 miesiące") pozostaje dynamiczna
+  // ponieważ JSON nie zawiera generycznych kluczy dla lat/miesięcy w sekcji common
   let periodText = '';
   if (years > 0) {
     periodText = `${years} ${years === 1 ? 'rok' : years < 5 ? 'lata' : 'lat'}`;
@@ -371,31 +355,29 @@ const validityInfo = computed(() => {
     return {
       type: 'warning' as const,
       icon: 'mdi-clock-alert',
-      text: `Okres ważności: ${periodText} (stosunkowo krótki)`,
+      text: t('certifications.validityInfo.tooShort', { period: periodText }),
     };
   }
 
   return {
     type: 'info' as const,
     icon: 'mdi-information',
-    text: `Okres ważności: ${periodText}`,
+    text: t('certifications.validityInfo.normal', { period: periodText }),
   };
 });
 
-// Rules
 const rules = {
   required: (v: string | number | null | undefined) => {
-    if (typeof v === 'number') return v !== 0 || 'To pole jest wymagane';
-    return !!v || 'To pole jest wymagane';
+    if (typeof v === 'number') return v !== 0 || t('validation.required');
+    return !!v || t('validation.required');
   },
   afterIssueDate: (v: string) => {
     const issueDate = formData.value?.issue_date;
     if (!v || !issueDate) return true;
-    return new Date(v) > new Date(issueDate) || 'Data ważności musi być późniejsza niż data wydania';
+    return new Date(v) > new Date(issueDate) || t('certifications.validityInfo.dateError');
   },
 };
 
-// Methods
 function getInitials(name: string): string {
   if (!name) return '?';
   return name
@@ -451,7 +433,6 @@ function closeDialog() {
 }
 
 async function handleFormSubmit() {
-  // Walidacja formularza
   const validation = await formRef.value?.validate();
   if (!validation?.valid) {
     return;
@@ -470,19 +451,18 @@ async function handleFormSubmit() {
       await certificationsStore.addCertification(formData.value);
     }
 
-    const message = isEditing.value ? 'Certyfikat zaktualizowany.' : 'Certyfikat dodany.';
+    const message = isEditing.value ? t('certifications.forms.editSuccess') : t('certifications.forms.addSuccess');
     emit('save-success', message);
     closeDialog();
     certificationsStore.fetchCertifications(true);
   } catch (error) {
     console.error('Błąd zapisu:', error);
-    state.value.error = error instanceof Error ? error.message : 'Wystąpił nieznany błąd';
+    state.value.error = error instanceof Error ? error.message : t('common.errors.unknown');
   } finally {
     state.value.isSaving = false;
   }
 }
 
-// Watchers
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     if (props.editingCertification) {
@@ -499,7 +479,6 @@ watch(() => props.editingCertification, (newCert) => {
   }
 }, { immediate: true });
 
-// Lifecycle
 onMounted(() => {
   techniciansStore.fetchTechnicians();
   manufacturersStore.fetchManufacturers();
@@ -511,7 +490,6 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* Header */
 .form-header {
   display: flex;
   align-items: center;
@@ -524,14 +502,12 @@ onMounted(() => {
   );
 }
 
-/* Content */
 .form-content {
   padding: 24px;
   max-height: calc(100vh - 300px);
   overflow-y: auto;
 }
 
-/* Section */
 .form-section {
   margin-bottom: 8px;
 }
@@ -547,13 +523,11 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 
-/* Footer */
 .form-footer {
   padding: 16px 24px;
   background: rgb(var(--v-theme-surface));
 }
 
-/* Form fields */
 :deep(.v-field) {
   border-radius: 10px;
 }
@@ -562,7 +536,6 @@ onMounted(() => {
   padding-right: 8px;
 }
 
-/* Scrollbar */
 .form-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -576,7 +549,6 @@ onMounted(() => {
   border-radius: 3px;
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .form-header {
     padding: 16px;

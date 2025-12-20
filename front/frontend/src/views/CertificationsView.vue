@@ -1,7 +1,7 @@
 <template>
   <v-container fluid>
     <TableToolbar
-      title="Certyfikaty"
+      :title="t('certifications.title')"
       :selected-count="selectedItems.length"
       :actions="toolbarActions"
       @action="handleToolbarAction"
@@ -14,7 +14,7 @@
         variant="solo"
         hide-details
         prepend-inner-icon="mdi-magnify"
-        placeholder="Szukaj po nazwie lub numerze"
+        :placeholder="t('certifications.search.placeholder')"
         clearable
         style="max-width: 300px"
         @click:clear="onClearSearch"
@@ -29,7 +29,6 @@
         :loading="isLoading"
         :items-per-page="25"
       >
-        <!-- Status ważności -->
         <template #item.expiry_date="{ item }">
           <div class="d-flex align-center">
             <span>{{ formatDate(item.expiry_date) }}</span>
@@ -40,7 +39,7 @@
               variant="flat"
               class="ml-2"
             >
-              Wygasł
+              {{ t('certifications.status.expired') }}
             </v-chip>
             <v-chip
               v-else-if="isExpiringSoon(item.expiry_date)"
@@ -49,7 +48,7 @@
               variant="flat"
               class="ml-2"
             >
-              Wkrótce
+              {{ t('certifications.status.expiring') }}
             </v-chip>
           </div>
         </template>
@@ -62,7 +61,6 @@
       @save-success="handleFormSave"
     />
 
-    <!-- Panel boczny ze szczegółami -->
     <CertificationDetailsDrawer
       v-model="isDetailsDrawerOpen"
       :certification="itemToView"
@@ -73,12 +71,12 @@
 
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
-        <v-card-title class="text-h5">Potwierdź usunięcie</v-card-title>
-        <v-card-text>{{ confirmMessage }}<br>Tej operacji nie można cofnąć.</v-card-text>
+        <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
+        <v-card-text>{{ t('common.confirmDeleteMsg') }}<br>{{ t('common.confirmDeleteMsg') }}</v-card-text>
         <v-card-actions>
           <v-spacer/>
-          <v-btn text :disabled="isDeleting" @click="isConfirmOpen = false">Anuluj</v-btn>
-          <v-btn color="error" :loading="isDeleting" @click="handleDeleteConfirm">Usuń</v-btn>
+          <v-btn text :disabled="isDeleting" @click="isConfirmOpen = false">{{ t('common.cancel') }}</v-btn>
+          <v-btn color="error" :loading="isDeleting" @click="handleDeleteConfirm">{{ t('common.delete') }}</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -103,7 +101,6 @@ const { t } = useI18n();
 const certificationsStore = useCertificationsStore();
 const { certifications, isLoading } = storeToRefs(certificationsStore);
 
-// Panel szczegółów
 const isDetailsDrawerOpen = ref(false);
 const itemToView = ref<Certification | null>(null);
 
@@ -114,7 +111,6 @@ const {
   isConfirmOpen,
   isDeleting,
   items,
-  confirmMessage,
   handleToolbarAction,
   handleFormSave,
   handleDeleteConfirm,
@@ -138,10 +134,10 @@ const {
 const certificationHeaders = computed(() => getCertificationHeaders(t));
 
 const toolbarActions = computed<ToolbarAction[]>(() => [
-  { id: 'add', label: 'Dodaj certyfikat', icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
-  { id: 'edit', label: 'Edytuj', icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'view_details', label: 'Podgląd', icon: 'mdi-eye', requiresSelection: 'single' },
-  { id: 'delete', label: 'Usuń', icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
+  { id: 'add', label: t('certifications.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
+  { id: 'edit', label: t('certifications.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
+  { id: 'view_details', label: t('certifications.toolbar.viewDetails'), icon: 'mdi-eye', requiresSelection: 'single' },
+  { id: 'delete', label: t('certifications.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
 ]);
 
 const searchQuery = ref('');
@@ -162,7 +158,6 @@ function onClearSearch() {
   searchQuery.value = '';
 }
 
-// Date helpers
 function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('pl-PL');
 }
@@ -179,7 +174,6 @@ function isExpiringSoon(expiryDate: string): boolean {
   return diffDays <= 30;
 }
 
-// Handlers z Drawera
 function handleEditFromDrawer(certification: Certification) {
   isDetailsDrawerOpen.value = false;
   itemToEdit.value = certification;

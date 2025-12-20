@@ -7,7 +7,6 @@
     class="technician-details-drawer"
   >
     <template v-if="technician">
-      <!-- Nagłówek -->
       <div class="drawer-header">
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
@@ -30,14 +29,14 @@
                   size="x-small"
                   variant="flat"
                 >
-                  {{ technician.role_display }}
+                  {{ t(`technicians.roles.${technician.role}`) }}
                 </v-chip>
                 <v-chip
                   :color="technician.is_active ? 'success' : 'error'"
                   size="x-small"
                   variant="tonal"
                 >
-                  {{ technician.is_active ? 'Aktywny' : 'Nieaktywny' }}
+                  {{ technician.is_active ? t('common.active') : t('common.inactive') }}
                 </v-chip>
               </div>
             </div>
@@ -55,23 +54,20 @@
 
       <v-divider />
 
-      <!-- Zawartość -->
       <div class="drawer-content">
-        <!-- Sekcja: Dane kontaktowe -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-card-account-details</v-icon>
-            Dane kontaktowe
+            {{ t('technicians.details.contactInfo') }}
           </h3>
 
           <div class="contact-list">
-            <!-- Email -->
             <div class="contact-item">
               <div class="contact-icon">
                 <v-icon size="20" color="primary">mdi-email</v-icon>
               </div>
               <div class="contact-content">
-                <span class="contact-label">E-mail</span>
+                <span class="contact-label">{{ t('technicians.headers.email') }}</span>
                 <template v-if="technician.email">
                   <a
                     :href="`mailto:${technician.email}`"
@@ -81,7 +77,7 @@
                   </a>
                 </template>
                 <span v-else class="contact-value text-medium-emphasis">
-                  Nie podano
+                  {{ t('technicians.details.notProvided') }}
                 </span>
               </div>
               <v-btn
@@ -93,17 +89,16 @@
                 :href="`mailto:${technician.email}`"
               >
                 <v-icon size="18">mdi-email-fast</v-icon>
-                <v-tooltip activator="parent" location="top">Wyślij email</v-tooltip>
+                <v-tooltip activator="parent" location="top">{{ t('technicians.details.sendEmail') }}</v-tooltip>
               </v-btn>
             </div>
 
-            <!-- Telefon -->
             <div class="contact-item">
               <div class="contact-icon">
                 <v-icon size="20" color="primary">mdi-phone</v-icon>
               </div>
               <div class="contact-content">
-                <span class="contact-label">Telefon</span>
+                <span class="contact-label">{{ t('technicians.headers.phone') }}</span>
                 <template v-if="technician.phone_number">
                   <a
                     :href="`tel:${technician.phone_number}`"
@@ -113,7 +108,7 @@
                   </a>
                 </template>
                 <span v-else class="contact-value text-medium-emphasis">
-                  Nie podano
+                  {{ t('technicians.details.notProvided') }}
                 </span>
               </div>
               <v-btn
@@ -125,7 +120,7 @@
                 :href="`tel:${technician.phone_number}`"
               >
                 <v-icon size="18">mdi-phone</v-icon>
-                <v-tooltip activator="parent" location="top">Zadzwoń</v-tooltip>
+                <v-tooltip activator="parent" location="top">{{ t('technicians.details.call') }}</v-tooltip>
               </v-btn>
             </div>
           </div>
@@ -133,11 +128,10 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Konto użytkownika -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-account-circle</v-icon>
-            Konto użytkownika
+            {{ t('technicians.details.userAccount') }}
           </h3>
 
           <v-card
@@ -162,15 +156,15 @@
                       {{ technician.user.username }}
                     </p>
                     <p class="text-caption text-medium-emphasis mb-0">
-                      Konto aktywne
+                      {{ t('technicians.details.accountActive') }}
                     </p>
                   </template>
                   <template v-else>
                     <p class="text-body-1 font-weight-medium mb-0">
-                      Brak konta
+                      {{ t('technicians.details.noAccount') }}
                     </p>
                     <p class="text-caption text-medium-emphasis mb-0">
-                      Serwisant nie ma dostępu do systemu
+                      {{ t('technicians.details.noSystemAccess') }}
                     </p>
                   </template>
                 </div>
@@ -181,11 +175,10 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Statystyki zgłoszeń -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-ticket</v-icon>
-            Zgłoszenia serwisowe
+            {{ t('technicians.sections.tickets') }}
           </h3>
 
           <div v-if="isLoadingStats" class="d-flex justify-center py-4">
@@ -203,7 +196,7 @@
                     {{ stats.open_tickets_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    Otwarte
+                    {{ t('technicians.details.stats.open') }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -218,7 +211,7 @@
                     {{ stats.in_progress_tickets_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    W toku
+                    {{ t('technicians.details.stats.inProgress') }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -233,7 +226,7 @@
                     {{ stats.closed_tickets_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    Zamknięte
+                    {{ t('technicians.details.stats.closed') }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -248,7 +241,7 @@
                     {{ stats.assigned_tickets_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    Łącznie
+                    {{ t('technicians.details.stats.total') }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -258,11 +251,10 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Certyfikaty -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-certificate</v-icon>
-            Certyfikaty / Uprawnienia
+            {{ t('technicians.sections.certifications') }}
           </h3>
 
           <div v-if="isLoadingStats" class="d-flex justify-center py-4">
@@ -280,7 +272,7 @@
                     {{ stats.valid_certifications_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    Ważne
+                    {{ t('technicians.details.stats.valid') }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -306,7 +298,7 @@
                     {{ stats.expiring_soon_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    Wygasa
+                    {{ t('technicians.details.stats.expiring') }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -332,14 +324,13 @@
                     {{ stats.expired_certifications_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    Wygasłe
+                    {{ t('technicians.details.stats.expired') }}
                   </div>
                 </v-card-text>
               </v-card>
             </v-col>
           </v-row>
 
-          <!-- Alert o wygasających certyfikatach -->
           <v-alert
             v-if="stats.expiring_soon_count > 0"
             type="warning"
@@ -350,7 +341,7 @@
             <template #prepend>
               <v-icon>mdi-alert</v-icon>
             </template>
-            {{ stats.expiring_soon_count }} {{ getCertLabel(stats.expiring_soon_count) }} wygasa w ciągu 30 dni
+            {{ t('technicians.details.alerts.expiringCerts', { count: stats.expiring_soon_count }) }}
           </v-alert>
 
           <v-alert
@@ -363,24 +354,23 @@
             <template #prepend>
               <v-icon>mdi-alert-circle</v-icon>
             </template>
-            {{ stats.expired_certifications_count }} {{ getCertLabel(stats.expired_certifications_count) }} wygasło
+            {{ t('technicians.details.alerts.expiredCerts', { count: stats.expired_certifications_count }) }}
           </v-alert>
         </div>
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Informacje -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-information</v-icon>
-            Informacje
+            {{ t('technicians.sections.info') }}
           </h3>
 
           <div class="info-list">
             <div class="info-item">
               <v-icon size="16" color="grey" class="mr-2">mdi-shield-account</v-icon>
               <span class="text-body-2 text-medium-emphasis">
-                Rola: {{ technician.role_display }}
+                {{ t('technicians.details.role') }}: {{ t(`technicians.roles.${technician.role}`) }}
               </span>
             </div>
             <div class="info-item">
@@ -392,20 +382,19 @@
                 {{ technician.is_active ? 'mdi-check-circle' : 'mdi-close-circle' }}
               </v-icon>
               <span class="text-body-2 text-medium-emphasis">
-                Status: {{ technician.is_active ? 'Aktywny' : 'Nieaktywny' }}
+                {{ t('technicians.details.status') }}: {{ technician.is_active ? t('common.active') : t('common.inactive') }}
               </span>
             </div>
             <div v-if="technician.user" class="info-item">
               <v-icon size="16" color="success" class="mr-2">mdi-account-check</v-icon>
               <span class="text-body-2 text-medium-emphasis">
-                Ma dostęp do systemu
+                {{ t('technicians.details.hasSystemAccess') }}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Stopka z akcjami -->
       <div class="drawer-footer">
         <v-btn
           variant="tonal"
@@ -414,7 +403,7 @@
           class="flex-grow-1"
           @click="$emit('edit', technician)"
         >
-          Edytuj
+          {{ t('common.edit') }}
         </v-btn>
         <v-btn
           v-if="technician.email"
@@ -423,7 +412,7 @@
           class="flex-grow-1"
           :href="`mailto:${technician.email}`"
         >
-          Email
+          {{ t('technicians.headers.email') }}
         </v-btn>
         <v-btn
           v-if="technician.phone_number"
@@ -432,16 +421,15 @@
           class="flex-grow-1"
           :href="`tel:${technician.phone_number}`"
         >
-          Zadzwoń
+          {{ t('technicians.details.call') }}
         </v-btn>
       </div>
     </template>
 
-    <!-- Pusty stan -->
     <div v-else class="empty-state">
       <v-icon size="64" color="grey-lighten-2">mdi-account-off</v-icon>
       <p class="text-body-1 text-medium-emphasis mt-4">
-        Wybierz serwisanta, aby zobaczyć szczegóły
+        {{ t('technicians.details.selectTechnician') }}
       </p>
     </div>
   </v-navigation-drawer>
@@ -449,6 +437,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Technician, TechnicianStats } from '@/types';
 import { fetchTechnicianStats } from '@/api/technicians';
 
@@ -462,12 +451,13 @@ const emit = defineEmits<{
   (e: 'edit', technician: Technician): void;
 }>();
 
+const { t } = useI18n();
+
 const isDrawerOpen = computed({
   get: () => props.modelValue,
   set: (val) => emit('update:modelValue', val),
 });
 
-// Stats
 const isLoadingStats = ref(false);
 const stats = ref<TechnicianStats>({
   assigned_tickets_count: 0,
@@ -479,7 +469,6 @@ const stats = ref<TechnicianStats>({
   expired_certifications_count: 0,
 });
 
-// Fetch stats when technician changes
 watch(() => props.technician, async (newTechnician) => {
   if (newTechnician) {
     isLoadingStats.value = true;
@@ -502,7 +491,6 @@ watch(() => props.technician, async (newTechnician) => {
   }
 }, { immediate: true });
 
-// Get initials from name
 function getInitials(name: string): string {
   if (!name) return '?';
   return name
@@ -513,7 +501,6 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-// Phone formatting
 function formatPhone(phone: string): string {
   if (!phone) return '—';
   const cleaned = phone.replace(/\D/g, '');
@@ -521,13 +508,6 @@ function formatPhone(phone: string): string {
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
   }
   return phone;
-}
-
-// Certificate label
-function getCertLabel(count: number): string {
-  if (count === 1) return 'certyfikat';
-  if (count >= 2 && count <= 4) return 'certyfikaty';
-  return 'certyfikatów';
 }
 </script>
 
@@ -543,7 +523,6 @@ function getCertLabel(count: number): string {
   height: 100%;
 }
 
-/* Header */
 .drawer-header {
   padding: 20px;
   background: linear-gradient(
@@ -553,14 +532,12 @@ function getCertLabel(count: number): string {
   );
 }
 
-/* Content */
 .drawer-content {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
 }
 
-/* Section */
 .detail-section {
   margin-bottom: 8px;
 }
@@ -576,7 +553,6 @@ function getCertLabel(count: number): string {
   margin-bottom: 16px;
 }
 
-/* Contact list */
 .contact-list {
   display: flex;
   flex-direction: column;
@@ -630,12 +606,10 @@ function getCertLabel(count: number): string {
   text-decoration: underline;
 }
 
-/* Account card */
 .account-card {
   border-radius: 12px;
 }
 
-/* Stat cards */
 .stat-card {
   border-radius: 12px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -654,7 +628,6 @@ function getCertLabel(count: number): string {
   border-color: rgb(var(--v-theme-error)) !important;
 }
 
-/* Info list */
 .info-list {
   display: flex;
   flex-direction: column;
@@ -666,7 +639,6 @@ function getCertLabel(count: number): string {
   align-items: center;
 }
 
-/* Footer */
 .drawer-footer {
   padding: 16px;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
@@ -675,7 +647,6 @@ function getCertLabel(count: number): string {
   background: rgb(var(--v-theme-surface));
 }
 
-/* Empty state */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -686,7 +657,6 @@ function getCertLabel(count: number): string {
   padding: 24px;
 }
 
-/* Scrollbar */
 .drawer-content::-webkit-scrollbar {
   width: 6px;
 }

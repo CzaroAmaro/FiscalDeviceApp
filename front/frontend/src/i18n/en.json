@@ -74,7 +74,7 @@
       "name": "Enter company name",
       "address": "Enter address",
       "phone": "e.g. 123 456 789",
-      "email": "e.g. contact@company.com"
+      "email": "e.g. contact{'@'}company.com"
     },
     "actions": {
       "add": "Add client",
@@ -315,7 +315,7 @@
   },
   "settings": {
     "title": "Profile Settings",
-    "subtitle": "Manage your profile and company information",
+    "subtitle": "Manage your data and preferences",
     "nav": {
       "profile": "Profile",
       "email": "E-mail",
@@ -374,7 +374,11 @@
     "toolbar": {
       "add": "Add technician",
       "edit": "Edit technician",
-      "delete": "Delete technician"
+      "delete": "Delete technician",
+      "viewDetails": "View details"
+    },
+    "search": {
+      "placeholder": "Search by first or last name"
     },
     "headers": {
       "id": "ID",
@@ -383,18 +387,89 @@
       "email": "Email",
       "status": "Status"
     },
+    "sections": {
+      "personalData": "Personal Data",
+      "contactData": "Contact Data",
+      "roleAndStatus": "Role and Status",
+      "userAccount": "User Account",
+      "tickets": "Service Tickets",
+      "certifications": "Certifications / Permissions",
+      "info": "Information"
+    },
     "forms": {
       "addTitle": "Add New Technician",
       "editTitle": "Edit Technician Details",
+      "addSubtitle": "Fill out the form to add a new technician",
+      "editSubtitle": "Modify technician details",
       "userIdLabel": "User ID",
       "phoneLabel": "Phone Number",
       "activeLabel": "Active",
       "addSuccess": "New technician has been successfully added.",
-      "editSuccess": "Technician details have been updated."
+      "editSuccess": "Technician details have been updated.",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "E-mail address",
+      "roleLabel": "Role",
+      "createUserAccountLabel": "Create user account",
+      "createUserAccountHint": "Allow the technician to log in to the system",
+      "username": "Username",
+      "password": "Password"
+    },
+    "placeholders": {
+      "firstName": "Enter first name",
+      "lastName": "Enter last name",
+      "email": "e.g. john.smith{'@'}company.com",
+      "phone": "e.g. 123 456 789",
+      "username": "Enter username",
+      "password": "Enter password (min. 8 characters)"
+    },
+    "actions": {
+      "add": "Add technician"
     },
     "roles": {
       "admin": "Administrator",
       "technician": "Technician"
+    },
+    "status": {
+      "activeHint": "Technician can perform service tickets",
+      "inactiveHint": "Technician cannot perform service tickets"
+    },
+    "warnings": {
+      "adminRole": "An administrator has full access to all system features, including user management and company settings."
+    },
+    "hints": {
+      "passwordRequirements": "Password must be at least 8 characters. We recommend using a combination of letters, numbers, and special characters."
+    },
+    "messages": {
+      "addSuccess": "Technician has been successfully added.",
+      "updateSuccess": "Technician details have been updated."
+    },
+    "details": {
+      "selectTechnician": "Select a technician to see details",
+      "contactInfo": "Contact Information",
+      "userAccount": "User Account",
+      "accountActive": "Account active",
+      "noAccount": "No account",
+      "noSystemAccess": "Technician does not have system access",
+      "sendEmail": "Send email",
+      "call": "Call",
+      "notProvided": "Not provided",
+      "role": "Role",
+      "status": "Status",
+      "hasSystemAccess": "Has system access",
+      "stats": {
+        "open": "Open",
+        "inProgress": "In Progress",
+        "closed": "Closed",
+        "total": "Total",
+        "valid": "Valid",
+        "expiring": "Expiring",
+        "expired": "Expired"
+      },
+      "alerts": {
+        "expiringCerts": "{count, plural, one {# certificate expires within 30 days} other {# certificates expire within 30 days}}",
+        "expiredCerts": "{count, plural, one {# certificate has expired} other {# certificates have expired}}"
+      }
     }
   },
   "tickets": {
@@ -517,7 +592,7 @@
     "theme": "Theme",
     "logout": "Logout",
     "placeholderName": "John Doe",
-    "placeholderEmail": "john.doe@example.com",
+    "placeholderEmail": "john.doe{'@'}example.com",
     "defaultUser": "User",
     "noEmail": "No email",
     "license": {
@@ -534,7 +609,8 @@
     "required": "This field is required",
     "isNumber": "This field must be a number",
     "nip": "NIP must consist of 10 digits",
-    "email": "Invalid e-mail format"
+    "email": "Invalid e-mail format",
+    "minLength": "Minimum length is {min} characters"
   },
   "clientsMap": {
     "title": "Clients Map",
@@ -596,7 +672,11 @@
     "toolbar": {
       "add": "Add certification",
       "edit": "Edit certification",
-      "delete": "Delete certification"
+      "delete": "Delete certification",
+      "viewDetails": "View details"
+    },
+    "search": {
+      "placeholder": "Search by name or number"
     },
     "headers": {
       "id": "ID",
@@ -607,22 +687,81 @@
       "expiryDate": "Expiry Date",
       "status": "Status"
     },
+    "sections": {
+      "assignment": "Assignment",
+      "certificateData": "Certificate Data",
+      "validity": "Validity Period",
+      "technician": "Technician",
+      "manufacturer": "Manufacturer / Brand",
+      "details": "Details"
+    },
     "forms": {
-      "addTitle": "Add New Certification",
+      "addTitle": "New Certification",
       "editTitle": "Edit Certification",
+      "addSubtitle": "Add new service permissions",
+      "editSubtitle": "Update certification data",
       "technicianLabel": "Technician",
-      "manufacturerLabel": "Manufacturer",
+      "manufacturerLabel": "Manufacturer / Brand",
       "certificateNumberLabel": "Certificate Number",
       "issueDateLabel": "Issue Date",
       "expiryDateLabel": "Expiry Date",
       "addSuccess": "Certification has been successfully added.",
       "editSuccess": "Certification has been updated."
     },
+    "placeholders": {
+      "technician": "Select technician",
+      "manufacturer": "Select manufacturer",
+      "certificateNumber": "e.g. CERT-2024-001"
+    },
+    "actions": {
+      "add": "Add certification",
+      "renew": "Renew"
+    },
     "status": {
       "valid": "Valid",
       "expiring": "Expiring Soon",
-      "expired": "Expired"
-    }
+      "expired": "Expired",
+      "expiringSoon": "Expiring Soon"
+    },
+    "details": {
+      "title": "Certificate",
+      "selectCertification": "Select a certificate to see details",
+      "certificateHolder": "Certificate Holder",
+      "manufacturerPermission": "Permission to service devices from this manufacturer",
+      "issueDate": "Issue Date",
+      "expiryDate": "Expiry Date",
+      "start": "Start",
+      "end": "End",
+      "certificateNumber": "Certificate Number",
+      "validityPeriod": "Validity Period",
+      "remaining": "Remaining",
+      "days": "{count} days",
+      "daysShort": "{count} days",
+      "daysCount": "{count} days",
+      "daysAgo": "{count} days ago",
+      "percentRemaining": "{percent}% remaining"
+    },
+    "alerts": {
+      "expiredTitle": "Certificate Expired!",
+      "expiredMessage": "Certificate expired {days}. Technician cannot perform services for this manufacturer's devices.",
+      "expiringSoonTitle": "Certificate Expiring Soon!",
+      "expiringSoonMessage": "{days} remaining. Consider renewing the certificate.",
+      "validTitle": "Certificate Valid",
+      "validMessage": "{days} remaining until expiry."
+    },
+    "validityPeriods": {
+      "6months": "6 months",
+      "1year": "1 year",
+      "2years": "2 years",
+      "3years": "3 years",
+      "5years": "5 years"
+    },
+    "validityInfo": {
+      "tooShort": "Validity period: {period} (relatively short)",
+      "normal": "Validity period: {period}",
+      "dateError": "Expiry date must be later than issue date"
+    },
+    "quickValidityLabel": "Quick validity period setting:"
   },
   "confirmEmailChange": {
     "title": "Email Change Confirmation",
@@ -685,10 +824,14 @@
     "itemsPerPage": "Items per page",
     "of": "of",
     "noData": "No data to display",
-    "loading": "Loading...",
+    "loading": "Loading data...",
     "search": "Search",
     "selectAll": "Select all",
-    "selected": "{count} selected"
+    "selected": "Selected: {count}",
+    "total": "Total: {count} records",
+    "rows": "Rows",
+    "pageOf": "Page {current} of {total}",
+    "tryChangingCriteria": "Try changing your search criteria"
   },
   "dates": {
     "today": "Today",

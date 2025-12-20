@@ -14,7 +14,7 @@
         hide-details
         variant="solo"
         prepend-inner-icon="mdi-magnify"
-        label="Szukaj po imieniu lub nazwisku"
+        :label="t('technicians.search.placeholder')"
         clearable
         style="max-width: 360px;"
         @click:clear="onClearSearch"
@@ -48,7 +48,6 @@
       @save-success="handleFormSave"
     />
 
-    <!-- Panel boczny ze szczegółami -->
     <TechnicianDetailsDrawer
       v-model="isDetailsDrawerOpen"
       :technician="itemToView"
@@ -90,7 +89,6 @@ const { t } = useI18n();
 const techniciansStore = useTechniciansStore();
 const { technicians, isLoading } = storeToRefs(techniciansStore);
 
-// Panel szczegółów
 const isDetailsDrawerOpen = ref(false);
 const itemToView = ref<Technician | null>(null);
 
@@ -126,7 +124,7 @@ const technicianHeaders = computed(() => getTechnicianHeaders(t));
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('technicians.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('technicians.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'view_details', label: 'Podgląd', icon: 'mdi-eye', requiresSelection: 'single' },
+  { id: 'view_details', label: t('technicians.toolbar.viewDetails'), icon: 'mdi-eye', requiresSelection: 'single' },
   { id: 'delete', label: t('technicians.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
 ]);
 
@@ -149,7 +147,6 @@ function onClearSearch() {
   searchQuery.value = '';
 }
 
-// Handler z Drawera
 function handleEditFromDrawer(technician: Technician) {
   isDetailsDrawerOpen.value = false;
   itemToEdit.value = technician;

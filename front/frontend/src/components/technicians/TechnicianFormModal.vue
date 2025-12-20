@@ -6,7 +6,6 @@
     :fullscreen="isMobile"
   >
     <v-card class="technician-form-card" rounded="lg">
-      <!-- Nagłówek -->
       <div class="form-header">
         <div class="d-flex align-center">
           <v-avatar
@@ -39,10 +38,8 @@
 
       <v-divider />
 
-      <!-- Formularz -->
       <v-card-text class="form-content">
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
-          <!-- Alert błędu -->
           <v-alert
             v-if="state.error"
             type="error"
@@ -58,7 +55,6 @@
             {{ state.error }}
           </v-alert>
 
-          <!-- Sekcja: Dane osobowe -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-account-details</v-icon>
@@ -99,7 +95,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Dane kontaktowe -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-card-account-phone</v-icon>
@@ -140,7 +135,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Rola i status -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-shield-account</v-icon>
@@ -230,7 +224,6 @@
               </v-col>
             </v-row>
 
-            <!-- Alert dla administratora -->
             <v-alert
               v-if="formData.role === 'admin'"
               type="warning"
@@ -245,7 +238,6 @@
             </v-alert>
           </div>
 
-          <!-- Sekcja: Konto użytkownika (tylko przy dodawaniu) -->
           <template v-if="!isEditing">
             <v-divider class="my-6" />
 
@@ -333,7 +325,6 @@
                       </v-col>
                     </v-row>
 
-                    <!-- Podpowiedź dotycząca hasła -->
                     <v-alert
                       type="info"
                       variant="tonal"
@@ -357,7 +348,6 @@
 
       <v-divider />
 
-      <!-- Stopka -->
       <v-card-actions class="form-footer">
         <v-btn
           variant="text"
@@ -390,13 +380,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { useI18n } from 'vue-i18n';
 import { useTechniciansStore } from '@/stores/technicians';
 import type { Technician, TechnicianPayload } from '@/types';
 
-// Props & Emits
 const props = defineProps<{
   modelValue: boolean;
   editingTechnician: Technician | null;
@@ -407,18 +396,14 @@ const emit = defineEmits<{
   (e: 'save-success', message: string): void;
 }>();
 
-// Composables
 const { t } = useI18n();
 const techniciansStore = useTechniciansStore();
 const display = useDisplay();
 
-// Responsive
 const isMobile = computed(() => display.smAndDown.value);
 
-// Form ref
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }>; reset: () => void } | null>(null);
 
-// State
 const state = ref({
   isSaving: false,
   error: '',
@@ -426,7 +411,6 @@ const state = ref({
 
 const showPassword = ref(false);
 
-// Initial form data
 const getInitialFormData = (): TechnicianPayload => ({
   first_name: '',
   last_name: '',
@@ -439,10 +423,8 @@ const getInitialFormData = (): TechnicianPayload => ({
   password: '',
 });
 
-// Form data
 const formData = ref<TechnicianPayload>(getInitialFormData());
 
-// Computed
 const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => emit('update:modelValue', val),
@@ -459,7 +441,6 @@ const roleOptions = computed(() => [
   { title: t('technicians.roles.technician'), value: 'technician' },
 ]);
 
-// Validation rules
 const rules = {
   required: (v: string | number | null | undefined) => {
     if (typeof v === 'number') return v !== 0 || t('validation.required');
@@ -475,7 +456,6 @@ const rules = {
   },
 };
 
-// Methods
 function populateFormFromTechnician(technician: Technician) {
   formData.value = {
     first_name: technician.first_name,
@@ -501,7 +481,6 @@ function closeDialog() {
 }
 
 async function handleFormSubmit() {
-  // Walidacja formularza
   const validation = await formRef.value?.validate();
   if (!validation?.valid) {
     return;
@@ -511,10 +490,8 @@ async function handleFormSubmit() {
   state.value.error = '';
 
   try {
-    // Przygotowanie payload
     const payload: TechnicianPayload = { ...formData.value };
 
-    // Usuwamy pola konta użytkownika jeśli nie tworzymy konta
     if (!payload.create_user_account) {
       delete payload.username;
       delete payload.password;
@@ -542,7 +519,6 @@ async function handleFormSubmit() {
   }
 }
 
-// Watchers
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     if (props.editingTechnician) {
@@ -559,10 +535,8 @@ watch(() => props.editingTechnician, (newTechnician) => {
   }
 }, { immediate: true });
 
-// Auto-generate username from email
 watch(() => formData.value.email, (newEmail) => {
   if (!isEditing.value && formData.value.create_user_account && newEmail) {
-    // Sugeruj username na podstawie emaila
     const suggestedUsername = newEmail.split('@')[0];
     if (!formData.value.username) {
       formData.value.username = suggestedUsername;
@@ -576,7 +550,6 @@ watch(() => formData.value.email, (newEmail) => {
   overflow: hidden;
 }
 
-/* Header */
 .form-header {
   display: flex;
   align-items: center;
@@ -589,14 +562,12 @@ watch(() => formData.value.email, (newEmail) => {
   );
 }
 
-/* Content */
 .form-content {
   padding: 24px;
   max-height: calc(100vh - 300px);
   overflow-y: auto;
 }
 
-/* Section */
 .form-section {
   margin-bottom: 8px;
 }
@@ -612,13 +583,11 @@ watch(() => formData.value.email, (newEmail) => {
   margin-bottom: 16px;
 }
 
-/* Footer */
 .form-footer {
   padding: 16px 24px;
   background: rgb(var(--v-theme-surface));
 }
 
-/* Status card */
 .status-card {
   border-radius: 12px;
   transition: all 0.3s ease;
@@ -629,7 +598,6 @@ watch(() => formData.value.email, (newEmail) => {
   background: rgba(var(--v-theme-success), 0.04);
 }
 
-/* Account card */
 .account-card {
   border-radius: 12px;
   transition: all 0.3s ease;
@@ -640,7 +608,6 @@ watch(() => formData.value.email, (newEmail) => {
   background: rgba(var(--v-theme-primary), 0.04);
 }
 
-/* Form fields */
 :deep(.v-field) {
   border-radius: 10px;
 }
@@ -649,7 +616,6 @@ watch(() => formData.value.email, (newEmail) => {
   padding-right: 8px;
 }
 
-/* Scrollbar */
 .form-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -667,7 +633,6 @@ watch(() => formData.value.email, (newEmail) => {
   background: rgba(var(--v-theme-on-surface), 0.3);
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .form-header {
     padding: 16px;
@@ -695,7 +660,6 @@ watch(() => formData.value.email, (newEmail) => {
   }
 }
 
-/* Animations */
 .v-expand-transition-enter-active,
 .v-expand-transition-leave-active {
   transition: all 0.3s ease;

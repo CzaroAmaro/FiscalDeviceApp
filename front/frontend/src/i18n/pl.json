@@ -74,7 +74,7 @@
       "name": "Wprowadź nazwę firmy",
       "address": "Wprowadź adres",
       "phone": "np. 123 456 789",
-      "email": "np. kontakt@firma.pl"
+      "email": "np. kontakt{'@'}firma.pl"
     },
     "actions": {
       "add": "Dodaj klienta",
@@ -374,7 +374,11 @@
     "toolbar": {
       "add": "Dodaj serwisanta",
       "edit": "Edytuj serwisanta",
-      "delete": "Usuń serwisanta"
+      "delete": "Usuń serwisanta",
+      "viewDetails": "Podgląd"
+    },
+    "search": {
+      "placeholder": "Szukaj po imieniu lub nazwisku"
     },
     "headers": {
       "id": "ID",
@@ -383,18 +387,89 @@
       "email": "Email",
       "status": "Status"
     },
+    "sections": {
+      "personalData": "Dane osobowe",
+      "contactData": "Dane kontaktowe",
+      "roleAndStatus": "Rola i status",
+      "userAccount": "Konto użytkownika",
+      "tickets": "Zgłoszenia serwisowe",
+      "certifications": "Certyfikaty / Uprawnienia",
+      "info": "Informacje"
+    },
     "forms": {
       "addTitle": "Dodaj nowego serwisanta",
       "editTitle": "Edytuj dane serwisanta",
+      "addSubtitle": "Wypełnij formularz, aby dodać nowego serwisanta",
+      "editSubtitle": "Zmodyfikuj dane serwisanta",
       "userIdLabel": "ID Użytkownika",
       "phoneLabel": "Numer telefonu",
       "activeLabel": "Aktywny",
       "addSuccess": "Nowy serwisant został pomyślnie dodany.",
-      "editSuccess": "Dane serwisanta zostały zaktualizowane."
+      "editSuccess": "Dane serwisanta zostały zaktualizowane.",
+      "firstName": "Imię",
+      "lastName": "Nazwisko",
+      "email": "Adres e-mail",
+      "roleLabel": "Rola",
+      "createUserAccountLabel": "Utwórz konto użytkownika",
+      "createUserAccountHint": "Pozwól serwisantowi logować się do systemu",
+      "username": "Nazwa użytkownika",
+      "password": "Hasło"
+    },
+    "placeholders": {
+      "firstName": "Wprowadź imię",
+      "lastName": "Wprowadź nazwisko",
+      "email": "np. jan.kowalski{'@'}firma.pl",
+      "phone": "np. 123 456 789",
+      "username": "Wprowadź nazwę użytkownika",
+      "password": "Wprowadź hasło (min. 8 znaków)"
+    },
+    "actions": {
+      "add": "Dodaj serwisanta"
     },
     "roles": {
       "admin": "Administrator",
       "technician": "Serwisant"
+    },
+    "status": {
+      "activeHint": "Serwisant może wykonywać zlecenia",
+      "inactiveHint": "Serwisant nie może wykonywać zleceń"
+    },
+    "warnings": {
+      "adminRole": "Administrator ma pełny dostęp do wszystkich funkcji systemu, w tym zarządzania użytkownikami i ustawieniami firmy."
+    },
+    "hints": {
+      "passwordRequirements": "Hasło musi mieć minimum 8 znaków. Zalecamy użycie kombinacji liter, cyfr i znaków specjalnych."
+    },
+    "messages": {
+      "addSuccess": "Serwisant został pomyślnie dodany.",
+      "updateSuccess": "Dane serwisanta zostały zaktualizowane."
+    },
+    "details": {
+      "selectTechnician": "Wybierz serwisanta, aby zobaczyć szczegóły",
+      "contactInfo": "Dane kontaktowe",
+      "userAccount": "Konto użytkownika",
+      "accountActive": "Konto aktywne",
+      "noAccount": "Brak konta",
+      "noSystemAccess": "Serwisant nie ma dostępu do systemu",
+      "sendEmail": "Wyślij email",
+      "call": "Zadzwoń",
+      "notProvided": "Nie podano",
+      "role": "Rola",
+      "status": "Status",
+      "hasSystemAccess": "Ma dostęp do systemu",
+      "stats": {
+        "open": "Otwarte",
+        "inProgress": "W toku",
+        "closed": "Zamknięte",
+        "total": "Łącznie",
+        "valid": "Ważne",
+        "expiring": "Wygasa",
+        "expired": "Wygasłe"
+      },
+      "alerts": {
+        "expiringCerts": "{count} certyfikat wygasa w ciągu 30 dni | {count} certyfikaty wygasają w ciągu 30 dni | {count} certyfikatów wygasa w ciągu 30 dni",
+        "expiredCerts": "{count} certyfikat wygasł | {count} certyfikaty wygasły | {count} certyfikatów wygasło"
+      }
     }
   },
   "tickets": {
@@ -517,7 +592,7 @@
     "theme": "Motyw",
     "logout": "Wyloguj",
     "placeholderName": "Jan Kowalski",
-    "placeholderEmail": "jan.kowalski@example.com",
+    "placeholderEmail": "jan.kowalski{'@'}example.com",
     "defaultUser": "Użytkownik",
     "noEmail": "Brak e-maila",
     "license": {
@@ -534,7 +609,8 @@
     "required": "Pole jest wymagane",
     "isNumber": "Pole musi być liczbą",
     "nip": "NIP musi składać się z 10 cyfr",
-    "email": "Nieprawidłowy format e-mail"
+    "email": "Nieprawidłowy format e-mail",
+    "minLength": "Minimalna długość to {min} znaków"
   },
   "clientsMap": {
     "title": "Mapa Klientów",
@@ -596,7 +672,11 @@
     "toolbar": {
       "add": "Dodaj certyfikat",
       "edit": "Edytuj certyfikat",
-      "delete": "Usuń certyfikat"
+      "delete": "Usuń certyfikat",
+      "viewDetails": "Podgląd"
+    },
+    "search": {
+      "placeholder": "Szukaj po nazwie lub numerze"
     },
     "headers": {
       "id": "ID",
@@ -607,22 +687,81 @@
       "expiryDate": "Data wygaśnięcia",
       "status": "Status"
     },
+    "sections": {
+      "assignment": "Przypisanie",
+      "certificateData": "Dane certyfikatu",
+      "validity": "Okres ważności",
+      "technician": "Serwisant",
+      "manufacturer": "Producent / Marka",
+      "details": "Szczegóły"
+    },
     "forms": {
-      "addTitle": "Dodaj nowy certyfikat",
+      "addTitle": "Nowy certyfikat",
       "editTitle": "Edytuj certyfikat",
+      "addSubtitle": "Dodaj nowe uprawnienia serwisowe",
+      "editSubtitle": "Zaktualizuj dane certyfikatu",
       "technicianLabel": "Serwisant",
-      "manufacturerLabel": "Producent",
+      "manufacturerLabel": "Producent / Marka",
       "certificateNumberLabel": "Numer certyfikatu",
       "issueDateLabel": "Data wydania",
-      "expiryDateLabel": "Data wygaśnięcia",
+      "expiryDateLabel": "Data ważności",
       "addSuccess": "Certyfikat został pomyślnie dodany.",
       "editSuccess": "Certyfikat został zaktualizowany."
     },
+    "placeholders": {
+      "technician": "Wybierz serwisanta",
+      "manufacturer": "Wybierz producenta",
+      "certificateNumber": "np. CERT-2024-001"
+    },
+    "actions": {
+      "add": "Dodaj certyfikat",
+      "renew": "Odnów"
+    },
     "status": {
       "valid": "Ważny",
-      "expiring": "Wygasa wkrótce",
-      "expired": "Wygasły"
-    }
+      "expiring": "Wkrótce wygasa",
+      "expired": "Wygasły",
+      "expiringSoon": "Wkrótce wygaśnie"
+    },
+    "details": {
+      "title": "Certyfikat",
+      "selectCertification": "Wybierz certyfikat, aby zobaczyć szczegóły",
+      "certificateHolder": "Posiadacz certyfikatu",
+      "manufacturerPermission": "Uprawnienia do serwisowania urządzeń tego producenta",
+      "issueDate": "Data wydania",
+      "expiryDate": "Data wygaśnięcia",
+      "start": "Początek",
+      "end": "Koniec",
+      "certificateNumber": "Numer certyfikatu",
+      "validityPeriod": "Okres ważności",
+      "remaining": "Pozostało",
+      "days": "{count} dni",
+      "daysShort": "{count} dni",
+      "daysCount": "{count} dni",
+      "daysAgo": "{count} dni temu",
+      "percentRemaining": "{percent}% pozostało"
+    },
+    "alerts": {
+      "expiredTitle": "Certyfikat wygasł!",
+      "expiredMessage": "Certyfikat wygasł {days}. Serwisant nie może wykonywać przeglądów urządzeń tego producenta.",
+      "expiringSoonTitle": "Certyfikat wkrótce wygaśnie!",
+      "expiringSoonMessage": "Pozostało {days}. Rozważ przedłużenie certyfikatu.",
+      "validTitle": "Certyfikat ważny",
+      "validMessage": "Pozostało {days} do wygaśnięcia."
+    },
+    "validityPeriods": {
+      "6months": "6 miesięcy",
+      "1year": "1 rok",
+      "2years": "2 lata",
+      "3years": "3 lata",
+      "5years": "5 lat"
+    },
+    "validityInfo": {
+      "tooShort": "Okres ważności: {period} (stosunkowo krótki)",
+      "normal": "Okres ważności: {period}",
+      "dateError": "Data ważności musi być późniejsza niż data wydania"
+    },
+    "quickValidityLabel": "Szybkie ustawienie okresu ważności:"
   },
   "confirmEmailChange": {
     "title": "Potwierdzenie zmiany e-mail",
@@ -685,10 +824,14 @@
     "itemsPerPage": "Elementów na stronie",
     "of": "z",
     "noData": "Brak danych do wyświetlenia",
-    "loading": "Ładowanie...",
+    "loading": "Ładowanie danych...",
     "search": "Szukaj",
     "selectAll": "Zaznacz wszystkie",
-    "selected": "Zaznaczono {count}"
+    "selected": "Zaznaczono: {count}",
+    "total": "Łącznie: {count} rekordów",
+    "rows": "Wierszy",
+    "pageOf": "Strona {current} z {total}",
+    "tryChangingCriteria": "Spróbuj zmienić kryteria wyszukiwania"
   },
   "dates": {
     "today": "Dzisiaj",

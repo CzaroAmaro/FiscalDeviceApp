@@ -10,14 +10,13 @@
       item-value="id"
       show-select
       return-object
-      :loading-text="loadingText"
-      :no-data-text="noDataText"
+      :loading-text="t('table.loading')"
+      :no-data-text="t('table.noData')"
       density="comfortable"
       class="modern-table"
       fixed-header
       hover
     >
-      <!-- Niestandardowy nagłówek checkbox -->
       <template #header.data-table-select="{ allSelected, selectAll, someSelected }">
         <v-checkbox-btn
           :model-value="allSelected"
@@ -27,7 +26,6 @@
         />
       </template>
 
-      <!-- Niestandardowy checkbox w wierszu -->
       <template #item.data-table-select="{ isSelected, toggleSelect, item }">
         <v-checkbox-btn
           :model-value="isSelected({ value: item })"
@@ -36,39 +34,34 @@
         />
       </template>
 
-      <!-- Loader -->
       <template #loading>
         <v-skeleton-loader type="table-row@10" />
       </template>
 
-      <!-- Brak danych -->
       <template #no-data>
         <div class="no-data-container">
           <v-icon size="64" color="grey-lighten-1" class="mb-4">
             mdi-database-off-outline
           </v-icon>
-          <p class="text-h6 text-grey-darken-1 mb-2">{{ noDataText }}</p>
+          <p class="text-h6 text-grey-darken-1 mb-2">{{ t('table.noData') }}</p>
           <p class="text-body-2 text-grey">
-            Spróbuj zmienić kryteria wyszukiwania
+            {{ t('table.tryChangingCriteria') }}
           </p>
         </div>
       </template>
 
-      <!-- Paginacja -->
       <template #bottom>
         <div class="table-footer">
-          <!-- Info o zaznaczonych / łącznej liczbie -->
           <div class="footer-info text-body-2 text-medium-emphasis">
             <span v-if="internalSelected.length > 0" class="selected-info">
               <v-icon size="16" class="mr-1">mdi-check-circle</v-icon>
-              Zaznaczono: <strong>{{ internalSelected.length }}</strong>
+              {{ t('table.selected', { count: internalSelected.length }) }}
             </span>
             <span v-else>
-              Łącznie: <strong>{{ items.length }}</strong> rekordów
+              {{ t('table.total', { count: items.length }) }}
             </span>
           </div>
 
-          <!-- Nawigacja stron -->
           <div class="footer-pagination">
             <v-btn
               icon
@@ -81,7 +74,7 @@
             </v-btn>
 
             <span class="pagination-text text-body-2">
-              Strona {{ internalPage }} z {{ pageCount }}
+              {{ t('table.pageOf', { current: internalPage, total: pageCount }) }}
             </span>
 
             <v-btn
@@ -95,9 +88,8 @@
             </v-btn>
           </div>
 
-          <!-- Wybór liczby wierszy -->
           <div class="footer-per-page">
-            <span class="text-body-2 text-medium-emphasis mr-2">Wierszy:</span>
+            <span class="text-body-2 text-medium-emphasis mr-2">{{ t('table.rows') }}:</span>
             <v-select
               v-model="internalItemsPerPage"
               :items="itemsPerPageOptions"
@@ -110,7 +102,6 @@
         </div>
       </template>
 
-      <!-- Przekazanie slotów z rodzica -->
       <template v-for="(_, slotName) in filteredSlots" :key="slotName" #[slotName]="scope">
         <slot :name="slotName" v-bind="scope" />
       </template>
@@ -120,6 +111,7 @@
 
 <script setup lang="ts" generic="T extends { id: number }">
 import { computed, ref, watch, useSlots } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { VDataTable } from 'vuetify/components'
 
 type ReadonlyHeaders = InstanceType<typeof VDataTable>['headers']
@@ -129,15 +121,11 @@ const props = withDefaults(defineProps<{
   headers: ReadonlyHeaders
   items: T[]
   loading: boolean
-  loadingText?: string
-  noDataText?: string
   itemsPerPage?: number
   height?: string
   itemsPerPageOptions?: number[]
 }>(), {
   modelValue: () => [],
-  loadingText: 'Ładowanie danych...',
-  noDataText: 'Nie znaleziono danych',
   itemsPerPage: 25,
   height: 'calc(100vh - 280px)',
   itemsPerPageOptions: () => [10, 25, 50, 100],
@@ -147,19 +135,18 @@ const emit = defineEmits<{
   (e: 'update:modelValue', selectedItems: T[]): void
 }>();
 
+const { t } = useI18n()
+
 const slots = useSlots();
 
-// Wewnętrzny stan paginacji
 const internalPage = ref(1);
 const internalItemsPerPage = ref(props.itemsPerPage);
 
-// Oblicz liczbę stron
 const pageCount = computed(() => {
   if (!props.items.length || internalItemsPerPage.value <= 0) return 1;
   return Math.ceil(props.items.length / internalItemsPerPage.value);
 });
 
-// Reset strony gdy zmieni się items-per-page lub gdy aktualna strona > pageCount
 watch(internalItemsPerPage, () => {
   internalPage.value = 1;
 });
@@ -170,14 +157,12 @@ watch(pageCount, (newCount) => {
   }
 });
 
-// Reset strony gdy zmienią się items (np. filtrowanie)
 watch(() => props.items.length, () => {
   if (internalPage.value > pageCount.value) {
     internalPage.value = 1;
   }
 });
 
-// Filtruj sloty, które już obsługujemy
 const filteredSlots = computed(() => {
   const reserved = ['loading', 'no-data', 'bottom', 'header.data-table-select', 'item.data-table-select'];
   return Object.fromEntries(
