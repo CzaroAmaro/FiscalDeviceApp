@@ -8,10 +8,10 @@ type DataTableHeader = {
 };
 
 export const getCertificationHeaders = (t: TranslationFunction): DataTableHeader[] => [
-  { title: 'ID', key: 'id', sortable: true },
-  { title: 'Numer certyfikatu', key: 'certificate_number' },
-  { title: 'Serwisant', key: 'technician_name' },
-  { title: 'Producent', key: 'manufacturer_name' },
-  { title: 'Data wydania', key: 'issue_date' },
-  { title: 'Data ważności', key: 'expiry_date' },
+  {  title: t('certifications.headers.id'),  key: 'id', sortable: true },
+  { title: t('certifications.headers.certificateNumber'),  key: 'certificate_number' },
+  { title: t('certifications.headers.technician'), key: 'technician_name' },
+  { title: t('certifications.headers.manufacturer'),  key: 'manufacturer_name' },
+  { title: t('certifications.headers.issueDate'),  key: 'issue_date' },
+  { title: t('certifications.headers.expiryDate'), key: 'expiry_date' },
 ];

@@ -5,7 +5,7 @@
     </v-toolbar-title>
 
     <v-toolbar-title v-else class="text-subtitle-1 font-weight-medium">
-      Zaznaczono: {{ selectedCount }}
+      {{ t('toolbar.selected', { count: selectedCount }) }}
     </v-toolbar-title>
 
     <v-spacer></v-spacer>
@@ -33,16 +33,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-
-export type ToolbarAction = {
-  id: string;
-  label: string;
-  icon: string;
-  color?: string;
-  variant?: 'flat' | 'text' | 'outlined' | 'elevated' | 'tonal' | 'plain';
-  requiresSelection: 'none' | 'single' | 'multiple';
-  loading?: boolean;
-};
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
   title: string;
@@ -53,6 +44,18 @@ const props = defineProps<{
 defineEmits<{
   (e: 'action', actionId: string): void;
 }>();
+
+const { t } = useI18n();
+
+export type ToolbarAction = {
+  id: string;
+  label: string;
+  icon: string;
+  color?: string;
+  variant?: 'flat' | 'text' | 'outlined' | 'elevated' | 'tonal' | 'plain';
+  requiresSelection: 'none' | 'single' | 'multiple';
+  loading?: boolean;
+};
 
 const hasSelection = computed(() => props.selectedCount > 0);
 

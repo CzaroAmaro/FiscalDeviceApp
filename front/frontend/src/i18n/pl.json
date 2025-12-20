@@ -100,15 +100,35 @@
       "gpsAvailable": "Lokalizacja GPS dostępna",
       "gpsUnavailable": "Brak lokalizacji GPS",
       "selectClient": "Wybierz klienta, aby zobaczyć szczegóły",
-      "map": "Mapa",
-      "sections": {
-        "address": "Adres",
-        "statistics": "Statystyki",
-        "info": "Informacje"
+      "map": {
+        "title": "Mapa Klientów",
+        "singleClientTitle": "Lokalizacja klienta",
+        "singleClientSubtitle": "Lokalizacja klienta na mapie",
+        "allClientsSubtitle": "Lokalizacje klientów na mapie interaktywnej",
+        "locationsCount": "{count} lokalizacja | {count} lokalizacje | {count} lokalizacji",
+        "openTicketsCount": "{count} z otwartymi zgłoszeniami",
+        "search": "Szukaj klienta",
+        "searchPlaceholder": "Wpisz nazwę...",
+        "refresh": "Odśwież dane",
+        "clientsList": "KLIENCI",
+        "hasOpenTickets": "Ma otwarte zgłoszenia",
+        "noTickets": "Brak zgłoszeń",
+        "showMore": "Pokaż więcej",
+        "noClientsFound": "Brak klientów do wyświetlenia",
+        "backToAll": "Wróć do widoku wszystkich",
+        "streetView": "Ulice",
+        "satelliteView": "Satelita",
+        "zoomIn": "Przybliż",
+        "zoomOut": "Oddal",
+        "fitBounds": "Dopasuj widok",
+        "legend": {
+          "client": "Klient",
+          "withIssues": "Z otwartymi zgłoszeniami"
+        }
       },
       "stats": {
-        "devices": "{count, plural, one {Urządzenie} few {Urządzenia} many {Urządzeń} other {Urządzeń}}",
-        "tickets": "{count, plural, one {Zgłoszenie} few {Zgłoszenia} many {Zgłoszeń} other {Zgłoszeń}}",
+        "devices": "{count} Urządzenie | {count} Urządzenia | {count} Urządzeń",
+        "tickets": "{count} Zgłoszenie | {count} Zgłoszenia | {count} Zgłoszeń",
         "openTickets": "Otwartych"
       },
       "actions": {
@@ -247,14 +267,14 @@
     "deleteConfirm": "Czy na pewno chcesz usunąć urządzenie \"{name}\" (S/N: {serial})?",
     "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych urządzeń?",
     "deleteSuccessSingle": "Urządzenie \"{name}\" zostało usunięte.",
-    "deleteSuccessMulti": "{count, plural, one {# urządzenie zostało usunięte} few {# urządzenia zostały usunięte} many {# urządzeń zostało usuniętych} other {# urządzeń zostało usuniętych}}.",
+    "deleteSuccessMulti": "{count} urządzenie zostało usunięte | {count} urządzenia zostały usunięte | {count} urządzeń zostało usuniętych",
     "deleteError": "Wystąpił błąd podczas usuwania urządzeń."
   },
   "kanban": {
     "noClient": "Brak klienta",
     "noTickets": "Brak zgłoszeń",
     "dragHint": "Przeciągnij tutaj zgłoszenie",
-    "ticketsCount": "{count, plural, one {# zgłoszenie} few {# zgłoszenia} many {# zgłoszeń} other {# zgłoszeń}}",
+    "ticketsCount": "{count} zgłoszenie | {count} zgłoszenia | {count} zgłoszeń",
     "actions": {
       "reopen": "Przywróć",
       "edit": "Edytuj",
@@ -655,17 +675,47 @@
       "dateTo": "Data do",
       "status": "Status",
       "technician": "Serwisant"
+    },
+    "generator": {
+      "title": "Generator Raportów Zbiorczych",
+      "subtitle": "Wybierz kryteria, aby wygenerować raport PDF dla urządzeń.",
+      "step1": "1. Wybierz zakres urządzeń",
+      "step2": "2. Wybierz zawartość raportu",
+      "clients": "Klienci",
+      "clientsLabel": "Klienci (opcjonalnie)",
+      "manufacturers": "Producenci",
+      "manufacturersLabel": "Producenci (opcjonalnie)",
+      "devices": "Urządzenia",
+      "devicesLabel": "Konkretne urządzenia (opcjonalnie)",
+      "noDevicesMatch": "Brak urządzeń pasujących do filtrów",
+      "includeServiceHistory": "Dołącz historię zleceń serwisowych",
+      "historyDateRangeHint": "Określ zakres dat dla historii zleceń:",
+      "historyFrom": "Historia od",
+      "historyTo": "Historia do",
+      "includeEventLog": "Dołącz dziennik zdarzeń (przeglądy, itp.)",
+      "clearForm": "Wyczyść formularz"
     }
   },
   "chat": {
     "title": "Czat",
+    "headerTitle": "Czat Firmowy",
+    "onlineInfo": "Komunikacja zespołowa w czasie rzeczywistym",
     "placeholder": "Wpisz wiadomość...",
     "send": "Wyślij",
+    "sendTooltip": "Wyślij (Enter)",
     "noMessages": "Brak wiadomości",
+    "startConversation": "Rozpocznij rozmowę z zespołem",
+    "loadHistory": "Wczytaj starsze wiadomości",
+    "shortcuts": "<kbd>Enter</kbd> wysyła • <kbd>Shift + Enter</kbd> nowa linia",
     "online": "Online",
     "offline": "Offline",
     "typing": "pisze...",
-    "you": "Ty"
+    "you": "Ty",
+    "status": {
+      "connected": "Połączono",
+      "connecting": "Łączenie...",
+      "disconnected": "Rozłączono"
+    }
   },
   "certifications": {
     "title": "Certyfikaty",

@@ -100,15 +100,35 @@
       "gpsAvailable": "GPS location available",
       "gpsUnavailable": "No GPS location",
       "selectClient": "Select a client to see details",
-      "map": "Map",
-      "sections": {
-        "address": "Address",
-        "statistics": "Statistics",
-        "info": "Information"
+      "map": {
+        "title": "Clients Map",
+        "singleClientTitle": "Client Location",
+        "singleClientSubtitle": "Client location on the map",
+        "allClientsSubtitle": "Client locations on the interactive map",
+        "locationsCount": "{count} location | {count} locations",
+        "openTicketsCount": "{count} with open tickets",
+        "search": "Search Client",
+        "searchPlaceholder": "Enter name...",
+        "refresh": "Refresh Data",
+        "clientsList": "CLIENTS",
+        "hasOpenTickets": "Has open tickets",
+        "noTickets": "No tickets",
+        "showMore": "Show more",
+        "noClientsFound": "No clients to display",
+        "backToAll": "Back to all view",
+        "streetView": "Streets",
+        "satelliteView": "Satellite",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "fitBounds": "Fit to Screen",
+        "legend": {
+          "client": "Client",
+          "withIssues": "With open tickets"
+        }
       },
       "stats": {
-        "devices": "{count, plural, one {Device} other {Devices}}",
-        "tickets": "{count, plural, one {Ticket} other {Tickets}}",
+        "devices": "{count} Device | {count} Devices",
+        "tickets": "{count} Ticket | {count} Tickets",
         "openTickets": "Open"
       },
       "actions": {
@@ -247,14 +267,14 @@
     "deleteConfirm": "Are you sure you want to delete the device \"{name}\" (S/N: {serial})?",
     "deleteConfirmMulti": "Are you sure you want to delete {count} selected devices?",
     "deleteSuccessSingle": "Device \"{name}\" has been deleted.",
-    "deleteSuccessMulti": "{count, plural, one {# device has been deleted} other {# devices have been deleted}}.",
+    "deleteSuccessMulti": "{count} device has been deleted | {count} devices have been deleted.",
     "deleteError": "An error occurred while deleting devices."
   },
   "kanban": {
     "noClient": "No client",
     "noTickets": "No tickets",
     "dragHint": "Drag a ticket here",
-    "ticketsCount": "{count, plural, one {# ticket} other {# tickets}}",
+    "ticketsCount": "{count} ticket | {count} tickets",
     "actions": {
       "reopen": "Reopen",
       "edit": "Edit",
@@ -467,8 +487,8 @@
         "expired": "Expired"
       },
       "alerts": {
-        "expiringCerts": "{count, plural, one {# certificate expires within 30 days} other {# certificates expire within 30 days}}",
-        "expiredCerts": "{count, plural, one {# certificate has expired} other {# certificates have expired}}"
+        "expiringCerts": "{count} certificate expires within 30 days | {count} certificates expire within 30 days",
+        "expiredCerts": "{count} certificate has expired | {count} certificates have expired"
       }
     }
   },
@@ -655,17 +675,47 @@
       "dateTo": "Date to",
       "status": "Status",
       "technician": "Technician"
+    },
+    "generator": {
+      "title": "Aggregate Report Generator",
+      "subtitle": "Select criteria to generate a PDF report for devices.",
+      "step1": "1. Select Device Range",
+      "step2": "2. Select Report Content",
+      "clients": "Clients",
+      "clientsLabel": "Clients (optional)",
+      "manufacturers": "Manufacturers",
+      "manufacturersLabel": "Manufacturers (optional)",
+      "devices": "Devices",
+      "devicesLabel": "Specific devices (optional)",
+      "noDevicesMatch": "No devices matching filters",
+      "includeServiceHistory": "Include service ticket history",
+      "historyDateRangeHint": "Specify date range for ticket history:",
+      "historyFrom": "History from",
+      "historyTo": "History to",
+      "includeEventLog": "Include event log (inspections, etc.)",
+      "clearForm": "Clear form"
     }
   },
   "chat": {
     "title": "Chat",
+    "headerTitle": "Company Chat",
+    "onlineInfo": "Real-time team communication",
     "placeholder": "Type a message...",
     "send": "Send",
+    "sendTooltip": "Send (Enter)",
     "noMessages": "No messages",
+    "startConversation": "Start a conversation with the team",
+    "loadHistory": "Load older messages",
+    "shortcuts": "<kbd>Enter</kbd> to send • <kbd>Shift + Enter</kbd> for new line",
     "online": "Online",
     "offline": "Offline",
     "typing": "is typing...",
-    "you": "You"
+    "you": "You",
+    "status": {
+      "connected": "Connected",
+      "connecting": "Connecting...",
+      "disconnected": "Disconnected"
+    }
   },
   "certifications": {
     "title": "Certifications",

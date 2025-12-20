@@ -12,21 +12,21 @@
               @click="clearFocus"
             >
               <v-icon>mdi-arrow-left</v-icon>
-              <v-tooltip activator="parent" location="bottom">Wróć do widoku wszystkich</v-tooltip>
+              <v-tooltip activator="parent" location="bottom">{{ t('clients.map.backToAll') }}</v-tooltip>
             </v-btn>
             <h1 class="text-h4 font-weight-bold mb-0">
-              {{ focusedClient ? focusedClient.name : t('clientsMap.title') }}
+              {{ focusedClient ? focusedClient.name : t('clients.map.title') }}
             </h1>
           </div>
           <p class="text-body-2 text-medium-emphasis mb-0">
-            {{ focusedClient ? 'Lokalizacja klienta na mapie' : 'Lokalizacje klientów na mapie interaktywnej' }}
+            {{ focusedClient ? t('clients.map.singleClientSubtitle') : t('clients.map.allClientsSubtitle') }}
           </p>
         </div>
 
         <div class="d-flex align-center ga-3">
           <v-chip color="primary" variant="tonal" size="small">
             <v-icon start size="14">mdi-map-marker</v-icon>
-            {{ clientsStore.clientLocations.length }} lokalizacji
+            {{ t('clients.map.locationsCount', { count: clientsStore.clientLocations.length }) }}
           </v-chip>
           <v-chip
             v-if="clientsWithOpenTickets > 0"
@@ -35,7 +35,7 @@
             size="small"
           >
             <v-icon start size="14">mdi-alert-circle</v-icon>
-            {{ clientsWithOpenTickets }} z otwartymi zgłoszeniami
+            {{ t('clients.map.openTicketsCount', { count: clientsWithOpenTickets }) }}
           </v-chip>
         </div>
       </div>
@@ -47,13 +47,13 @@
           <div class="pa-4">
             <h3 class="text-subtitle-2 font-weight-bold mb-3 d-flex align-center">
               <v-icon start size="18">mdi-magnify</v-icon>
-              Szukaj klienta
+              {{ t('clients.map.search') }}
             </h3>
 
             <v-text-field
               v-model="searchQuery"
               prepend-inner-icon="mdi-magnify"
-              placeholder="Wpisz nazwę..."
+              :placeholder="t('clients.map.searchPlaceholder')"
               variant="outlined"
               density="compact"
               hide-details
@@ -69,7 +69,7 @@
               :loading="clientsStore.isLoadingLocations"
               @click="refreshData"
             >
-              Odśwież dane
+              {{ t('clients.map.refresh') }}
             </v-btn>
           </div>
 
@@ -78,7 +78,7 @@
           <div class="clients-list">
             <div class="pa-3">
               <span class="text-caption font-weight-medium text-medium-emphasis">
-                KLIENCI ({{ filteredClients.length }})
+                {{ t('clients.map.clientsList') }} ({{ filteredClients.length }})
               </span>
             </div>
 
@@ -112,7 +112,7 @@
                   >
                     mdi-alert-circle
                   </v-icon>
-                  {{ client.has_open_tickets ? 'Ma otwarte zgłoszenia' : 'Brak zgłoszeń' }}
+                  {{ client.has_open_tickets ? t('clients.map.hasOpenTickets') : t('clients.map.noTickets') }}
                 </v-list-item-subtitle>
 
                 <template #append>
@@ -126,14 +126,14 @@
                 @click="visibleClientsCount += 20"
               >
                 <v-btn variant="text" size="small" color="primary">
-                  Pokaż więcej ({{ filteredClients.length - visibleClientsCount }})
+                  {{ t('clients.map.showMore') }} ({{ filteredClients.length - visibleClientsCount }})
                 </v-btn>
               </v-list-item>
 
               <v-list-item v-if="filteredClients.length === 0">
                 <div class="text-center py-4 text-medium-emphasis">
                   <v-icon size="32" class="mb-2">mdi-map-marker-off</v-icon>
-                  <p class="text-body-2 mb-0">Brak klientów do wyświetlenia</p>
+                  <p class="text-body-2 mb-0">{{ t('clients.map.noClientsFound') }}</p>
                 </div>
               </v-list-item>
             </v-list>
@@ -153,7 +153,7 @@
                   @click="mapStyle = 'street'"
                 >
                   <v-icon start size="16">mdi-map</v-icon>
-                  Ulice
+                  {{ t('clients.map.streetView') }}
                 </v-chip>
                 <v-chip
                   :color="mapStyle === 'satellite' ? 'primary' : undefined"
@@ -162,7 +162,7 @@
                   @click="mapStyle = 'satellite'"
                 >
                   <v-icon start size="16">mdi-satellite-variant</v-icon>
-                  Satelita
+                  {{ t('clients.map.satelliteView') }}
                 </v-chip>
               </div>
 
@@ -174,7 +174,7 @@
                   @click="handleZoomIn"
                 >
                   <v-icon>mdi-plus</v-icon>
-                  <v-tooltip activator="parent" location="bottom">Przybliż</v-tooltip>
+                  <v-tooltip activator="parent" location="bottom">{{ t('clients.map.zoomIn') }}</v-tooltip>
                 </v-btn>
                 <v-btn
                   icon
@@ -183,7 +183,7 @@
                   @click="handleZoomOut"
                 >
                   <v-icon>mdi-minus</v-icon>
-                  <v-tooltip activator="parent" location="bottom">Oddal</v-tooltip>
+                  <v-tooltip activator="parent" location="bottom">{{ t('clients.map.zoomOut') }}</v-tooltip>
                 </v-btn>
                 <v-btn
                   icon
@@ -192,7 +192,7 @@
                   @click="handleFitBounds"
                 >
                   <v-icon>mdi-fit-to-screen</v-icon>
-                  <v-tooltip activator="parent" location="bottom">Dopasuj widok</v-tooltip>
+                  <v-tooltip activator="parent" location="bottom">{{ t('clients.map.fitBounds') }}</v-tooltip>
                 </v-btn>
               </div>
             </div>
@@ -254,7 +254,7 @@
                       <div class="popup-header-text">
                         <h4 class="popup-title">{{ client.name }}</h4>
                         <p v-if="client.has_open_tickets" class="popup-subtitle">
-                          ⚠️ Ma otwarte zgłoszenia
+                          ⚠️ {{ t('clients.map.hasOpenTickets') }}
                         </p>
                       </div>
                     </div>
@@ -266,11 +266,11 @@
             <div class="map-legend">
               <div class="legend-item">
                 <span class="legend-marker default"></span>
-                <span class="text-caption">Klient</span>
+                <span class="text-caption">{{ t('clients.map.legend.client') }}</span>
               </div>
               <div class="legend-item">
                 <span class="legend-marker warning"></span>
-                <span class="text-caption">Z otwartymi zgłoszeniami</span>
+                <span class="text-caption">{{ t('clients.map.legend.withIssues') }}</span>
               </div>
             </div>
           </div>
@@ -326,7 +326,6 @@ const focusedClient = computed(() => {
   return clientsStore.clientLocations.find(c => c.id === focusedClientId.value) || null;
 });
 
-// Map options
 const mapOptions = {
   zoomControl: false,
   attributionControl: true,
@@ -593,7 +592,6 @@ onMounted(() => {
   color: #FB8C00;
 }
 
-/* Scrollbar */
 .clients-list::-webkit-scrollbar {
   width: 6px;
 }

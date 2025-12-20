@@ -3,22 +3,25 @@
     <v-card class="report-card">
       <v-card-title class="d-flex align-center text-h5">
         <v-icon start>mdi-file-chart-outline</v-icon>
-        Generator Raportów Zbiorczych
+        {{ t('reports.generator.title') }}
       </v-card-title>
-      <v-card-subtitle>Wybierz kryteria, aby wygenerować raport PDF dla urządzeń.</v-card-subtitle>
+      <v-card-subtitle>{{ t('reports.generator.subtitle') }}</v-card-subtitle>
       <v-divider class="mt-4"></v-divider>
 
       <v-card-text>
         <v-row>
           <v-col cols="12" md="6">
-            <h3 class="text-subtitle-1 font-weight-medium mb-3">1. Wybierz zakres urządzeń</h3>
+            <h3 class="text-subtitle-1 font-weight-medium mb-3">{{ t('reports.generator.step1') }}</h3>
 
-            <!-- KLIENCI -->
             <div class="mb-1 d-flex align-center justify-space-between">
-              <span>Klienci</span>
+              <span>{{ t('reports.generator.clients') }}</span>
               <div>
-                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllClients">Zaznacz wszystko</v-btn>
-                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.clients = []">Wyczyść</v-btn>
+                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllClients">
+                  {{ t('table.selectAll') }}
+                </v-btn>
+                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.clients = []">
+                  {{ t('common.clear') }}
+                </v-btn>
               </div>
             </div>
 
@@ -31,15 +34,18 @@
               chips
               clearable
               class="scroll-select"
-              label="Klienci (opcjonalnie)"
+              :label="t('reports.generator.clientsLabel')"
             ></v-select>
 
-            <!-- PRODUCENCI -->
             <div class="mt-4 mb-1 d-flex align-center justify-space-between">
-              <span>Producenci</span>
+              <span>{{ t('reports.generator.manufacturers') }}</span>
               <div>
-                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllBrands">Zaznacz wszystko</v-btn>
-                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.device_brands = []">Wyczyść</v-btn>
+                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllBrands">
+                  {{ t('table.selectAll') }}
+                </v-btn>
+                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.device_brands = []">
+                  {{ t('common.clear') }}
+                </v-btn>
               </div>
             </div>
 
@@ -52,15 +58,18 @@
               chips
               clearable
               class="scroll-select"
-              label="Producenci (opcjonalnie)"
+              :label="t('reports.generator.manufacturersLabel')"
             ></v-select>
 
-            <!-- URZĄDZENIA -->
             <div class="mt-4 mb-1 d-flex align-center justify-space-between">
-              <span>Urządzenia</span>
+              <span>{{ t('reports.generator.devices') }}</span>
               <div>
-                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllDevices">Zaznacz wszystko</v-btn>
-                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.devices = []">Wyczyść</v-btn>
+                <v-btn class="btn-all" size="x-small" variant="text" @click="selectAllDevices">
+                  {{ t('table.selectAll') }}
+                </v-btn>
+                <v-btn class="btn-clear" size="x-small" variant="text" @click="parameters.devices = []">
+                  {{ t('common.clear') }}
+                </v-btn>
               </div>
             </div>
 
@@ -74,44 +83,43 @@
               chips
               clearable
               class="scroll-select"
-              label="Konkretne urządzenia (opcjonalnie)"
-              no-data-text="Brak urządzeń pasujących do filtrów"
+              :label="t('reports.generator.devicesLabel')"
+              :no-data-text="t('reports.generator.noDevicesMatch')"
             ></v-select>
           </v-col>
 
-          <!-- PRAWA KOLUMNA: ZAWARTOŚĆ I AKCJE -->
           <v-col cols="12" md="6">
-            <h3 class="text-subtitle-1 font-weight-medium mb-3">2. Wybierz zawartość raportu</h3>
+            <h3 class="text-subtitle-1 font-weight-medium mb-3">{{ t('reports.generator.step2') }}</h3>
             <v-checkbox
               v-model="parameters.include_service_history"
-              label="Dołącz historię zleceń serwisowych"
+              :label="t('reports.generator.includeServiceHistory')"
               hide-details
             ></v-checkbox>
 
             <v-expand-transition>
               <div v-if="parameters.include_service_history" class="ml-8 mt-2 date-range-box">
-                <p class="text-caption mb-2">Określ zakres dat dla historii zleceń:</p>
+                <p class="text-caption mb-2">{{ t('reports.generator.historyDateRangeHint') }}</p>
 
-                <!-- Zamienione na Twój komponent DatePicker (od) -->
                 <DatePicker
-                  v-model="parameters.history_date_from"
-                  label="Historia od"
+                  :model-value="parameters.history_date_from || null"
+                  :label="t('reports.generator.historyFrom')"
                   clearable
+                  @update:model-value="val => parameters.history_date_from = val"
                 ></DatePicker>
 
-                <!-- Zamienione na Twój komponent DatePicker (do) -->
                 <DatePicker
-                  v-model="parameters.history_date_to"
-                  label="Historia do"
+                  :model-value="parameters.history_date_to || null"
+                  :label="t('reports.generator.historyTo')"
                   clearable
                   class="mt-2"
+                  @update:model-value="val => parameters.history_date_to = val"
                 ></DatePicker>
               </div>
             </v-expand-transition>
 
             <v-checkbox
               v-model="parameters.include_event_log"
-              label="Dołącz dziennik zdarzeń (przeglądy, itp.)"
+              :label="t('reports.generator.includeEventLog')"
               class="mt-3"
               hide-details
             ></v-checkbox>
@@ -122,7 +130,7 @@
       <v-divider></v-divider>
 
       <v-card-actions class="pa-4">
-        <v-btn variant="text" @click="handleClearForm">Wyczyść formularz</v-btn>
+        <v-btn variant="text" @click="handleClearForm">{{ t('reports.generator.clearForm') }}</v-btn>
         <v-spacer></v-spacer>
         <v-btn
           color="primary"
@@ -133,7 +141,7 @@
           prepend-icon="mdi-file-pdf-box"
           @click="handleExportPdf"
         >
-          Eksportuj PDF
+          {{ t('devices.toolbar.exportPdf') }}
         </v-btn>
       </v-card-actions>
 
@@ -147,11 +155,13 @@
 
 <script setup lang="ts">
 import { onMounted, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useReportsStore } from '@/stores/reports';
 import { useDevicesStore } from '@/stores/devices';
 import { storeToRefs } from 'pinia';
 import DatePicker from '@/components/common/DatePicker.vue';
 
+const { t } = useI18n();
 const reportsStore = useReportsStore();
 const devicesStore = useDevicesStore();
 
@@ -178,17 +188,25 @@ const selectAllDevices = () => {
 watch(
   () => [parameters.value.clients, parameters.value.device_brands],
   async (newValue) => {
-    // Wyczyść wybrane urządzenia, jeśli zmienią się filtry nadrzędne
     parameters.value.devices = [];
 
     const [clients, brands] = newValue;
-    // Wywołaj akcję. Komponent automatycznie się zaktualizuje dzięki `storeToRefs`
     await devicesStore.fetchFilteredForSelect({
       clients: clients,
       brands: brands
     });
   },
   { deep: true }
+);
+
+watch(
+  () => parameters.value.include_service_history,
+  (newValue) => {
+    if (newValue) {
+      if (parameters.value.history_date_from === undefined) parameters.value.history_date_from = null;
+      if (parameters.value.history_date_to === undefined) parameters.value.history_date_to = null;
+    }
+  }
 );
 
 const handleExportPdf = () => {
@@ -199,12 +217,19 @@ const handleExportPdf = () => {
 
 const handleClearForm = () => {
   reportsStore.clearParameters();
+  parameters.value.include_service_history = false;
+  parameters.value.include_event_log = false;
+  parameters.value.history_date_from = null;
+  parameters.value.history_date_to = null;
 };
 
 onMounted(() => {
   if (!reportsStore.filterOptions) {
     reportsStore.fetchFilterOptions();
   }
+
+  if (parameters.value.history_date_from === undefined) parameters.value.history_date_from = null;
+  if (parameters.value.history_date_to === undefined) parameters.value.history_date_to = null;
 });
 </script>
 
@@ -219,10 +244,9 @@ onMounted(() => {
 .scroll-select :deep(.v-field__input) {
   max-height: 110px !important;
   overflow-y: auto !important;
-  align-items: flex-start !important; /* żeby nie rozciągało pola */
+  align-items: flex-start !important;
 }
 
-/* Zmniejsza odstępy między chipami */
 .scroll-select :deep(.v-select__selection) {
   padding-top: 4px;
   padding-bottom: 4px;

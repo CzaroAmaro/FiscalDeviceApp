@@ -2,7 +2,6 @@
   <v-container fluid class="chat-container pa-4">
     <v-card class="chat-card d-flex flex-column" rounded="lg" elevation="2">
 
-      <!-- Nagłówek czatu -->
       <div class="chat-header pa-4">
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
@@ -10,9 +9,9 @@
               <v-icon>mdi-forum</v-icon>
             </v-avatar>
             <div>
-              <h2 class="text-h6 font-weight-bold mb-0">Czat Firmowy</h2>
+              <h2 class="text-h6 font-weight-bold mb-0">{{ t('chat.headerTitle') }}</h2>
               <p class="text-caption text-medium-emphasis mb-0">
-                {{ onlineInfo }}
+                {{ t('chat.onlineInfo') }}
               </p>
             </div>
           </div>
@@ -39,13 +38,11 @@
 
       <v-divider />
 
-      <!-- Obszar wiadomości -->
       <div
         ref="messageContainer"
         class="messages-container flex-grow-1"
         @scroll="handleScroll"
       >
-        <!-- Loader starszych wiadomości -->
         <div v-if="chatStore.nextHistoryUrl" class="text-center py-4">
           <v-btn
             :loading="chatStore.isLoadingHistory"
@@ -56,11 +53,10 @@
             @click="chatStore.fetchHistory"
           >
             <v-icon start>mdi-history</v-icon>
-            Wczytaj starsze wiadomości
+            {{ t('chat.loadHistory') }}
           </v-btn>
         </div>
 
-        <!-- Pusta lista -->
         <div
           v-if="chatStore.messages.length === 0 && !chatStore.isLoadingHistory"
           class="empty-state"
@@ -68,16 +64,14 @@
           <v-icon size="80" color="grey-lighten-2" class="mb-4">
             mdi-chat-outline
           </v-icon>
-          <h3 class="text-h6 text-grey-darken-1 mb-2">Brak wiadomości</h3>
+          <h3 class="text-h6 text-grey-darken-1 mb-2">{{ t('chat.noMessages') }}</h3>
           <p class="text-body-2 text-grey">
-            Rozpocznij rozmowę z zespołem
+            {{ t('chat.startConversation') }}
           </p>
         </div>
 
-        <!-- Lista wiadomości -->
         <div class="messages-list pa-4">
           <template v-for="(msg, index) in chatStore.messages" :key="msg.id">
-            <!-- Separator daty -->
             <div
               v-if="shouldShowDateSeparator(index)"
               class="date-separator my-4"
@@ -85,7 +79,6 @@
               <span class="date-label">{{ getDateLabel(msg.timestamp) }}</span>
             </div>
 
-            <!-- Wiadomość -->
             <div
               class="message-wrapper mb-3"
               :class="{
@@ -93,7 +86,6 @@
                 'message-other': !isMyMessage(msg)
               }"
             >
-              <!-- Avatar (tylko dla innych) -->
               <v-avatar
                 v-if="!isMyMessage(msg)"
                 :color="getAvatarColor(msg.sender_id)"
@@ -106,12 +98,10 @@
               </v-avatar>
 
               <div class="message-content">
-                <!-- Nazwa nadawcy (tylko dla innych) -->
                 <div v-if="!isMyMessage(msg)" class="sender-name text-caption font-weight-medium mb-1">
                   {{ msg.sender_name }}
                 </div>
 
-                <!-- Bąbelek wiadomości -->
                 <div class="message-bubble">
                   <p class="message-text mb-0">{{ msg.content }}</p>
                   <div class="message-time">
@@ -130,7 +120,6 @@
           </template>
         </div>
 
-        <!-- Scroll to bottom button -->
         <v-scale-transition>
           <v-btn
             v-if="showScrollButton"
@@ -148,14 +137,12 @@
 
       <v-divider />
 
-      <!-- Pole wprowadzania wiadomości -->
       <div class="message-input-container pa-4">
         <div class="d-flex align-center ga-3">
 
-          <!-- Pole tekstowe -->
           <v-textarea
             v-model="newMessage"
-            placeholder="Napisz wiadomość..."
+            :placeholder="t('chat.placeholder')"
             variant="outlined"
             density="compact"
             hide-details
@@ -168,7 +155,6 @@
             @keydown.enter.shift.prevent="newMessage += '\n'"
           />
 
-          <!-- Przycisk wysyłania -->
           <v-btn
             icon
             color="primary"
@@ -178,15 +164,10 @@
           >
             <v-icon>mdi-send</v-icon>
             <v-tooltip activator="parent" location="top">
-              Wyślij (Enter)
+              {{ t('chat.sendTooltip') }}
             </v-tooltip>
           </v-btn>
         </div>
-
-        <!-- Wskazówka -->
-        <p class="text-caption text-medium-emphasis mt-2 mb-0">
-          <kbd>Enter</kbd> wysyła • <kbd>Shift + Enter</kbd> nowa linia
-        </p>
       </div>
     </v-card>
   </v-container>
@@ -194,12 +175,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useChatStore } from '@/stores/chat';
 import { useAuthStore } from '@/stores/auth';
 import { format, isToday, isYesterday, isSameDay } from 'date-fns';
-import { pl } from 'date-fns/locale';
+import { pl, enUS } from 'date-fns/locale';
 import type { Message } from '@/types';
 
+const { t, locale } = useI18n();
 const chatStore = useChatStore();
 const authStore = useAuthStore();
 
@@ -207,6 +190,10 @@ const newMessage = ref('');
 const messageContainer = ref<HTMLElement | null>(null);
 const showScrollButton = ref(false);
 const isSending = ref(false);
+
+const currentDateLocale = computed(() => {
+  return locale.value === 'pl' ? pl : enUS;
+});
 
 const myId = computed(() => authStore.user?.technician_profile?.id);
 
@@ -226,24 +213,17 @@ const statusColor = computed(() => {
 
 const statusText = computed(() => {
   switch (chatStore.status) {
-    case 'open': return 'Połączono';
-    case 'connecting': return 'Łączenie...';
-    default: return 'Rozłączono';
+    case 'open': return t('chat.status.connected');
+    case 'connecting': return t('chat.status.connecting');
+    default: return t('chat.status.disconnected');
   }
 });
 
-const onlineInfo = computed(() => {
-  // Możesz tu dodać liczbę online użytkowników
-  return 'Komunikacja zespołowa w czasie rzeczywistym';
-});
-
-// Kolory avatarów bazowane na ID
 const avatarColors = ['primary', 'secondary', 'success', 'warning', 'info', 'error'];
 const getAvatarColor = (senderId: number) => {
   return avatarColors[senderId % avatarColors.length];
 };
 
-// Inicjały z imienia
 const getInitials = (name: string) => {
   return name
     .split(' ')
@@ -253,7 +233,6 @@ const getInitials = (name: string) => {
     .slice(0, 2);
 };
 
-// Separator daty
 const shouldShowDateSeparator = (index: number) => {
   if (index === 0) return true;
   const currentMsg = chatStore.messages[index];
@@ -263,9 +242,9 @@ const shouldShowDateSeparator = (index: number) => {
 
 const getDateLabel = (timestamp: string) => {
   const date = new Date(timestamp);
-  if (isToday(date)) return 'Dzisiaj';
-  if (isYesterday(date)) return 'Wczoraj';
-  return format(date, 'd MMMM yyyy', { locale: pl });
+  if (isToday(date)) return t('dates.today');
+  if (isYesterday(date)) return t('dates.yesterday');
+  return format(date, 'd MMMM yyyy', { locale: currentDateLocale.value });
 };
 
 const formatTime = (timestamp: string) => {
@@ -302,11 +281,9 @@ function handleScroll(e: Event) {
   const target = e.target as HTMLElement;
   const oldScrollHeight = target.scrollHeight;
 
-  // Pokaż przycisk scroll to bottom
   const distanceFromBottom = target.scrollHeight - target.scrollTop - target.clientHeight;
   showScrollButton.value = distanceFromBottom > 300;
 
-  // Wczytaj starsze wiadomości
   if (target.scrollTop < 100 && chatStore.nextHistoryUrl && !chatStore.isLoadingHistory) {
     chatStore.fetchHistory().then(() => {
       nextTick(() => {
@@ -352,7 +329,6 @@ onUnmounted(() => {
   min-height: 500px;
 }
 
-/* ===== NAGŁÓWEK ===== */
 .chat-header {
   background: linear-gradient(
     135deg,
@@ -374,7 +350,6 @@ onUnmounted(() => {
   50% { opacity: 0.5; }
 }
 
-/* ===== OBSZAR WIADOMOŚCI ===== */
 .messages-container {
   position: relative;
   overflow-y: auto;
@@ -401,7 +376,6 @@ onUnmounted(() => {
   text-align: center;
 }
 
-/* ===== SEPARATOR DATY ===== */
 .date-separator {
   display: flex;
   align-items: center;
@@ -417,7 +391,6 @@ onUnmounted(() => {
   font-weight: 500;
 }
 
-/* ===== WIADOMOŚCI ===== */
 .message-wrapper {
   display: flex;
   align-items: flex-end;
@@ -490,14 +463,12 @@ onUnmounted(() => {
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* ===== SCROLL BUTTON ===== */
 .scroll-bottom-btn {
   position: absolute;
   bottom: 16px;
   right: 16px;
 }
 
-/* ===== INPUT ===== */
 .message-input-container {
   background: rgb(var(--v-theme-surface));
 }
@@ -519,7 +490,6 @@ kbd {
   font-family: inherit;
 }
 
-/* ===== SCROLLBAR ===== */
 .messages-container::-webkit-scrollbar {
   width: 6px;
 }
@@ -537,7 +507,6 @@ kbd {
   background: rgba(var(--v-theme-on-surface), 0.3);
 }
 
-/* ===== RESPONSYWNOŚĆ ===== */
 @media (max-width: 600px) {
   .chat-container {
     padding: 0;
