@@ -33,7 +33,12 @@
     "toolbar": {
       "add": "Dodaj klienta",
       "edit": "Edytuj klienta",
-      "delete": "Usuń klienta"
+      "delete": "Usuń klienta",
+      "viewDetails": "Podgląd",
+      "viewOnMap": "Zobacz na mapie"
+    },
+    "search": {
+      "placeholder": "Szukaj po nazwie lub NIP"
     },
     "headers": {
       "id": "ID",
@@ -42,9 +47,16 @@
       "phone": "Telefon",
       "email": "Email"
     },
+    "sections": {
+      "identification": "Dane identyfikacyjne",
+      "companyData": "Dane firmy",
+      "contactData": "Dane kontaktowe"
+    },
     "forms": {
       "addTitle": "Dodaj nowego klienta",
       "editTitle": "Edytuj dane klienta",
+      "addSubtitle": "Wypełnij formularz, aby dodać nowego klienta",
+      "editSubtitle": "Zmodyfikuj dane klienta",
       "nipToFetchLabel": "Wyszukaj firmę po NIP",
       "nipFetchHint": "Wpisz NIP i naciśnij ikonę lub Enter, aby pobrać dane z bazy GUS.",
       "nameLabel": "Nazwa firmy/Imię i nazwisko",
@@ -55,6 +67,54 @@
       "addressLabel": "Adres",
       "addSuccess": "Nowy klient został pomyślnie dodany.",
       "editSuccess": "Dane klienta zostały zaktualizowane."
+    },
+    "placeholders": {
+      "nip": "Wprowadź NIP (10 cyfr)",
+      "regon": "Zostanie pobrany automatycznie",
+      "name": "Wprowadź nazwę firmy",
+      "address": "Wprowadź adres",
+      "phone": "np. 123 456 789",
+      "email": "np. kontakt@firma.pl"
+    },
+    "actions": {
+      "add": "Dodaj klienta",
+      "fetchFromGus": "Pobierz dane z bazy GUS",
+      "overwrite": "Nadpisz"
+    },
+    "hints": {
+      "nipInfo": "Wpisz NIP i kliknij ikonę pobierania, aby automatycznie wypełnić dane firmy z bazy GUS."
+    },
+    "dialogs": {
+      "overwriteTitle": "Nadpisać dane?",
+      "overwriteMessage": "Formularz zawiera już wprowadzone dane. Czy chcesz je nadpisać danymi z bazy GUS?"
+    },
+    "details": {
+      "clientSince": "Klient od {date}",
+      "noAddress": "Brak adresu",
+      "showOnMap": "Zobacz na mapie",
+      "noGpsCoordinates": "Brak współrzędnych GPS",
+      "phone": "Telefon",
+      "email": "E-mail",
+      "notProvided": "Nie podano",
+      "addedOn": "Dodano",
+      "gpsAvailable": "Lokalizacja GPS dostępna",
+      "gpsUnavailable": "Brak lokalizacji GPS",
+      "selectClient": "Wybierz klienta, aby zobaczyć szczegóły",
+      "map": "Mapa",
+      "sections": {
+        "address": "Adres",
+        "statistics": "Statystyki",
+        "info": "Informacje"
+      },
+      "stats": {
+        "devices": "{count, plural, one {Urządzenie} few {Urządzenia} many {Urządzeń} other {Urządzeń}}",
+        "tickets": "{count, plural, one {Zgłoszenie} few {Zgłoszenia} many {Zgłoszeń} other {Zgłoszeń}}",
+        "openTickets": "Otwartych"
+      },
+      "actions": {
+        "call": "Zadzwoń",
+        "sendEmail": "Wyślij email"
+      }
     },
     "deleteConfirm": "Czy na pewno chcesz usunąć klienta \"{name}\"?",
     "deleteConfirmMulti": "Czy na pewno chcesz usunąć {count} zaznaczonych klientów?"
@@ -74,8 +134,12 @@
     "loadingData": "Ładowanie danych...",
     "noDataFound": "Nie znaleziono danych",
     "serverError": "Wystąpił błąd serwera. Spróbuj ponownie.",
+    "copy": "Kopiuj",
+    "copiedToClipboard": "Skopiowano do schowka",
+    "copyFailed": "Nie udało się skopiować",
     "errors": {
-      "unknown": "Wystąpił nieznany błąd."
+      "unknown": "Wystąpił nieznany błąd.",
+      "serverError": "Wystąpił błąd serwera. Spróbuj ponownie."
     }
   },
   "dashboard": {
@@ -257,6 +321,10 @@
       "email": "E-mail",
       "company": "Firma"
     },
+    "theme": "Motyw",
+    "language": "Język",
+    "darkMode": "Tryb ciemny",
+    "lightMode": "Tryb jasny",
     "company": {
       "title": "Dane firmy",
       "subtitleAdmin": "Zarządzaj informacjami o firmie",
@@ -471,5 +539,175 @@
   "clientsMap": {
     "title": "Mapa Klientów",
     "filterLabel": "Pokaż klientów"
+  },
+  "login": {
+    "title": "Zaloguj się",
+    "username": "Nazwa użytkownika",
+    "password": "Hasło",
+    "submit": "Zaloguj",
+    "noAccount": "Nie masz konta?",
+    "register": "Zarejestruj się",
+    "error": "Nieprawidłowe dane logowania.",
+    "loggingIn": "Logowanie..."
+  },
+  "register": {
+    "title": "Utwórz nowe konto",
+    "username": "Nazwa użytkownika",
+    "email": "Adres e-mail",
+    "password": "Hasło",
+    "confirmPassword": "Potwierdź hasło",
+    "submit": "Zarejestruj",
+    "hasAccount": "Masz już konto?",
+    "login": "Zaloguj się",
+    "passwordMismatch": "Hasła nie są zgodne.",
+    "error": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.",
+    "registering": "Rejestracja..."
+  },
+  "reports": {
+    "title": "Raporty",
+    "generate": "Generuj raport",
+    "download": "Pobierz",
+    "noReports": "Brak dostępnych raportów",
+    "types": {
+      "devices": "Raport urządzeń",
+      "tickets": "Raport zleceń",
+      "clients": "Raport klientów",
+      "technicians": "Raport serwisantów"
+    },
+    "filters": {
+      "dateFrom": "Data od",
+      "dateTo": "Data do",
+      "status": "Status",
+      "technician": "Serwisant"
+    }
+  },
+  "chat": {
+    "title": "Czat",
+    "placeholder": "Wpisz wiadomość...",
+    "send": "Wyślij",
+    "noMessages": "Brak wiadomości",
+    "online": "Online",
+    "offline": "Offline",
+    "typing": "pisze...",
+    "you": "Ty"
+  },
+  "certifications": {
+    "title": "Certyfikaty",
+    "toolbar": {
+      "add": "Dodaj certyfikat",
+      "edit": "Edytuj certyfikat",
+      "delete": "Usuń certyfikat"
+    },
+    "headers": {
+      "id": "ID",
+      "technician": "Serwisant",
+      "manufacturer": "Producent",
+      "certificateNumber": "Numer certyfikatu",
+      "issueDate": "Data wydania",
+      "expiryDate": "Data wygaśnięcia",
+      "status": "Status"
+    },
+    "forms": {
+      "addTitle": "Dodaj nowy certyfikat",
+      "editTitle": "Edytuj certyfikat",
+      "technicianLabel": "Serwisant",
+      "manufacturerLabel": "Producent",
+      "certificateNumberLabel": "Numer certyfikatu",
+      "issueDateLabel": "Data wydania",
+      "expiryDateLabel": "Data wygaśnięcia",
+      "addSuccess": "Certyfikat został pomyślnie dodany.",
+      "editSuccess": "Certyfikat został zaktualizowany."
+    },
+    "status": {
+      "valid": "Ważny",
+      "expiring": "Wygasa wkrótce",
+      "expired": "Wygasły"
+    }
+  },
+  "confirmEmailChange": {
+    "title": "Potwierdzenie zmiany e-mail",
+    "processing": "Przetwarzanie...",
+    "success": "Adres e-mail został pomyślnie zmieniony.",
+    "error": "Nie udało się zmienić adresu e-mail.",
+    "invalidToken": "Nieprawidłowy lub wygasły token.",
+    "backToLogin": "Powrót do logowania",
+    "backToSettings": "Powrót do ustawień"
+  },
+  "payment": {
+    "success": {
+      "title": "Płatność zakończona pomyślnie",
+      "message": "Dziękujemy za zakup! Twoja licencja została aktywowana.",
+      "backToDashboard": "Powrót do pulpitu"
+    },
+    "cancel": {
+      "title": "Płatność anulowana",
+      "message": "Płatność została anulowana. Możesz spróbować ponownie.",
+      "tryAgain": "Spróbuj ponownie",
+      "backToDashboard": "Powrót do pulpitu"
+    }
+  },
+  "redeemCode": {
+    "title": "Aktywacja kodu",
+    "codeLabel": "Kod aktywacyjny",
+    "codePlaceholder": "Wprowadź kod aktywacyjny",
+    "submit": "Aktywuj",
+    "success": "Kod został pomyślnie aktywowany.",
+    "error": "Nieprawidłowy kod aktywacyjny.",
+    "alreadyUsed": "Ten kod został już wykorzystany."
+  },
+  "unauthorized": {
+    "title": "Brak dostępu",
+    "message": "Nie masz uprawnień do wyświetlenia tej strony.",
+    "backToDashboard": "Powrót do pulpitu",
+    "login": "Zaloguj się"
+  },
+  "errors": {
+    "notFound": "Strona nie została znaleziona",
+    "serverError": "Wystąpił błąd serwera",
+    "networkError": "Błąd połączenia z serwerem",
+    "unauthorized": "Sesja wygasła. Zaloguj się ponownie.",
+    "forbidden": "Brak uprawnień do wykonania tej operacji"
+  },
+  "ai": {
+    "analyzing": "Analizowanie...",
+    "suggestion": "Sugestia AI",
+    "apply": "Zastosuj",
+    "dismiss": "Odrzuć",
+    "error": "Nie udało się uzyskać sugestii AI"
+  },
+  "notifications": {
+    "title": "Powiadomienia",
+    "markAllRead": "Oznacz wszystkie jako przeczytane",
+    "noNotifications": "Brak nowych powiadomień",
+    "viewAll": "Zobacz wszystkie"
+  },
+  "table": {
+    "itemsPerPage": "Elementów na stronie",
+    "of": "z",
+    "noData": "Brak danych do wyświetlenia",
+    "loading": "Ładowanie...",
+    "search": "Szukaj",
+    "selectAll": "Zaznacz wszystkie",
+    "selected": "Zaznaczono {count}"
+  },
+  "dates": {
+    "today": "Dzisiaj",
+    "yesterday": "Wczoraj",
+    "tomorrow": "Jutro",
+    "thisWeek": "Ten tydzień",
+    "thisMonth": "Ten miesiąc",
+    "lastMonth": "Poprzedni miesiąc"
+  },
+  "actions": {
+    "confirm": "Potwierdź",
+    "close": "Zamknij",
+    "back": "Wstecz",
+    "next": "Dalej",
+    "finish": "Zakończ",
+    "retry": "Ponów",
+    "refresh": "Odśwież",
+    "export": "Eksportuj",
+    "import": "Importuj",
+    "print": "Drukuj"
   }
 }

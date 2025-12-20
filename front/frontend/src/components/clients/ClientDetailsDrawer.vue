@@ -7,7 +7,6 @@
     class="client-details-drawer"
   >
     <template v-if="client">
-      <!-- Nagłówek -->
       <div class="drawer-header">
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
@@ -19,7 +18,7 @@
                 {{ client.name }}
               </h2>
               <p class="text-body-2 text-medium-emphasis mb-0">
-                Klient od {{ formatDate(client.created_at) }}
+                {{ t('clients.details.clientSince', { date: formatDate(client.created_at) }) }}
               </p>
             </div>
           </div>
@@ -36,13 +35,11 @@
 
       <v-divider />
 
-      <!-- Zawartość -->
       <div class="drawer-content">
-        <!-- Sekcja: Dane firmy -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-office-building</v-icon>
-            Dane firmy
+            {{ t('clients.sections.companyData') }}
           </h3>
 
           <div class="detail-grid">
@@ -58,7 +55,7 @@
                   @click="copyToClipboard(client.nip)"
                 >
                   <v-icon size="14">mdi-content-copy</v-icon>
-                  <v-tooltip activator="parent" location="top">Kopiuj</v-tooltip>
+                  <v-tooltip activator="parent" location="top">{{ t('common.copy') }}</v-tooltip>
                 </v-btn>
               </span>
             </div>
@@ -72,11 +69,10 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Adres -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-map-marker</v-icon>
-            Adres
+            {{ t('clients.details.sections.address') }}
           </h3>
 
           <v-card variant="tonal" color="primary" class="address-card">
@@ -85,7 +81,7 @@
                 <v-icon color="primary" class="mr-3 mt-1">mdi-map-marker</v-icon>
                 <div>
                   <p class="text-body-1 mb-1">
-                    {{ client.address || 'Brak adresu' }}
+                    {{ client.address || t('clients.details.noAddress') }}
                   </p>
                   <v-btn
                     v-if="client.latitude && client.longitude"
@@ -96,13 +92,13 @@
                     @click="$emit('show-on-map', client)"
                   >
                     <v-icon start size="16">mdi-map</v-icon>
-                    Zobacz na mapie
+                    {{ t('clients.details.showOnMap') }}
                   </v-btn>
                   <span
                     v-else
                     class="text-caption text-medium-emphasis"
                   >
-                    Brak współrzędnych GPS
+                    {{ t('clients.details.noGpsCoordinates') }}
                   </span>
                 </div>
               </div>
@@ -112,21 +108,19 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Kontakt -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-card-account-phone</v-icon>
-            Kontakt
+            {{ t('clients.sections.contactData') }}
           </h3>
 
           <div class="contact-list">
-            <!-- Telefon -->
             <div class="contact-item">
               <div class="contact-icon">
                 <v-icon size="20" color="primary">mdi-phone</v-icon>
               </div>
               <div class="contact-content">
-                <span class="contact-label">Telefon</span>
+                <span class="contact-label">{{ t('clients.details.phone') }}</span>
                 <template v-if="client.phone_number">
                   <a
                     :href="`tel:${client.phone_number}`"
@@ -136,7 +130,7 @@
                   </a>
                 </template>
                 <span v-else class="contact-value text-medium-emphasis">
-                  Nie podano
+                  {{ t('clients.details.notProvided') }}
                 </span>
               </div>
               <v-btn
@@ -148,17 +142,16 @@
                 :href="`tel:${client.phone_number}`"
               >
                 <v-icon size="18">mdi-phone</v-icon>
-                <v-tooltip activator="parent" location="top">Zadzwoń</v-tooltip>
+                <v-tooltip activator="parent" location="top">{{ t('clients.details.actions.call') }}</v-tooltip>
               </v-btn>
             </div>
 
-            <!-- Email -->
             <div class="contact-item">
               <div class="contact-icon">
                 <v-icon size="20" color="primary">mdi-email</v-icon>
               </div>
               <div class="contact-content">
-                <span class="contact-label">E-mail</span>
+                <span class="contact-label">{{ t('clients.details.email') }}</span>
                 <template v-if="client.email">
                   <a
                     :href="`mailto:${client.email}`"
@@ -168,7 +161,7 @@
                   </a>
                 </template>
                 <span v-else class="contact-value text-medium-emphasis">
-                  Nie podano
+                  {{ t('clients.details.notProvided') }}
                 </span>
               </div>
               <v-btn
@@ -180,7 +173,7 @@
                 :href="`mailto:${client.email}`"
               >
                 <v-icon size="18">mdi-email-fast</v-icon>
-                <v-tooltip activator="parent" location="top">Wyślij email</v-tooltip>
+                <v-tooltip activator="parent" location="top">{{ t('clients.details.actions.sendEmail') }}</v-tooltip>
               </v-btn>
             </div>
           </div>
@@ -188,14 +181,12 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Statystyki -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-chart-box</v-icon>
-            Statystyki
+            {{ t('clients.details.sections.statistics') }}
           </h3>
 
-          <!-- Loader -->
           <div v-if="isLoadingStats" class="d-flex justify-center py-4">
             <v-progress-circular indeterminate color="primary" size="32" />
           </div>
@@ -211,7 +202,7 @@
                     {{ stats.devices_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    {{ getDevicesLabel(stats.devices_count) }}
+                    {{ t('clients.details.stats.devices', stats.devices_count) }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -226,7 +217,7 @@
                     {{ stats.tickets_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    {{ getTicketsLabel(stats.tickets_count) }}
+                    {{ t('clients.details.stats.tickets', stats.tickets_count) }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -252,7 +243,7 @@
                     {{ stats.open_tickets_count }}
                   </div>
                   <div class="text-caption text-medium-emphasis">
-                    Otwartych
+                    {{ t('clients.details.stats.openTickets') }}
                   </div>
                 </v-card-text>
               </v-card>
@@ -262,37 +253,35 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Informacje o koncie -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-information</v-icon>
-            Informacje
+            {{ t('clients.details.sections.info') }}
           </h3>
 
           <div class="info-list">
             <div class="info-item">
               <v-icon size="16" color="grey" class="mr-2">mdi-calendar-plus</v-icon>
               <span class="text-body-2 text-medium-emphasis">
-                Dodano: {{ formatDateTime(client.created_at) }}
+                {{ t('clients.details.addedOn') }}: {{ formatDateTime(client.created_at) }}
               </span>
             </div>
             <div v-if="client.latitude && client.longitude" class="info-item">
               <v-icon size="16" color="success" class="mr-2">mdi-map-check</v-icon>
               <span class="text-body-2 text-medium-emphasis">
-                Lokalizacja GPS dostępna
+                {{ t('clients.details.gpsAvailable') }}
               </span>
             </div>
             <div v-else class="info-item">
               <v-icon size="16" color="warning" class="mr-2">mdi-map-marker-off</v-icon>
               <span class="text-body-2 text-medium-emphasis">
-                Brak lokalizacji GPS
+                {{ t('clients.details.gpsUnavailable') }}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Stopka z akcjami -->
       <div class="drawer-footer">
         <v-btn
           variant="tonal"
@@ -301,7 +290,7 @@
           class="flex-grow-1"
           @click="$emit('edit', client)"
         >
-          Edytuj
+          {{ t('common.edit') }}
         </v-btn>
         <v-btn
           v-if="client.latitude && client.longitude"
@@ -311,7 +300,7 @@
           class="flex-grow-1"
           @click="$emit('show-on-map', client)"
         >
-          Mapa
+          {{ t('clients.details.map') }}
         </v-btn>
         <v-btn
           v-if="client.email"
@@ -325,11 +314,10 @@
       </div>
     </template>
 
-    <!-- Pusty stan -->
     <div v-else class="empty-state">
       <v-icon size="64" color="grey-lighten-2">mdi-domain-off</v-icon>
       <p class="text-body-1 text-medium-emphasis mt-4">
-        Wybierz klienta, aby zobaczyć szczegóły
+        {{ t('clients.details.selectClient') }}
       </p>
     </div>
   </v-navigation-drawer>
@@ -337,6 +325,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { Client, ClientStats } from '@/types';
 import { useSnackbarStore } from '@/stores/snackbar';
 import { fetchClientStats } from '@/api/clients';
@@ -352,6 +341,7 @@ const emit = defineEmits<{
   (e: 'show-on-map', client: Client): void;
 }>();
 
+const { t } = useI18n();
 const snackbarStore = useSnackbarStore();
 
 const isDrawerOpen = computed({
@@ -359,7 +349,6 @@ const isDrawerOpen = computed({
   set: (val) => emit('update:modelValue', val),
 });
 
-// Stats
 const isLoadingStats = ref(false);
 const stats = ref<ClientStats>({
   devices_count: 0,
@@ -367,14 +356,13 @@ const stats = ref<ClientStats>({
   open_tickets_count: 0,
 });
 
-// Fetch stats when client changes
 watch(() => props.client, async (newClient) => {
   if (newClient) {
     isLoadingStats.value = true;
     try {
       stats.value = await fetchClientStats(newClient.id);
     } catch (error) {
-      console.error('Błąd pobierania statystyk:', error);
+      console.error('Error fetching stats:', error);
       stats.value = {
         devices_count: 0,
         tickets_count: 0,
@@ -386,7 +374,6 @@ watch(() => props.client, async (newClient) => {
   }
 }, { immediate: true });
 
-// Date formatting
 function formatDate(date: string | null | undefined): string {
   if (!date) return '—';
   return new Date(date).toLocaleDateString('pl-PL', {
@@ -407,7 +394,6 @@ function formatDateTime(date: string | null | undefined): string {
   });
 }
 
-// NIP formatting (XXX-XXX-XX-XX)
 function formatNip(nip: string): string {
   if (!nip) return '—';
   const cleaned = nip.replace(/\D/g, '');
@@ -415,7 +401,6 @@ function formatNip(nip: string): string {
   return `${cleaned.slice(0, 3)}-${cleaned.slice(3, 6)}-${cleaned.slice(6, 8)}-${cleaned.slice(8)}`;
 }
 
-// Phone formatting
 function formatPhone(phone: string): string {
   if (!phone) return '—';
   const cleaned = phone.replace(/\D/g, '');
@@ -425,27 +410,13 @@ function formatPhone(phone: string): string {
   return phone;
 }
 
-// Copy to clipboard
 async function copyToClipboard(text: string) {
   try {
     await navigator.clipboard.writeText(text);
-    snackbarStore.showSuccess('Skopiowano do schowka');
+    snackbarStore.showSuccess(t('common.copiedToClipboard'));
   } catch {
-    snackbarStore.showError('Nie udało się skopiować');
+    snackbarStore.showError(t('common.copyFailed'));
   }
-}
-
-// Labels
-function getDevicesLabel(count: number): string {
-  if (count === 1) return 'Urządzenie';
-  if (count >= 2 && count <= 4) return 'Urządzenia';
-  return 'Urządzeń';
-}
-
-function getTicketsLabel(count: number): string {
-  if (count === 1) return 'Zgłoszenie';
-  if (count >= 2 && count <= 4) return 'Zgłoszenia';
-  return 'Zgłoszeń';
 }
 </script>
 
@@ -461,7 +432,6 @@ function getTicketsLabel(count: number): string {
   height: 100%;
 }
 
-/* Header */
 .drawer-header {
   padding: 20px;
   background: linear-gradient(
@@ -471,14 +441,12 @@ function getTicketsLabel(count: number): string {
   );
 }
 
-/* Content */
 .drawer-content {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
 }
 
-/* Section */
 .detail-section {
   margin-bottom: 8px;
 }
@@ -494,7 +462,6 @@ function getTicketsLabel(count: number): string {
   margin-bottom: 16px;
 }
 
-/* Detail grid */
 .detail-grid {
   display: flex;
   flex-direction: column;
@@ -522,12 +489,10 @@ function getTicketsLabel(count: number): string {
   align-items: center;
 }
 
-/* Address card */
 .address-card {
   border-radius: 12px;
 }
 
-/* Contact list */
 .contact-list {
   display: flex;
   flex-direction: column;
@@ -581,7 +546,6 @@ function getTicketsLabel(count: number): string {
   text-decoration: underline;
 }
 
-/* Stat cards */
 .stat-card {
   border-radius: 12px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -596,7 +560,6 @@ function getTicketsLabel(count: number): string {
   border-color: rgb(var(--v-theme-warning)) !important;
 }
 
-/* Info list */
 .info-list {
   display: flex;
   flex-direction: column;
@@ -608,7 +571,6 @@ function getTicketsLabel(count: number): string {
   align-items: center;
 }
 
-/* Footer */
 .drawer-footer {
   padding: 16px;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
@@ -617,7 +579,6 @@ function getTicketsLabel(count: number): string {
   background: rgb(var(--v-theme-surface));
 }
 
-/* Empty state */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -628,7 +589,6 @@ function getTicketsLabel(count: number): string {
   padding: 24px;
 }
 
-/* Scrollbar */
 .drawer-content::-webkit-scrollbar {
   width: 6px;
 }

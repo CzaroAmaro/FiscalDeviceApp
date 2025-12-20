@@ -6,7 +6,6 @@
     :fullscreen="isMobile"
   >
     <v-card class="client-form-card" rounded="lg">
-      <!-- Nagłówek -->
       <div class="form-header">
         <div class="d-flex align-center">
           <v-avatar
@@ -39,10 +38,8 @@
 
       <v-divider />
 
-      <!-- Formularz -->
       <v-card-text class="form-content">
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
-          <!-- Alert błędu pobierania danych -->
           <v-alert
             v-if="fetchState.error"
             type="error"
@@ -58,7 +55,6 @@
             {{ fetchState.error }}
           </v-alert>
 
-          <!-- Alert błędu formularza -->
           <v-alert
             v-if="state.error"
             type="error"
@@ -74,7 +70,6 @@
             {{ state.error }}
           </v-alert>
 
-          <!-- Sekcja: Dane identyfikacyjne -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-card-account-details</v-icon>
@@ -82,7 +77,6 @@
             </h3>
 
             <v-row dense>
-              <!-- NIP z przyciskiem pobierania -->
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.nip"
@@ -121,7 +115,6 @@
                 </v-text-field>
               </v-col>
 
-              <!-- REGON -->
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.regon"
@@ -142,7 +135,6 @@
               </v-col>
             </v-row>
 
-            <!-- Podpowiedź dla NIP -->
             <v-alert
               v-if="!isEditing"
               type="info"
@@ -161,7 +153,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Dane firmy -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-office-building</v-icon>
@@ -169,7 +160,6 @@
             </h3>
 
             <v-row dense>
-              <!-- Nazwa firmy -->
               <v-col cols="12">
                 <v-text-field
                   v-model="formData.name"
@@ -185,7 +175,6 @@
                 </v-text-field>
               </v-col>
 
-              <!-- Adres -->
               <v-col cols="12">
                 <v-text-field
                   v-model="formData.address"
@@ -204,7 +193,6 @@
 
           <v-divider class="my-6" />
 
-          <!-- Sekcja: Dane kontaktowe -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-card-account-phone</v-icon>
@@ -212,7 +200,6 @@
             </h3>
 
             <v-row dense>
-              <!-- Telefon -->
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.phone_number"
@@ -227,7 +214,6 @@
                 </v-text-field>
               </v-col>
 
-              <!-- Email -->
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="formData.email"
@@ -246,7 +232,6 @@
             </v-row>
           </div>
 
-          <!-- Podgląd karty klienta -->
           <div v-if="formData.name && formData.nip" class="preview-section mt-6">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-eye</v-icon>
@@ -285,7 +270,6 @@
 
       <v-divider />
 
-      <!-- Stopka -->
       <v-card-actions class="form-footer">
         <v-btn
           variant="text"
@@ -316,7 +300,6 @@
       </v-card-actions>
     </v-card>
 
-    <!-- Dialog potwierdzenia nadpisania danych -->
     <v-dialog v-model="showOverwriteDialog" max-width="400px">
       <v-card rounded="lg">
         <v-card-title class="d-flex align-center">
@@ -348,7 +331,6 @@ import { useClientsStore } from '@/stores/clients';
 import api from '@/api';
 import type { Client, ClientPayload } from '@/types';
 
-// Props & Emits
 const props = defineProps<{
   modelValue: boolean;
   editingClient: Client | null;
@@ -359,18 +341,14 @@ const emit = defineEmits<{
   (e: 'save-success', message: string, newClient?: Client): void;
 }>();
 
-// Composables
 const { t } = useI18n();
 const clientsStore = useClientsStore();
 const display = useDisplay();
 
-// Responsive
 const isMobile = computed(() => display.smAndDown.value);
 
-// Form ref
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }>; reset: () => void } | null>(null);
 
-// State
 const state = ref({
   isSaving: false,
   error: '',
@@ -383,7 +361,6 @@ const fetchState = reactive({
 
 const showOverwriteDialog = ref(false);
 
-// Initial form data
 const getInitialFormData = (): ClientPayload => ({
   name: '',
   address: '',
@@ -395,10 +372,8 @@ const getInitialFormData = (): ClientPayload => ({
   longitude: null,
 });
 
-// Form data
 const formData = ref<ClientPayload>(getInitialFormData());
 
-// Computed
 const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => emit('update:modelValue', val),
@@ -412,7 +387,6 @@ const formTitle = computed(() =>
     : t('clients.forms.addTitle')
 );
 
-// Validation rules
 const rules = {
   required: (v: string | null | undefined) => !!v?.trim() || t('validation.required'),
   nip: (v: string) => {
@@ -426,7 +400,6 @@ const rules = {
   },
 };
 
-// Methods
 function getInitials(name: string): string {
   if (!name) return '?';
   return name
@@ -470,12 +443,10 @@ function closeDialog() {
   emit('update:modelValue', false);
 }
 
-// Fetch company data from GUS
 async function fetchCompanyData() {
   const nip = formData.value.nip;
   if (!nip || nip.replace(/\D/g, '').length !== 10) return;
 
-  // Sprawdź czy formularz ma już dane
   if (isFormPartiallyFilled()) {
     showOverwriteDialog.value = true;
     return;
@@ -508,7 +479,6 @@ async function performFetchCompanyData() {
     const response = await api.get<CompanyDataResponse>(`/external/company-data/${cleanNip}/`);
 
     if (response.data) {
-      // Zachowaj NIP który został wpisany
       formData.value = {
         ...getInitialFormData(),
         nip: cleanNip,
@@ -530,7 +500,6 @@ async function performFetchCompanyData() {
 }
 
 async function handleFormSubmit() {
-  // Walidacja formularza
   const validation = await formRef.value?.validate();
   if (!validation?.valid) {
     return;
@@ -542,7 +511,6 @@ async function handleFormSubmit() {
   try {
     let savedClient: Client | undefined;
 
-    // Przygotuj payload - usuń puste wartości opcjonalne
     const payload: ClientPayload = {
       name: formData.value.name,
       address: formData.value.address,
@@ -573,14 +541,13 @@ async function handleFormSubmit() {
     closeDialog();
     clientsStore.fetchClients(true);
   } catch (error) {
-    console.error('Błąd zapisu klienta:', error);
+    console.error('Error saving client:', error);
     state.value.error = error instanceof Error ? error.message : t('common.errors.unknown');
   } finally {
     state.value.isSaving = false;
   }
 }
 
-// Watchers
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     if (props.editingClient) {
@@ -603,7 +570,6 @@ watch(() => props.editingClient, (newClient) => {
   overflow: hidden;
 }
 
-/* Header */
 .form-header {
   display: flex;
   align-items: center;
@@ -616,14 +582,12 @@ watch(() => props.editingClient, (newClient) => {
   );
 }
 
-/* Content */
 .form-content {
   padding: 24px;
   max-height: calc(100vh - 300px);
   overflow-y: auto;
 }
 
-/* Section */
 .form-section,
 .preview-section {
   margin-bottom: 8px;
@@ -640,13 +604,11 @@ watch(() => props.editingClient, (newClient) => {
   margin-bottom: 16px;
 }
 
-/* Footer */
 .form-footer {
   padding: 16px 24px;
   background: rgb(var(--v-theme-surface));
 }
 
-/* Preview card */
 .preview-card {
   border-radius: 12px;
   background: rgba(var(--v-theme-primary), 0.02);
@@ -658,7 +620,6 @@ watch(() => props.editingClient, (newClient) => {
   border-color: rgba(var(--v-theme-primary), 0.4);
 }
 
-/* Form fields */
 :deep(.v-field) {
   border-radius: 10px;
 }
@@ -667,12 +628,10 @@ watch(() => props.editingClient, (newClient) => {
   padding-right: 8px;
 }
 
-/* Readonly field styling */
 :deep(.v-field--disabled) {
   opacity: 0.8;
 }
 
-/* Scrollbar */
 .form-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -690,7 +649,6 @@ watch(() => props.editingClient, (newClient) => {
   background: rgba(var(--v-theme-on-surface), 0.3);
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .form-header {
     padding: 16px;

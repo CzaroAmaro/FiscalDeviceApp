@@ -7,7 +7,6 @@
       @action="handleToolbarActionWrapper"
     />
 
-    <!-- Pole wyszukiwania -->
     <div class="mb-4 flex items-center gap-3">
       <v-text-field
         v-model="searchQuery"
@@ -15,7 +14,7 @@
         hide-details
         variant="solo"
         prepend-inner-icon="mdi-magnify"
-        label="Szukaj po nazwie lub NIP"
+        :label="t('clients.search.placeholder')"
         clearable
         style="max-width: 300px;"
         @click:clear="onClearSearch"
@@ -37,7 +36,6 @@
       @save-success="handleFormSave"
     />
 
-    <!-- Panel boczny ze szczegółami -->
     <ClientDetailsDrawer
       v-model="isDetailsDrawerOpen"
       :client="itemToView"
@@ -84,7 +82,6 @@ const headers = computed(() => getClientHeaders(t));
 
 const { clients, isLoading } = storeToRefs(clientsStore);
 
-// Panel szczegółów
 const isDetailsDrawerOpen = ref(false);
 const itemToView = ref<Client | null>(null);
 
@@ -134,13 +131,12 @@ function onClearSearch() {
   searchQuery.value = '';
 }
 
-/* -------------------- Toolbar actions -------------------- */
 const toolbarActions = computed<ToolbarAction[]>(() => [
   { id: 'add', label: t('clients.toolbar.add'), icon: 'mdi-plus', color: 'success', requiresSelection: 'none' },
   { id: 'edit', label: t('clients.toolbar.edit'), icon: 'mdi-pencil', requiresSelection: 'single' },
-  { id: 'view_details', label: 'Podgląd', icon: 'mdi-eye', requiresSelection: 'single' },
+  { id: 'view_details', label: t('clients.toolbar.viewDetails'), icon: 'mdi-eye', requiresSelection: 'single' },
   { id: 'delete', label: t('clients.toolbar.delete'), icon: 'mdi-delete', color: 'error', requiresSelection: 'multiple' },
-  { id: 'view-map', label: t('clients.toolbar.viewOnMap') || 'Zobacz na mapie', icon: 'mdi-map-marker', color: 'primary', requiresSelection: 'single' },
+  { id: 'view-map', label: t('clients.toolbar.viewOnMap'), icon: 'mdi-map-marker', color: 'primary', requiresSelection: 'single' },
 ]);
 
 function handleToolbarActionWrapper(actionId: string) {
@@ -158,7 +154,6 @@ function handleToolbarActionWrapper(actionId: string) {
   handleToolbarAction(actionId);
 }
 
-// Handlers z Drawera
 function handleEditFromDrawer(client: Client) {
   isDetailsDrawerOpen.value = false;
   itemToEdit.value = client;

@@ -33,7 +33,12 @@
     "toolbar": {
       "add": "Add client",
       "edit": "Edit client",
-      "delete": "Delete client"
+      "delete": "Delete client",
+      "viewDetails": "View details",
+      "viewOnMap": "View on map"
+    },
+    "search": {
+      "placeholder": "Search by name or NIP"
     },
     "headers": {
       "id": "ID",
@@ -42,9 +47,16 @@
       "phone": "Phone",
       "email": "Email"
     },
+    "sections": {
+      "identification": "Identification Data",
+      "companyData": "Company Data",
+      "contactData": "Contact Data"
+    },
     "forms": {
       "addTitle": "Add New Client",
       "editTitle": "Edit Client Details",
+      "addSubtitle": "Fill out the form to add a new client",
+      "editSubtitle": "Modify client details",
       "nipToFetchLabel": "Search company by NIP",
       "nipFetchHint": "Enter NIP and press the icon or Enter to fetch data from the GUS database.",
       "nameLabel": "Company Name/Full Name",
@@ -55,6 +67,54 @@
       "addressLabel": "Address",
       "addSuccess": "New client has been successfully added.",
       "editSuccess": "Client details have been updated."
+    },
+    "placeholders": {
+      "nip": "Enter NIP (10 digits)",
+      "regon": "Will be fetched automatically",
+      "name": "Enter company name",
+      "address": "Enter address",
+      "phone": "e.g. 123 456 789",
+      "email": "e.g. contact@company.com"
+    },
+    "actions": {
+      "add": "Add client",
+      "fetchFromGus": "Fetch data from GUS database",
+      "overwrite": "Overwrite"
+    },
+    "hints": {
+      "nipInfo": "Enter NIP and click the download icon to automatically fill in company data from the GUS database."
+    },
+    "dialogs": {
+      "overwriteTitle": "Overwrite data?",
+      "overwriteMessage": "The form already contains entered data. Do you want to overwrite it with data from the GUS database?"
+    },
+    "details": {
+      "clientSince": "Client since {date}",
+      "noAddress": "No address",
+      "showOnMap": "Show on map",
+      "noGpsCoordinates": "No GPS coordinates",
+      "phone": "Phone",
+      "email": "E-mail",
+      "notProvided": "Not provided",
+      "addedOn": "Added on",
+      "gpsAvailable": "GPS location available",
+      "gpsUnavailable": "No GPS location",
+      "selectClient": "Select a client to see details",
+      "map": "Map",
+      "sections": {
+        "address": "Address",
+        "statistics": "Statistics",
+        "info": "Information"
+      },
+      "stats": {
+        "devices": "{count, plural, one {Device} other {Devices}}",
+        "tickets": "{count, plural, one {Ticket} other {Tickets}}",
+        "openTickets": "Open"
+      },
+      "actions": {
+        "call": "Call",
+        "sendEmail": "Send email"
+      }
     },
     "deleteConfirm": "Are you sure you want to delete client \"{name}\"?",
     "deleteConfirmMulti": "Are you sure you want to delete {count} selected clients?"
@@ -74,8 +134,12 @@
     "loadingData": "Loading data...",
     "noDataFound": "No data found",
     "serverError": "A server error occurred. Please try again.",
+    "copy": "Copy",
+    "copiedToClipboard": "Copied to clipboard",
+    "copyFailed": "Failed to copy",
     "errors": {
-      "unknown": "An unknown error occurred."
+      "unknown": "An unknown error occurred.",
+      "serverError": "A server error occurred. Please try again."
     }
   },
   "dashboard": {
@@ -257,6 +321,10 @@
       "email": "E-mail",
       "company": "Company"
     },
+    "theme": "Theme",
+    "language": "Language",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
     "company": {
       "title": "Company Information",
       "subtitleAdmin": "Manage company information",
@@ -471,5 +539,175 @@
   "clientsMap": {
     "title": "Clients Map",
     "filterLabel": "Show clients"
+  },
+  "login": {
+    "title": "Sign In",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Login",
+    "noAccount": "Don't have an account?",
+    "register": "Register",
+    "error": "Invalid credentials.",
+    "loggingIn": "Signing in..."
+  },
+  "register": {
+    "title": "Create New Account",
+    "username": "Username",
+    "email": "Email address",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "submit": "Register",
+    "hasAccount": "Already have an account?",
+    "login": "Sign in",
+    "passwordMismatch": "Passwords do not match.",
+    "error": "An unexpected error occurred. Please try again.",
+    "registering": "Registering..."
+  },
+  "reports": {
+    "title": "Reports",
+    "generate": "Generate report",
+    "download": "Download",
+    "noReports": "No reports available",
+    "types": {
+      "devices": "Devices Report",
+      "tickets": "Tickets Report",
+      "clients": "Clients Report",
+      "technicians": "Technicians Report"
+    },
+    "filters": {
+      "dateFrom": "Date from",
+      "dateTo": "Date to",
+      "status": "Status",
+      "technician": "Technician"
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "noMessages": "No messages",
+    "online": "Online",
+    "offline": "Offline",
+    "typing": "is typing...",
+    "you": "You"
+  },
+  "certifications": {
+    "title": "Certifications",
+    "toolbar": {
+      "add": "Add certification",
+      "edit": "Edit certification",
+      "delete": "Delete certification"
+    },
+    "headers": {
+      "id": "ID",
+      "technician": "Technician",
+      "manufacturer": "Manufacturer",
+      "certificateNumber": "Certificate Number",
+      "issueDate": "Issue Date",
+      "expiryDate": "Expiry Date",
+      "status": "Status"
+    },
+    "forms": {
+      "addTitle": "Add New Certification",
+      "editTitle": "Edit Certification",
+      "technicianLabel": "Technician",
+      "manufacturerLabel": "Manufacturer",
+      "certificateNumberLabel": "Certificate Number",
+      "issueDateLabel": "Issue Date",
+      "expiryDateLabel": "Expiry Date",
+      "addSuccess": "Certification has been successfully added.",
+      "editSuccess": "Certification has been updated."
+    },
+    "status": {
+      "valid": "Valid",
+      "expiring": "Expiring Soon",
+      "expired": "Expired"
+    }
+  },
+  "confirmEmailChange": {
+    "title": "Email Change Confirmation",
+    "processing": "Processing...",
+    "success": "Email address has been successfully changed.",
+    "error": "Failed to change email address.",
+    "invalidToken": "Invalid or expired token.",
+    "backToLogin": "Back to login",
+    "backToSettings": "Back to settings"
+  },
+  "payment": {
+    "success": {
+      "title": "Payment Successful",
+      "message": "Thank you for your purchase! Your license has been activated.",
+      "backToDashboard": "Back to dashboard"
+    },
+    "cancel": {
+      "title": "Payment Cancelled",
+      "message": "The payment was cancelled. You can try again.",
+      "tryAgain": "Try again",
+      "backToDashboard": "Back to dashboard"
+    }
+  },
+  "redeemCode": {
+    "title": "Redeem Code",
+    "codeLabel": "Activation code",
+    "codePlaceholder": "Enter activation code",
+    "submit": "Activate",
+    "success": "Code has been successfully activated.",
+    "error": "Invalid activation code.",
+    "alreadyUsed": "This code has already been used."
+  },
+  "unauthorized": {
+    "title": "Access Denied",
+    "message": "You don't have permission to view this page.",
+    "backToDashboard": "Back to dashboard",
+    "login": "Sign in"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "serverError": "A server error occurred",
+    "networkError": "Network connection error",
+    "unauthorized": "Session expired. Please sign in again.",
+    "forbidden": "You don't have permission to perform this action"
+  },
+  "ai": {
+    "analyzing": "Analyzing...",
+    "suggestion": "AI Suggestion",
+    "apply": "Apply",
+    "dismiss": "Dismiss",
+    "error": "Failed to get AI suggestion"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "noNotifications": "No new notifications",
+    "viewAll": "View all"
+  },
+  "table": {
+    "itemsPerPage": "Items per page",
+    "of": "of",
+    "noData": "No data to display",
+    "loading": "Loading...",
+    "search": "Search",
+    "selectAll": "Select all",
+    "selected": "{count} selected"
+  },
+  "dates": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "thisWeek": "This week",
+    "thisMonth": "This month",
+    "lastMonth": "Last month"
+  },
+  "actions": {
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "export": "Export",
+    "import": "Import",
+    "print": "Print"
   }
 }
