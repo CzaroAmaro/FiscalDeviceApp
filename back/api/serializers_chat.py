@@ -1,4 +1,3 @@
-# back/api/serializers_chat.py
 from rest_framework import serializers
 from .models.chat import Message
 

@@ -3,12 +3,10 @@ from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
 class CustomUser(AbstractUser):
-    """Extended user model (placeholder for future fields)."""
     pass
 
 
 class Company(models.Model):
-    """Service provider company (owns clients, devices, etc.)."""
     name = models.CharField(max_length=255, verbose_name="Nazwa firmy")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -17,10 +15,6 @@ class Company(models.Model):
 
 
 class Technician(models.Model):
-    """
-    Technician profile. Deleting the user will delete the profile as well (CASCADE).
-    A technician is associated with a Company and can be marked as company admin.
-    """
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -55,7 +49,6 @@ class Technician(models.Model):
 
     @property
     def is_admin(self):
-        """Property do łatwego sprawdzania, czy technik jest adminem."""
         return self.role == self.ROLE_ADMIN
 
     def __str__(self):

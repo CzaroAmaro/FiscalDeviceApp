@@ -258,7 +258,7 @@
 import { ref, watch, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
-import { useCertificationsStore } from '@/stores/certifications';
+import { useCertificationsStore, ApiValidationError } from '@/stores/certifications';
 import { useTechniciansStore } from '@/stores/technicians';
 import { useManufacturersStore } from '@/stores/manufacturers';
 import type { Certification, CertificationPayload } from '@/types';
@@ -273,6 +273,8 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void;
   (e: 'save-success', message: string): void;
 }>();
+
+const fieldErrors = ref<Record<string, string>>({});
 
 const { t } = useI18n();
 const certificationsStore = useCertificationsStore();
@@ -308,7 +310,6 @@ const isEditing = computed(() => props.editingCertification !== null);
 
 const formTitle = computed(() => (isEditing.value ? t('certifications.forms.editTitle') : t('certifications.forms.addTitle')));
 
-// Mapowanie okresów ważności na klucze tłumaczeń
 const validityPeriods = computed(() => [
   { months: 6, label: t('certifications.validityPeriods.6months') },
   { months: 12, label: t('certifications.validityPeriods.1year') },
@@ -440,6 +441,7 @@ async function handleFormSubmit() {
 
   state.value.isSaving = true;
   state.value.error = '';
+  fieldErrors.value = {};
 
   try {
     if (isEditing.value && props.editingCertification) {
@@ -451,13 +453,34 @@ async function handleFormSubmit() {
       await certificationsStore.addCertification(formData.value);
     }
 
-    const message = isEditing.value ? t('certifications.forms.editSuccess') : t('certifications.forms.addSuccess');
+    const message = isEditing.value
+      ? t('certifications.forms.editSuccess')
+      : t('certifications.forms.addSuccess');
     emit('save-success', message);
     closeDialog();
     certificationsStore.fetchCertifications(true);
   } catch (error) {
     console.error('Błąd zapisu:', error);
-    state.value.error = error instanceof Error ? error.message : t('common.errors.unknown');
+
+    if (error instanceof ApiValidationError) {
+      const errors = error.fieldErrors;
+
+      if (errors.non_field_errors) {
+        state.value.error = t('certifications.errors.duplicateCertification');
+      } else {
+        Object.entries(errors).forEach(([field, messages]) => {
+          fieldErrors.value[field] = Array.isArray(messages)
+            ? messages[0]
+            : String(messages);
+        });
+
+        state.value.error = t('certifications.errors.validationFailed');
+      }
+    } else {
+      state.value.error = error instanceof Error
+        ? error.message
+        : t('common.errors.unknown');
+    }
   } finally {
     state.value.isSaving = false;
   }

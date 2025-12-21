@@ -6,8 +6,6 @@ from .devices import FiscalDevice
 
 
 class ServiceTicket(models.Model):
-    """Service ticket related to a client's device."""
-
     class Status(models.TextChoices):
         OPEN = 'open', 'Otwarte'
         IN_PROGRESS = 'in_progress', 'W toku'
@@ -56,10 +54,6 @@ class ServiceTicket(models.Model):
 
     @staticmethod
     def _generate_ticket_number():
-        """
-        Generate a ticket number in format ZGL-YYYY-0001.
-        Uses select_for_update on last created ticket to avoid races.
-        """
         current_year = date.today().year
         with transaction.atomic():
             last_ticket = ServiceTicket.objects.select_for_update().filter(

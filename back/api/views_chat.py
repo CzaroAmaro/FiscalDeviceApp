@@ -1,4 +1,3 @@
-# back/api/views_chat.py
 from rest_framework import viewsets, permissions
 from rest_framework.pagination import LimitOffsetPagination
 from .models.chat import Message

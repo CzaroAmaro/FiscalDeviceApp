@@ -44,7 +44,7 @@
 
           <div class="detail-grid">
             <div class="detail-item">
-              <span class="detail-label">NIP</span>
+              <span class="detail-label">{{ t('clients.headers.nip') }}</span>
               <span class="detail-value font-weight-medium">
                 {{ formatNip(client.nip) }}
                 <v-btn
@@ -61,7 +61,7 @@
             </div>
 
             <div v-if="client.regon" class="detail-item">
-              <span class="detail-label">REGON</span>
+              <span class="detail-label">{{ t('clients.headers.regon') }}</span>
               <span class="detail-value">{{ client.regon }}</span>
             </div>
           </div>
@@ -309,7 +309,7 @@
           class="flex-grow-1"
           :href="`mailto:${client.email}`"
         >
-          Email
+          {{ t('clients.headers.email') }}
         </v-btn>
       </div>
     </template>

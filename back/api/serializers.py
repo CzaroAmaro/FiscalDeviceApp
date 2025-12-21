@@ -10,22 +10,13 @@ from .models.billing import Order, ActivationCode
 from dateutil.relativedelta import relativedelta
 from geopy.geocoders import Nominatim
 
-
-# -----------------------------
-# Users / Technicians
-# -----------------------------
-
 class CompanySerializer(serializers.ModelSerializer):
-    """
-    Serializer do odczytu i aktualizacji danych firmy.
-    """
     class Meta:
         model = Company
         fields = ['id', 'name', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 class CustomUserSerializer(serializers.ModelSerializer):
-    """Serializer for reading user data."""
 
     class Meta:
         model = CustomUser
@@ -33,7 +24,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 
 class TechnicianSummarySerializer(serializers.ModelSerializer):
-    """Simplified serializer for nested technician info."""
     full_name = serializers.CharField(read_only=True)
 
     class Meta:
@@ -42,7 +32,6 @@ class TechnicianSummarySerializer(serializers.ModelSerializer):
 
 
 class TechnicianReadSerializer(serializers.ModelSerializer):
-    """Serializer for reading full technician info."""
     user = CustomUserSerializer(read_only=True)
     role_display = serializers.CharField(source='get_role_display', read_only=True)
     full_name = serializers.CharField(read_only=True)
@@ -53,7 +42,6 @@ class TechnicianReadSerializer(serializers.ModelSerializer):
 
 
 class TechnicianWriteSerializer(serializers.ModelSerializer):
-    """Serializer for creating/updating technicians."""
     create_user_account = serializers.BooleanField(write_only=True, default=False)
     username = serializers.CharField(write_only=True, required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True,style={'input_type': 'password'})
@@ -65,7 +53,6 @@ class TechnicianWriteSerializer(serializers.ModelSerializer):
         read_only_fields = ('id',)
 
     def validate(self, data):
-        # Ta walidacja pozostaje taka sama jak w mojej poprzedniej propozycji
         if self.context['request'].method == 'POST' and data.get('create_user_account'):
             if not data.get('username'):
                 raise serializers.ValidationError({"username": "Nazwa użytkownika jest wymagana."})
@@ -105,8 +92,6 @@ class TechnicianWriteSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        # Logika aktualizacji jest prostsza
-        # Nie pozwalamy na zmianę powiązanego użytkownika, ale pozwalamy na edycję danych profilu
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.email = validated_data.get('email', instance.email)
@@ -115,7 +100,6 @@ class TechnicianWriteSerializer(serializers.ModelSerializer):
         instance.role = validated_data.get('role', instance.role)
         instance.save()
 
-        # Jeśli jest powiązany użytkownik, zsynchronizuj jego dane
         if instance.user:
             instance.user.first_name = instance.first_name
             instance.user.last_name = instance.last_name
@@ -127,10 +111,6 @@ class TechnicianWriteSerializer(serializers.ModelSerializer):
 
 class NestedTechnicianProfileSerializer(serializers.ModelSerializer):
     is_admin = serializers.SerializerMethodField()
-    """
-    Prosty, zagnieżdżony serializer dla profilu technika,
-    zwracający tylko ID i ID firmy.
-    """
     class Meta:
         model = Technician
         fields = ['id', 'company', 'is_admin']
@@ -138,12 +118,6 @@ class NestedTechnicianProfileSerializer(serializers.ModelSerializer):
         return obj.is_admin
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    """
-    Serializer dla endpointu /users/me/, który zwraca dane użytkownika
-    oraz zagnieżdżony profil technika (jeśli istnieje).
-    """
-    # 'technician_profile' to domyślna nazwa relacji zwrotnej z CustomUser do Technician
-    # Jeśli ustawiłeś inną 'related_name' w modelu Technician, użyj tej nazwy.
     technician_profile = NestedTechnicianProfileSerializer(read_only=True)
 
     class Meta:
@@ -152,7 +126,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    """Handles user registration and creates associated technician profile."""
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
 
     class Meta:
@@ -160,9 +133,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('username', 'password', 'email', 'first_name', 'last_name')
 
     def validate_email(self, value):
-        """
-        Sprawdza, czy e-mail już istnieje w bazie danych.
-        """
         if CustomUser.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("Użytkownik z tym adresem e-mail już istnieje.")
         return value
@@ -172,22 +142,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Technician creation moved to registration view (requires activation code/company)
         return user
 
-
-# -----------------------------
-# Clients
-# -----------------------------
-
 class ClientSummarySerializer(serializers.ModelSerializer):
-    """Simplified client serializer for nesting."""
     class Meta:
         model = Client
         fields = ['id', 'name', 'nip']
 
 
 class ClientLocationSerializer(serializers.ModelSerializer):
-    """
-    Lekki serializer zwracający tylko dane potrzebne dla widoku mapy.
-    """
     has_open_tickets = serializers.BooleanField(read_only=True)
 
     class Meta:
@@ -196,7 +157,6 @@ class ClientLocationSerializer(serializers.ModelSerializer):
 
 
 class ClientReadSerializer(serializers.ModelSerializer):
-    """Full client serializer."""
     class Meta:
         model = Client
         fields = ['id', 'company', 'name', 'address', 'nip', 'regon', 'phone_number', 'email', 'created_at', 'latitude', 'longitude']
@@ -217,14 +177,12 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         return None, None
 
     def create(self, validated_data):
-        # automatyczne geokodowanie
         address = validated_data.get('address')
         if address:
             lat, lng = self.geocode(address)
             validated_data['latitude'] = lat
             validated_data['longitude'] = lng
 
-        # przypisanie klienta do firmy zalogowanego technika
         request = self.context['request']
         company = request.user.technician_profile.company
         validated_data['company'] = company
@@ -232,7 +190,6 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         return Client.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        # Jeśli zmienia się adres → wykonaj nowy geocode
         new_address = validated_data.get('address', instance.address)
         if new_address != instance.address:
             lat, lng = self.geocode(new_address)
@@ -242,13 +199,7 @@ class ClientWriteSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def validate_nip(self, value):
-        # NIP validated at model level; additionally ensure unique per company
         return value
-
-
-# -----------------------------
-# Manufacturers / Certifications
-# -----------------------------
 
 class ManufacturerSummarySerializer(serializers.ModelSerializer):
     class Meta:
@@ -257,7 +208,6 @@ class ManufacturerSummarySerializer(serializers.ModelSerializer):
 
 
 class ManufacturerWriteSerializer(serializers.ModelSerializer):
-    """Company-scoped manufacturer creation/update."""
     class Meta:
         model = Manufacturer
         fields = ['name']
@@ -281,7 +231,6 @@ class CertificationReadSerializer(serializers.ModelSerializer):
 
 
 class CertificationWriteSerializer(serializers.ModelSerializer):
-    """Serializer for creating/updating certifications, enforces company scoping."""
 
     class Meta:
         model = Certification
@@ -301,14 +250,7 @@ class CertificationWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"manufacturer": "Manufacturer does not belong to your company."})
         return data
 
-
-# -----------------------------
-# Fiscal Devices
-# -----------------------------
 class DeviceHistoryEntrySerializer(serializers.ModelSerializer):
-    """
-    Serializer do odczytu pojedynczego wpisu w historii urządzenia.
-    """
     action_type_display = serializers.CharField(source='get_action_type_display', read_only=True)
     actor_name = serializers.CharField(source='actor.username', read_only=True, allow_null=True)
 
@@ -318,7 +260,6 @@ class DeviceHistoryEntrySerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 class FiscalDeviceReadSerializer(serializers.ModelSerializer):
-    """Read-only fiscal device serializer with nested owner and brand."""
     owner = ClientSummarySerializer(read_only=True)
     brand = ManufacturerSummarySerializer(read_only=True)
     tickets_count = serializers.IntegerField(read_only=True)
@@ -331,10 +272,6 @@ class FiscalDeviceReadSerializer(serializers.ModelSerializer):
         fields = ['id', 'brand', 'model_name', 'unique_number', 'serial_number', 'sale_date', 'last_service_date', 'next_service_date', 'status', 'status_display', 'operating_instructions', 'remarks', 'owner', 'tickets_count', 'history_entries']
 
     def get_next_service_date(self, obj: FiscalDevice):
-        """
-        Oblicza datę następnego przeglądu (2 lata po ostatnim).
-        Zwraca None, jeśli data ostatniego przeglądu nie jest ustawiona.
-        """
         if obj.last_service_date:
             return obj.last_service_date + relativedelta(years=2)
         return None
@@ -375,21 +312,13 @@ class FiscalDeviceWriteSerializer(serializers.ModelSerializer):
 
         return data
 
-# -----------------------------
-# Service Tickets
-# -----------------------------
-
 class ServiceTicketTechnicianUpdateSerializer(serializers.ModelSerializer):
-    """Ograniczony serializer dla serwisantów do aktualizacji statusu i notatek."""
     class Meta:
         model = ServiceTicket
         fields = ['status', 'resolution_notes']
 
 
 class ServiceTicketResolveSerializer(serializers.ModelSerializer):
-    """Serializer for resolving a service ticket."""
-
-    # Sprawiamy, że `resolution` jest wymagane przy tej akcji
     resolution = serializers.ChoiceField(choices=ServiceTicket.Resolution.choices)
 
     class Meta:
@@ -410,7 +339,6 @@ class ServiceTicketReadSerializer(serializers.ModelSerializer):
     assigned_technician = TechnicianSummarySerializer(read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     ticket_type_display = serializers.CharField(source='get_ticket_type_display', read_only=True)
-    # ZMIANA: Dodajemy pole resolution
     resolution_display = serializers.CharField(source='get_resolution_display', read_only=True)
 
     class Meta:
@@ -420,8 +348,6 @@ class ServiceTicketReadSerializer(serializers.ModelSerializer):
             'status', 'status_display', 'client', 'device', 'device_info', 'assigned_technician',
             'created_at', 'scheduled_for', 'completed_at', 'resolution', 'resolution_display', 'resolution_notes' # ZMIANA
         ]
-        # Usunięto extra_kwargs, bo nie jest już potrzebne
-
 
 class ServiceTicketWriteSerializer(serializers.ModelSerializer):
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.none())
@@ -468,10 +394,6 @@ class ServiceTicketWriteSerializer(serializers.ModelSerializer):
         return data
 
 
-# -----------------------------
-# Billing
-# -----------------------------
-
 class OrderReadSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
 
@@ -514,18 +436,12 @@ class ActivationCodeWriteSerializer(serializers.ModelSerializer):
 
 
 class ReportParameterSerializer(serializers.Serializer):
-    """
-    Waliduje parametry wejściowe dla generatora raportów.
-    """
-    # Zakres dat (np. dla daty sprzedaży urządzenia)
     date_from = serializers.DateField(required=False, help_text="Data sprzedaży od")
     date_to = serializers.DateField(required=False, help_text="Data sprzedaży do")
 
-    # Filtry po modelach
     clients = serializers.ListField(
         child=serializers.IntegerField(), required=False
     )
-    # Zmieniamy nazwę dla jasności - będziemy filtrować urządzenia, nie zlecenia
     devices = serializers.ListField(
         child=serializers.IntegerField(), required=False
     )
@@ -533,7 +449,6 @@ class ReportParameterSerializer(serializers.Serializer):
         child=serializers.IntegerField(), required=False
     )
 
-    # NOWE POLA: Wybór zawartości raportu
     include_service_history = serializers.BooleanField(default=False, help_text="Dołącz historię zleceń serwisowych")
 
     history_date_from = serializers.DateField(required=False)
@@ -541,7 +456,6 @@ class ReportParameterSerializer(serializers.Serializer):
 
     include_event_log = serializers.BooleanField(default=False, help_text="Dołącz dziennik zdarzeń (przeglądy, etc.)")
 
-    # Format wyjściowy - pozostaje bez zmian
     output_format = serializers.ChoiceField(
         choices=['json', 'csv', 'pdf'], default='json', required=False
     )
@@ -553,10 +467,6 @@ class ReportParameterSerializer(serializers.Serializer):
 
 
 class ReportResultSerializer(serializers.ModelSerializer):
-    """
-    Prezentuje dane pojedynczego wiersza w raporcie.
-    Jest to spłaszczona struktura dla łatwiejszego wyświetlania i eksportu.
-    """
     client_name = serializers.CharField(source='client.name')
     client_nip = serializers.CharField(source='client.nip')
     device_model = serializers.CharField(source='device.model_name')
@@ -575,9 +485,6 @@ class ReportResultSerializer(serializers.ModelSerializer):
         )
 
 class ChangeEmailSerializer(serializers.Serializer):
-    """
-    Serializer do walidacji danych wejściowych dla żądania zmiany e-mail.
-    """
     new_email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True, write_only=True, style={'input_type': 'password'})
 
@@ -587,29 +494,21 @@ class ChangeEmailSerializer(serializers.Serializer):
         return value
 
 class ConfirmEmailChangeSerializer(serializers.Serializer):
-    """
-    Serializer do walidacji tokenu potwierdzającego zmianę e-mail.
-    """
     token = serializers.CharField(required=True)
 
 class AiSuggestionRequestSerializer(serializers.Serializer):
     description = serializers.CharField(required=True, min_length=10, max_length=2048, trim_whitespace=True)
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
-    """
-    Serializer do aktualizacji imienia i nazwiska zalogowanego użytkownika.
-    """
     class Meta:
         model = CustomUser
         fields = ['first_name', 'last_name']
 
     def update(self, instance, validated_data):
-        # Aktualizuj dane użytkownika
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
         instance.save()
 
-        # Jeśli użytkownik ma profil technika, zsynchronizuj dane
         if hasattr(instance, 'technician_profile'):
             profile = instance.technician_profile
             profile.first_name = instance.first_name

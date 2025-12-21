@@ -37,6 +37,33 @@
       "viewDetails": "View details",
       "viewOnMap": "View on map"
     },
+
+    "map": {
+      "title": "Clients Map",
+      "singleClientTitle": "Client Location",
+      "singleClientSubtitle": "Client location on the map",
+      "allClientsSubtitle": "Client locations on the interactive map",
+      "locationsCount": "{count} location | {count} locations",
+      "openTicketsCount": "{count} with open tickets",
+      "search": "Search Client",
+      "searchPlaceholder": "Enter name...",
+      "refresh": "Refresh Data",
+      "clientsList": "CLIENTS",
+      "hasOpenTickets": "Has open tickets",
+      "noTickets": "No tickets",
+      "showMore": "Show more",
+      "noClientsFound": "No clients to display",
+      "backToAll": "Back to all view",
+      "streetView": "Streets",
+      "satelliteView": "Satellite",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "fitBounds": "Fit to Screen",
+      "legend": {
+        "client": "Client",
+        "withIssues": "With open tickets"
+      }
+    },
     "search": {
       "placeholder": "Search by name or NIP"
     },
@@ -44,6 +71,7 @@
       "id": "ID",
       "name": "Company Name/Full Name",
       "nip": "NIP",
+      "regon": "REGON",
       "phone": "Phone",
       "email": "Email"
     },
@@ -100,31 +128,11 @@
       "gpsAvailable": "GPS location available",
       "gpsUnavailable": "No GPS location",
       "selectClient": "Select a client to see details",
-      "map": {
-        "title": "Clients Map",
-        "singleClientTitle": "Client Location",
-        "singleClientSubtitle": "Client location on the map",
-        "allClientsSubtitle": "Client locations on the interactive map",
-        "locationsCount": "{count} location | {count} locations",
-        "openTicketsCount": "{count} with open tickets",
-        "search": "Search Client",
-        "searchPlaceholder": "Enter name...",
-        "refresh": "Refresh Data",
-        "clientsList": "CLIENTS",
-        "hasOpenTickets": "Has open tickets",
-        "noTickets": "No tickets",
-        "showMore": "Show more",
-        "noClientsFound": "No clients to display",
-        "backToAll": "Back to all view",
-        "streetView": "Streets",
-        "satelliteView": "Satellite",
-        "zoomIn": "Zoom In",
-        "zoomOut": "Zoom Out",
-        "fitBounds": "Fit to Screen",
-        "legend": {
-          "client": "Client",
-          "withIssues": "With open tickets"
-        }
+      "map": "Map",
+      "sections": {
+        "address": "Address",
+        "statistics": "Statistics",
+        "info": "Information"
       },
       "stats": {
         "devices": "{count} Device | {count} Devices",
@@ -718,6 +726,11 @@
     }
   },
   "certifications": {
+    "errors": {
+      "duplicateCertification": "Certifications for this technician and manufacturer already exist",
+      "validationFailed": "Validation failed. Please check the entered data.",
+      "duplicateCertificateNumber": "Certificate number must be unique"
+    },
     "title": "Certifications",
     "toolbar": {
       "add": "Add certification",

@@ -12,7 +12,6 @@ def validate_nip(value):
 
 
 class Client(models.Model):
-    """Client (customer) of the service provider company."""
     company = models.ForeignKey('Company', on_delete=models.CASCADE, related_name='clients')
     name = models.CharField(max_length=255, verbose_name="Nazwa firmy/Imię i nazwisko")
     address = models.CharField(max_length=255, verbose_name="Adres")

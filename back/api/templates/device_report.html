@@ -10,7 +10,7 @@
         }
         body {
             font-family: sans-serif;
-            font-size: 11px; /* Zmniejszyłem trochę, żeby więcej się zmieściło */
+            font-size: 11px;
             color: #333;
         }
         h1 {
@@ -21,7 +21,6 @@
         }
         .report-section {
             margin-bottom: 25px;
-            /* Zapobiegaj łamaniu strony w środku sekcji, jeśli to możliwe */
             page-break-inside: avoid;
         }
         .report-section h2 {
@@ -35,13 +34,13 @@
             border-collapse: collapse;
         }
         .details-table td, .history-table td, .history-table th {
-            padding: 6px 4px; /* Zmniejszyłem padding */
+            padding: 6px 4px;
             border-bottom: 1px solid #eee;
             text-align: left;
         }
         .details-table td:first-child {
             font-weight: bold;
-            width: 25%; /* Zmniejszyłem szerokość pierwszej kolumny */
+            width: 25%;
         }
         .history-table th {
             font-weight: bold;
@@ -55,7 +54,7 @@
         }
         .footer {
             position: fixed;
-            bottom: -1.5cm; /* Poprawiona pozycja */
+            bottom: -1.5cm;
             left: 0;
             right: 0;
             text-align: center;
@@ -93,7 +92,6 @@
         </table>
     </div>
 
-    <!-- ########## NOWA SEKCJA: HISTORIA ZLECEŃ ########## -->
     <div class="report-section">
         <h2>Historia Zleceń Serwisowych</h2>
         <table class="history-table">
@@ -128,7 +126,6 @@
         </table>
     </div>
 
-    <!-- ########## NOWA SEKCJA: DZIENNIK ZDARZEŃ ########## -->
     <div class="report-section">
         <h2>Dziennik Zdarzeń (Historia Przeglądów i Akcji)</h2>
         <table class="history-table">

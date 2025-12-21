@@ -5,7 +5,6 @@ from django.conf import settings
 
 
 class FiscalDevice(models.Model):
-    """Fiscal device owned by a client (company via client.company)."""
 
     class Status(models.TextChoices):
         ACTIVE = 'active', 'Aktywna'
@@ -38,9 +37,6 @@ class FiscalDevice(models.Model):
 
 
 class DeviceHistoryEntry(models.Model):
-    """
-    Reprezentuje pojedynczy wpis w historii serwisowej urządzenia.
-    """
 
     class ActionType(models.TextChoices):
         DEVICE_CREATED = 'DEVICE_CREATED', 'Utworzono urządzenie'
@@ -48,35 +44,29 @@ class DeviceHistoryEntry(models.Model):
         TICKET_COMPLETED = 'TICKET_COMPLETED', 'Zakończono zlecenie'
         TICKET_CREATED = 'TICKET_CREATED', 'Utworzono zlecenie'
         STATUS_CHANGED = 'STATUS_CHANGED', 'Zmieniono status'
-        # Można tu dodawać kolejne typy akcji w przyszłości
 
-    # Do jakiego urządzenia odnosi się ten wpis
     device = models.ForeignKey(
         'FiscalDevice',
         on_delete=models.CASCADE,
-        related_name='history_entries',  # Ważne dla łatwego dostępu z poziomu urządzenia!
+        related_name='history_entries',
         verbose_name="Urządzenie"
     )
 
-    # Data i czas zdarzenia
     event_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name="Data zdarzenia"
     )
 
-    # Rodzaj wykonanej akcji
     action_type = models.CharField(
         max_length=50,
         choices=ActionType.choices,
         verbose_name="Rodzaj akcji"
     )
 
-    # Szczegółowy opis, np. "Wykonano przegląd okresowy" lub "Zakończono zlecenie ZGL-2024-0012"
     description = models.TextField(
         verbose_name="Opis zdarzenia"
     )
 
-    # Kto wykonał akcję (opcjonalne, ale bardzo przydatne dla audytu)
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

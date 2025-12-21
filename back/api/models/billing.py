@@ -33,9 +33,6 @@ class Order(models.Model):
 
 
 class ActivationCode(models.Model):
-    """
-    One-time activation code. Company is accessible as activation.order.company.
-    """
     code = models.CharField(max_length=64, unique=True, db_index=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='activation_codes')
     email = models.EmailField(null=True, blank=True)

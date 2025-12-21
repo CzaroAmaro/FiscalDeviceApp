@@ -1,17 +1,14 @@
 services:
-  # Serwis Redis
   redis:
     image: redis:7-alpine
     container_name: redis_cache
     restart: unless-stopped
 
-  # Serwis Backendu (Django)
   backend:
     build:
       context: ./back
     container_name: django_backend
     volumes:
-      # Montowanie kodu źródłowego, aby zmiany były widoczne bez przebudowywania obrazu
       - ./back:/app
     ports:
       - "8000:8000"
@@ -21,26 +18,21 @@ services:
       - redis
     command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
     dns:
-      - 8.8.8.8  # Publiczny DNS Google
+      - 8.8.8.8
       - 1.1.1.1
 
-  # Serwis Frontendu (Vue)
   frontend:
     build:
       context: ./front/frontend
     container_name: vue_frontend
     volumes:
-      # Montowanie kodu źródłowego dla Hot-Reloading
       - ./front/frontend:/app
-      # Zapobiega nadpisaniu node_modules przez lokalny katalog (ważne na Windows)
       - /app/node_modules
     ports:
-      # Port deweloperski Vite
       - "5173:5173"
     depends_on:
       - backend
 
-  # Serwis Celery Worker
   celery_worker:
     build:
       context: ./back
@@ -54,5 +46,5 @@ services:
       - redis
       - backend
     dns:
-      - 8.8.8.8  # DNS od Google
-      - 1.1.1.1  # DNS od Cloudflare
+      - 8.8.8.8
+      - 1.1.1.1

@@ -1,5 +1,3 @@
-# api/signals.py
-
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.db import transaction
@@ -10,9 +8,6 @@ from .models.devices import FiscalDevice, DeviceHistoryEntry
 
 @receiver(pre_save, sender=ServiceTicket)
 def capture_previous_ticket_state(sender, instance, **kwargs):
-    """
-    Zapisuje poprzedni status i urządzenie zgłoszenia przed zapisem.
-    """
     if instance.pk:
         try:
             old_instance = ServiceTicket.objects.get(pk=instance.pk)
@@ -28,30 +23,20 @@ def capture_previous_ticket_state(sender, instance, **kwargs):
 
 @receiver(post_save, sender=ServiceTicket)
 def update_device_status_on_ticket_change(sender, instance, created, **kwargs):
-    """
-    Automatycznie aktualizuje status urządzenia na podstawie statusu zgłoszeń:
-    - Gdy zgłoszenie jest otwarte lub w toku -> urządzenie "W serwisie"
-    - Gdy wszystkie zgłoszenia są zamknięte -> urządzenie "Aktywne"
-
-    Obsługuje też przypadek zmiany urządzenia w zgłoszeniu.
-    """
     previous_status = getattr(instance, '_previous_status', None)
     previous_device_id = getattr(instance, '_previous_device_id', None)
     current_status = instance.status
     current_device = instance.device
 
-    # Jeśli nic się nie zmieniło, nie rób nic
     if not created and previous_status == current_status and previous_device_id == (
     current_device.id if current_device else None):
         return
 
     devices_to_update = set()
 
-    # Dodaj aktualne urządzenie do listy
     if current_device:
         devices_to_update.add(current_device.id)
 
-    # Jeśli urządzenie się zmieniło, dodaj też poprzednie
     if previous_device_id and previous_device_id != (current_device.id if current_device else None):
         devices_to_update.add(previous_device_id)
 
@@ -62,7 +47,6 @@ def update_device_status_on_ticket_change(sender, instance, created, **kwargs):
             except FiscalDevice.DoesNotExist:
                 continue
 
-            # Sprawdź czy urządzenie ma jakiekolwiek aktywne zgłoszenia
             has_active_tickets = ServiceTicket.objects.filter(
                 device_id=device_id,
                 status__in=[ServiceTicket.Status.OPEN, ServiceTicket.Status.IN_PROGRESS]
@@ -72,21 +56,16 @@ def update_device_status_on_ticket_change(sender, instance, created, **kwargs):
             new_device_status = None
 
             if has_active_tickets:
-                # Jeśli są aktywne zgłoszenia, ustaw status "W serwisie"
-                # Ale tylko jeśli urządzenie nie jest wycofane
                 if device.status not in [FiscalDevice.Status.SERVICED, FiscalDevice.Status.DECOMMISSIONED]:
                     new_device_status = FiscalDevice.Status.SERVICED
             else:
-                # Jeśli nie ma aktywnych zgłoszeń i urządzenie było "W serwisie", przywróć "Aktywne"
                 if device.status == FiscalDevice.Status.SERVICED:
                     new_device_status = FiscalDevice.Status.ACTIVE
 
-            # Aktualizuj status urządzenia jeśli się zmienił
             if new_device_status and new_device_status != old_device_status:
                 device.status = new_device_status
                 device.save(update_fields=['status'])
 
-                # Dodaj wpis do historii urządzenia
                 if new_device_status == FiscalDevice.Status.SERVICED:
                     description = f"Status urządzenia zmieniony automatycznie na 'W serwisie' z powodu aktywnego zgłoszenia serwisowego."
                 else:
@@ -96,17 +75,13 @@ def update_device_status_on_ticket_change(sender, instance, created, **kwargs):
                     device=device,
                     action_type=DeviceHistoryEntry.ActionType.STATUS_CHANGED,
                     description=description,
-                    actor=None  # Automatyczna zmiana
+                    actor=None
                 )
 
 
 @receiver(post_save, sender=ServiceTicket)
 def log_ticket_creation_to_device_history(sender, instance, created, **kwargs):
-    """
-    Dodaje wpis do historii urządzenia gdy tworzone jest nowe zgłoszenie.
-    """
     if created and instance.device:
-        # Użyj nowego typu akcji jeśli dodałeś go do modelu
         action_type = getattr(
             DeviceHistoryEntry.ActionType,
             'TICKET_CREATED',

@@ -37,6 +37,32 @@
       "viewDetails": "Podgląd",
       "viewOnMap": "Zobacz na mapie"
     },
+    "map": {
+      "title": "Mapa Klientów",
+      "singleClientTitle": "Lokalizacja klienta",
+      "singleClientSubtitle": "Lokalizacja klienta na mapie",
+      "allClientsSubtitle": "Lokalizacje klientów na mapie interaktywnej",
+      "locationsCount": "{count} lokalizacja | {count} lokalizacje | {count} lokalizacji",
+      "openTicketsCount": "{count} z otwartymi zgłoszeniami",
+      "search": "Szukaj klienta",
+      "searchPlaceholder": "Wpisz nazwę...",
+      "refresh": "Odśwież dane",
+      "clientsList": "KLIENCI",
+      "hasOpenTickets": "Ma otwarte zgłoszenia",
+      "noTickets": "Brak zgłoszeń",
+      "showMore": "Pokaż więcej",
+      "noClientsFound": "Brak klientów do wyświetlenia",
+      "backToAll": "Wróć do widoku wszystkich",
+      "streetView": "Ulice",
+      "satelliteView": "Satelita",
+      "zoomIn": "Przybliż",
+      "zoomOut": "Oddal",
+      "fitBounds": "Dopasuj widok",
+      "legend": {
+        "client": "Klient",
+        "withIssues": "Z otwartymi zgłoszeniami"
+      }
+    },
     "search": {
       "placeholder": "Szukaj po nazwie lub NIP"
     },
@@ -44,6 +70,7 @@
       "id": "ID",
       "name": "Nazwa firmy/Imię i nazwisko",
       "nip": "NIP",
+      "regon": "REGON",
       "phone": "Telefon",
       "email": "Email"
     },
@@ -100,31 +127,11 @@
       "gpsAvailable": "Lokalizacja GPS dostępna",
       "gpsUnavailable": "Brak lokalizacji GPS",
       "selectClient": "Wybierz klienta, aby zobaczyć szczegóły",
-      "map": {
-        "title": "Mapa Klientów",
-        "singleClientTitle": "Lokalizacja klienta",
-        "singleClientSubtitle": "Lokalizacja klienta na mapie",
-        "allClientsSubtitle": "Lokalizacje klientów na mapie interaktywnej",
-        "locationsCount": "{count} lokalizacja | {count} lokalizacje | {count} lokalizacji",
-        "openTicketsCount": "{count} z otwartymi zgłoszeniami",
-        "search": "Szukaj klienta",
-        "searchPlaceholder": "Wpisz nazwę...",
-        "refresh": "Odśwież dane",
-        "clientsList": "KLIENCI",
-        "hasOpenTickets": "Ma otwarte zgłoszenia",
-        "noTickets": "Brak zgłoszeń",
-        "showMore": "Pokaż więcej",
-        "noClientsFound": "Brak klientów do wyświetlenia",
-        "backToAll": "Wróć do widoku wszystkich",
-        "streetView": "Ulice",
-        "satelliteView": "Satelita",
-        "zoomIn": "Przybliż",
-        "zoomOut": "Oddal",
-        "fitBounds": "Dopasuj widok",
-        "legend": {
-          "client": "Klient",
-          "withIssues": "Z otwartymi zgłoszeniami"
-        }
+      "map": "Mapa",
+      "sections": {
+        "address": "Adres",
+        "statistics": "Statystyki",
+        "info": "Informacje"
       },
       "stats": {
         "devices": "{count} Urządzenie | {count} Urządzenia | {count} Urządzeń",
@@ -718,6 +725,11 @@
     }
   },
   "certifications": {
+    "errors": {
+      "duplicateCertification": "Ten technik posiada już certyfikat tego producenta",
+      "validationFailed": "Sprawdź poprawność wprowadzonych danych",
+      "duplicateCertificateNumber": "Certyfikat o tym numerze już istnieje"
+    },
     "title": "Certyfikaty",
     "toolbar": {
       "add": "Dodaj certyfikat",
