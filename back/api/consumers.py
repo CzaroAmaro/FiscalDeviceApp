@@ -2,8 +2,6 @@ import json
 import bleach
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models.chat import Message
-from .models.users import Technician
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -70,6 +68,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_technician_profile(self, user):
+        from .models.users import Technician
         try:
             return Technician.objects.select_related('company').get(user=user)
         except Technician.DoesNotExist:
@@ -77,6 +76,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, content):
+        from .models.chat import Message
         return Message.objects.create(
             company=self.company,
             sender=self.technician,
