@@ -41,3 +41,5 @@ webencodings~=0.5.1
 daphne
 protobuf
 google-generativeai
+gunicorn
+uvicorn

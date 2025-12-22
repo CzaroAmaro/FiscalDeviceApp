@@ -12,8 +12,7 @@ interface ChatState {
   isLoadingHistory: boolean;
 }
 
-// Definiujemy początkowy URL jako stałą, żeby łatwiej go resetować
-const INITIAL_HISTORY_URL = '/messages/?limit=20'; // Zwiększyłem limit, żeby od razu było co scrollować
+const INITIAL_HISTORY_URL = '/messages/?limit=20';
 
 export const useChatStore = defineStore('chat', {
   state: (): ChatState => ({
@@ -25,7 +24,6 @@ export const useChatStore = defineStore('chat', {
   }),
 
   actions: {
-    // --- POCZĄTEK ZMIAN w fetchHistory ---
     async fetchHistory() {
       if (!this.nextHistoryUrl || this.isLoadingHistory) return;
 
@@ -34,8 +32,6 @@ export const useChatStore = defineStore('chat', {
         const response = await fetchMessageHistory(this.nextHistoryUrl);
 
         if (response && Array.isArray(response.results)) {
-          // Backend zwraca [msg10, msg9, msg8]. My chcemy mieć w tablicy [..., msg8, msg9, msg10].
-          // Dlatego odwracamy kolejność pobranego fragmentu i dodajemy go na początek (`unshift`).
           this.messages.unshift(...response.results.reverse());
           this.nextHistoryUrl = response.next;
         } else {
@@ -48,12 +44,10 @@ export const useChatStore = defineStore('chat', {
         this.isLoadingHistory = false;
       }
     },
-    // --- KONIEC ZMIAN w fetchHistory ---
 
     connect() {
       if (this.socket && this.status === 'open') return;
 
-      // Resetujemy stan czatu przy każdym nowym połączeniu
       this.clearChatState();
 
       const authStore = useAuthStore();
@@ -64,23 +58,18 @@ export const useChatStore = defineStore('chat', {
         return;
       }
 
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const url = `${protocol}//localhost:8000/ws/chat/?token=${token}`;
-
+      const wsBase = import.meta.env.VITE_WS_URL;
+      const url = `${wsBase}?token=${token}`;
       this.socket = new WebSocket(url);
       this.status = "connecting";
 
       this.socket.onopen = () => {
         this.status = "open";
-        console.log("WebSocket connected");
       };
 
-      // --- POCZĄTEK ZMIAN w handlerach ---
-      // Usunąłem zduplikowane handlery. Zostawiamy tylko te bardziej rozbudowane.
       this.socket.onmessage = (event) => {
         try {
           const newMessage: Message = JSON.parse(event.data);
-          // Nowa wiadomość ZAWSZE jest najnowsza, więc dodajemy ją na koniec.
           if (newMessage && newMessage.id) {
             this.messages.push(newMessage);
           }
@@ -92,15 +81,13 @@ export const useChatStore = defineStore('chat', {
       this.socket.onclose = () => {
         this.status = 'closed';
         this.socket = null;
-        console.log('WebSocket connection closed.');
       };
 
       this.socket.onerror = (error) => {
         console.error('WebSocket error:', error);
         this.status = 'closed';
-        this.socket = null; // Ważne, żeby też tutaj wyzerować socket
+        this.socket = null;
       };
-      // --- KONIEC ZMIAN w handlerach ---
     },
 
     sendMessage(messageContent: string) {
@@ -117,8 +104,6 @@ export const useChatStore = defineStore('chat', {
       }
     },
 
-    // --- NOWA AKCJA ---
-    // Akcja do czyszczenia stanu - przydatna przy wylogowaniu lub ponownym połączeniu
     clearChatState() {
       this.messages = [];
       this.nextHistoryUrl = INITIAL_HISTORY_URL;
