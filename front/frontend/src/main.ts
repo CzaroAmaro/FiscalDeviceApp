@@ -1,4 +1,3 @@
-// src/main.ts
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import 'leaflet/dist/leaflet.css'
@@ -23,13 +22,11 @@ import router from './router'
 
 window.L = L
 
-// ✅ Pobierz zapisane preferencje PRZED utworzeniem instancji
 const getSavedLanguage = (): 'pl' | 'en' => {
   const saved = localStorage.getItem('user-locale')
   if (saved === 'pl' || saved === 'en') {
     return saved
   }
-  // Wykryj język przeglądarki
   const browserLang = navigator.language.substring(0, 2)
   return browserLang === 'en' ? 'en' : 'pl'
 }
@@ -39,7 +36,6 @@ const getSavedTheme = (): 'light' | 'dark' => {
   if (saved === 'light' || saved === 'dark') {
     return saved
   }
-  // Opcjonalnie: wykryj preferencje systemowe
   if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
     return 'dark'
   }
@@ -49,12 +45,11 @@ const getSavedTheme = (): 'light' | 'dark' => {
 const savedLanguage = getSavedLanguage()
 const savedTheme = getSavedTheme()
 
-// ✅ Ustaw atrybut lang na HTML
 document.documentElement.lang = savedLanguage
 
 const i18n = createI18n({
   legacy: false,
-  locale: savedLanguage, // ✅ Użyj zapisanego języka
+  locale: savedLanguage,
   fallbackLocale: 'en',
   messages: {
     pl: { ...plMessages, $vuetify: pl },
@@ -115,7 +110,7 @@ const vuetify = createVuetify({
     sets: { mdi },
   },
   theme: {
-    defaultTheme: savedTheme, // ✅ Użyj zapisanego theme
+    defaultTheme: savedTheme,
     themes: {
       light: lightTheme,
       dark: darkTheme,
