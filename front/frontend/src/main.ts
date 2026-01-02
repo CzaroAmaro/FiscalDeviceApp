@@ -132,7 +132,7 @@ const authStore = useAuthStore()
 authStore.initialize()
 
 app.use(router)
-app.use(vuetify)
 app.use(i18n)
+app.use(vuetify)
 
 app.mount('#app')
