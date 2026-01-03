@@ -704,9 +704,19 @@ def create_checkout_session(request):
 
         return Response({'sessionId': session.id, 'url': session.url, 'orderId': str(order.id)})
 
+
     except Exception as e:
+
+        import traceback
+
+        print("🔥 Stripe create_checkout_session ERROR:")
+
+        print(traceback.format_exc())
+
         order.status = 'failed'
+
         order.save(update_fields=['status'])
+
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
