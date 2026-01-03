@@ -58,8 +58,9 @@ export const useChatStore = defineStore('chat', {
         return;
       }
 
-      const wsBase = import.meta.env.VITE_WS_URL;
-      const url = `${wsBase}?token=${token}`;
+      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+      const host = window.location.host;
+      const url = `${protocol}://${host}/ws/chat/?token=${encodeURIComponent(token)}`;
       this.socket = new WebSocket(url);
       this.status = "connecting";
 
