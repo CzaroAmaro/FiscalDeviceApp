@@ -42,4 +42,4 @@ daphne
 protobuf
 google-generativeai
 gunicorn
-uvicorn
+uvicorn[standard]
