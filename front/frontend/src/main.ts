@@ -14,6 +14,7 @@ import { en, pl } from 'vuetify/locale'
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n'
 
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language.ts'
 
 import App from './App.vue'
 import enMessages from './i18n/en.json'
@@ -133,6 +134,8 @@ authStore.initialize()
 
 app.use(router)
 app.use(i18n)
+const languageStore = useLanguageStore()
+languageStore.initLanguage()
 app.use(vuetify)
 
 app.mount('#app')

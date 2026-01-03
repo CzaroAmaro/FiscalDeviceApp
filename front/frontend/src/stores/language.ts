@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref } from 'vue'
+
+import { i18n } from '@/i18n'
 
 export type Language = 'pl' | 'en'
 
@@ -8,42 +9,26 @@ const STORAGE_KEY = 'user-locale'
 const SUPPORTED_LANGUAGES: Language[] = ['pl', 'en']
 
 export const useLanguageStore = defineStore('language', () => {
-  const { locale } = useI18n()
-
-  const currentLanguage = ref<Language>(locale.value as Language)
+  const currentLanguage = ref<Language>(i18n.global.locale.value as Language)
 
   function setLanguage(lang: Language) {
-    if (!SUPPORTED_LANGUAGES.includes(lang)) {
-      console.warn(`Unsupported language: ${lang}`)
-      return
-    }
-    currentLanguage.value = lang
-    locale.value = lang
-    localStorage.setItem(STORAGE_KEY, lang)
+    if (!SUPPORTED_LANGUAGES.includes(lang)) return
 
+    currentLanguage.value = lang
+    i18n.global.locale.value = lang
+    localStorage.setItem(STORAGE_KEY, lang)
     document.documentElement.lang = lang
   }
 
   function initLanguage() {
     const saved = localStorage.getItem(STORAGE_KEY) as Language | null
-
     if (saved && SUPPORTED_LANGUAGES.includes(saved)) {
       setLanguage(saved)
-    } else {
-      const browserLang = navigator.language.substring(0, 2) as Language
-      const detectedLang = SUPPORTED_LANGUAGES.includes(browserLang) ? browserLang : 'pl'
-      setLanguage(detectedLang)
+      return
     }
+    const browserLang = navigator.language.substring(0, 2) as Language
+    setLanguage(SUPPORTED_LANGUAGES.includes(browserLang) ? browserLang : 'pl')
   }
 
-  watch(locale, (newLocale) => {
-    currentLanguage.value = newLocale as Language
-  })
-
-  return {
-    currentLanguage,
-    setLanguage,
-    initLanguage,
-    supportedLanguages: SUPPORTED_LANGUAGES,
-  }
+  return { currentLanguage, setLanguage, initLanguage, supportedLanguages: SUPPORTED_LANGUAGES }
 })
