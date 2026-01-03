@@ -772,35 +772,33 @@ def handle_payment_success(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def stripe_webhook(request):
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    payload = request.body
-    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
-    endpoint_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
-
-    if not endpoint_secret:
-        return Response({'error': 'Webhook secret not configured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
     try:
+        print("✅ stripe_webhook HIT", flush=True)
+        print("len(payload):", len(request.body or b""), flush=True)
+        print("sig header present:", bool(request.META.get("HTTP_STRIPE_SIGNATURE")), flush=True)
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
+        endpoint_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', None)
+
+        if not endpoint_secret:
+            return Response({'error': 'Webhook secret not configured'}, status=500)
+
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except ValueError:
-        return Response({'error': 'Invalid payload'}, status=status.HTTP_400_BAD_REQUEST)
-    except stripe.error.SignatureVerificationError:
-        return Response({'error': 'Invalid signature'}, status=status.HTTP_400_BAD_REQUEST)
 
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        metadata = session.get('metadata') or {}
-        order_id_from_meta = metadata.get('order_id')
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            metadata = session.get('metadata') or {}
+            order_id_from_meta = metadata.get('order_id')
 
-        try:
             with transaction.atomic():
                 if order_id_from_meta:
-                    order, created = Order.objects.get_or_create(
+                    order, _ = Order.objects.get_or_create(
                         id=order_id_from_meta,
                         defaults={
                             'company': None,
@@ -810,7 +808,7 @@ def stripe_webhook(request):
                         }
                     )
                 else:
-                    order, created = Order.objects.get_or_create(
+                    order, _ = Order.objects.get_or_create(
                         stripe_session_id=session.id,
                         defaults={
                             'company': None,
@@ -825,16 +823,16 @@ def stripe_webhook(request):
                 order.stripe_payment_intent = session.get('payment_intent')
                 order.save()
 
-                ActivationCode.objects.get_or_create(
-                    order=order,
-                    defaults={'email': order.email}
-                )
-        except Exception as e:
-            # TODO: Dodaj logowanie błędów do systemu monitoringu (np. Sentry)
-            return Response({'error': f'Webhook processing error: {str(e)}'},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                ActivationCode.objects.get_or_create(order=order, defaults={'email': order.email})
 
-    return Response({'status': 'success'}, status=status.HTTP_200_OK)
+        return Response({'status': 'success'}, status=200)
+
+    except Exception as e:
+        tb = traceback.format_exc()
+        print("🔥 stripe_webhook ERROR:", str(e), flush=True)
+        print(tb, flush=True)
+        logger.exception("stripe_webhook failed")
+        return Response({'error': 'webhook failed'}, status=500)
 
 
 
