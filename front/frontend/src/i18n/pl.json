@@ -633,11 +633,57 @@
     }
   },
   "validation": {
-    "required": "Pole jest wymagane",
+    "required": "To pole jest wymagane",
     "isNumber": "Pole musi być liczbą",
     "nip": "NIP musi składać się z 10 cyfr",
     "email": "Nieprawidłowy format e-mail",
-    "minLength": "Minimalna długość to {min} znaków"
+    "minLength": "Minimalna długość to {min} znaków",
+    "username": {
+      "required": "Nazwa użytkownika jest wymagana",
+      "minLength": "Nazwa użytkownika musi mieć minimum {min} znaki",
+      "maxLength": "Nazwa użytkownika może mieć maksymalnie {max} znaków",
+      "format": "Nazwa użytkownika może zawierać tylko litery, cyfry, podkreślenia i myślniki",
+      "noStartWithNumber": "Nazwa użytkownika nie może zaczynać się od cyfry"
+    },
+    "emailField": {
+      "required": "Adres e-mail jest wymagany",
+      "format": "Podaj poprawny adres e-mail",
+      "maxLength": "Adres e-mail jest zbyt długi"
+    },
+    "password": {
+      "required": "Hasło jest wymagane",
+      "minLength": "Hasło musi mieć minimum {min} znaków",
+      "maxLength": "Hasło może mieć maksymalnie {max} znaków",
+      "hasUppercase": "Hasło musi zawierać co najmniej jedną wielką literę",
+      "hasLowercase": "Hasło musi zawierać co najmniej jedną małą literę",
+      "hasNumber": "Hasło musi zawierać co najmniej jedną cyfrę",
+      "hasSpecialChar": "Hasło musi zawierać co najmniej jeden znak specjalny (!@#$%^&* itp.)",
+      "noSpaces": "Hasło nie może zawierać spacji",
+      "notCommon": "To hasło jest zbyt popularne i łatwe do odgadnięcia",
+      "strength": {
+        "empty": "Wprowadź hasło",
+        "veryWeak": "Bardzo słabe",
+        "weak": "Słabe",
+        "fair": "Przeciętne",
+        "good": "Dobre",
+        "strong": "Silne",
+        "veryStrong": "Bardzo silne"
+      }
+    },
+    "passwordConfirm": {
+      "required": "Potwierdzenie hasła jest wymagane",
+      "matches": "Hasła nie są zgodne"
+    },
+    "phone": {
+      "format": "Podaj poprawny numer telefonu"
+    },
+    "nipField": {
+      "format": "NIP musi składać się z 10 cyfr",
+      "invalid": "Nieprawidłowy numer NIP"
+    },
+    "postalCode": {
+      "format": "Kod pocztowy musi być w formacie XX-XXX"
+    }
   },
   "clientsMap": {
     "title": "Mapa Klientów",
@@ -658,13 +704,21 @@
     "username": "Nazwa użytkownika",
     "email": "Adres e-mail",
     "password": "Hasło",
-    "confirmPassword": "Potwierdź hasło",
+    "passwordConfirm": "Potwierdź hasło",
     "submit": "Zarejestruj",
     "hasAccount": "Masz już konto?",
     "login": "Zaloguj się",
     "passwordMismatch": "Hasła nie są zgodne.",
     "error": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.",
-    "registering": "Rejestracja..."
+    "registering": "Rejestracja...",
+    "passwordRequirements": "Wymagania hasła:",
+    "requirements": {
+      "minLength": "Minimum 8 znaków",
+      "uppercase": "Wielka litera",
+      "lowercase": "Mała litera",
+      "number": "Cyfra",
+      "special": "Znak specjalny"
+    }
   },
   "reports": {
     "title": "Raporty",
@@ -838,7 +892,17 @@
     "success": {
       "title": "Płatność zakończona pomyślnie",
       "message": "Dziękujemy za zakup! Twoja licencja została aktywowana.",
-      "backToDashboard": "Powrót do pulpitu"
+      "backToDashboard": "Powrót do pulpitu",
+      "activationCode": "Twój kod aktywacyjny:",
+      "copyCode": "Skopiuj kod",
+      "codeCopied": "Skopiowano!",
+      "copyFailed": "Błąd - skopiuj ręcznie",
+      "goToActivation": "Przejdź do aktywacji",
+      "copyHint": "Zaznacz i skopiuj ręcznie (Ctrl+C)",
+      "verifying": "Weryfikowanie płatności i generowanie kodu...",
+      "noSessionId": "Brak identyfikatora sesji płatności w adresie URL.",
+      "fetchError": "Nie udało się pobrać kodu aktywacyjnego. Sprawdź swoje kody na stronie profilu lub skontaktuj się z pomocą.",
+      "serverError": "Wystąpił błąd serwera. Spróbuj ponownie za chwilę."
     },
     "cancel": {
       "title": "Płatność anulowana",

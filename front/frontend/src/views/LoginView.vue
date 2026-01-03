@@ -6,7 +6,7 @@
         {{ t('login.title') }}
       </v-card-title>
       <v-card-text>
-        <v-form ref="form" @submit.prevent="handleLogin">
+        <v-form ref="formRef" v-model="isFormValid" @submit.prevent="handleLogin">
           <v-alert v-if="error" type="error" density="compact" class="mb-4">
             {{ error }}
           </v-alert>
@@ -18,20 +18,31 @@
             variant="outlined"
             :rules="[rules.required]"
             :disabled="isLoading"
+            @keydown.enter="handleLogin"
           ></v-text-field>
 
           <v-text-field
             v-model="password"
             :label="t('login.password')"
             prepend-inner-icon="mdi-lock"
+            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
             variant="outlined"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             :rules="[rules.required]"
             class="mt-3"
             :disabled="isLoading"
+            @click:append-inner="showPassword = !showPassword"
+            @keydown.enter="handleLogin"
           ></v-text-field>
 
-          <v-btn type="submit" color="primary" block class="mt-4" :loading="isLoading">
+          <v-btn
+            type="submit"
+            color="primary"
+            block
+            class="mt-4"
+            :loading="isLoading"
+            :disabled="isLoading || !isFormValid"
+          >
             {{ t('login.submit') }}
           </v-btn>
         </v-form>
@@ -71,44 +82,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import type { VForm } from 'vuetify/components'
-import { useAuthStore } from '@/stores/auth'
-import { useThemeStore } from '@/stores/theme'
-import LanguageSelect from '@/components/languageSelect/LanguageSelect.vue'
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import type { VForm } from 'vuetify/components';
+import { useAuthStore } from '@/stores/auth';
+import { useThemeStore } from '@/stores/theme';
+import LanguageSelect from '@/components/languageSelect/LanguageSelect.vue';
+import { createValidationRules } from '@/utils/validationRules';
 
-const { t } = useI18n()
-const authStore = useAuthStore()
-const themeStore = useThemeStore()
+const { t } = useI18n();
+const authStore = useAuthStore();
+const themeStore = useThemeStore();
 
-const form = ref<VForm | null>(null)
-const username = ref('')
-const password = ref('')
-const isLoading = ref(false)
-const error = ref<string | null>(null)
+const rules = createValidationRules(t);
 
-const rules = {
-  required: (value: string) => !!value || t('validation.required'),
-}
+const formRef = ref<VForm | null>(null);
+const isFormValid = ref(false);
+const username = ref('');
+const password = ref('');
+const showPassword = ref(false);
+const isLoading = ref(false);
+const error = ref<string | null>(null);
 
 const handleLogin = async () => {
-  const { valid } = await form.value!.validate()
-  if (!valid) return
+  const { valid } = await formRef.value!.validate();
+  if (!valid) return;
 
-  isLoading.value = true
-  error.value = null
+  isLoading.value = true;
+  error.value = null;
+
   try {
     await authStore.login({
       username: username.value,
       password: password.value,
-    })
+    });
   } catch (err: any) {
-    error.value = err.response?.data?.detail || t('login.error')
+    error.value = err.response?.data?.detail || t('login.error');
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
 
 <style scoped>

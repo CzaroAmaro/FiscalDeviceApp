@@ -638,7 +638,53 @@
     "isNumber": "This field must be a number",
     "nip": "NIP must consist of 10 digits",
     "email": "Invalid e-mail format",
-    "minLength": "Minimum length is {min} characters"
+    "minLength": "Minimum length is {min} characters",
+    "username": {
+      "required": "Username is required",
+      "minLength": "Username must be at least {min} characters",
+      "maxLength": "Username cannot exceed {max} characters",
+      "format": "Username can only contain letters, numbers, underscores and hyphens",
+      "noStartWithNumber": "Username cannot start with a number"
+    },
+    "emailField": {
+      "required": "Email address is required",
+      "format": "Please enter a valid email address",
+      "maxLength": "Email address is too long"
+    },
+    "password": {
+      "required": "Password is required",
+      "minLength": "Password must be at least {min} characters",
+      "maxLength": "Password cannot exceed {max} characters",
+      "hasUppercase": "Password must contain at least one uppercase letter",
+      "hasLowercase": "Password must contain at least one lowercase letter",
+      "hasNumber": "Password must contain at least one number",
+      "hasSpecialChar": "Password must contain at least one special character (!@#$%^&* etc.)",
+      "noSpaces": "Password cannot contain spaces",
+      "notCommon": "This password is too common and easy to guess",
+      "strength": {
+        "empty": "Enter a password",
+        "veryWeak": "Very weak",
+        "weak": "Weak",
+        "fair": "Fair",
+        "good": "Good",
+        "strong": "Strong",
+        "veryStrong": "Very strong"
+      }
+    },
+    "passwordConfirm": {
+      "required": "Password confirmation is required",
+      "matches": "Passwords do not match"
+    },
+    "phone": {
+      "format": "Please enter a valid phone number"
+    },
+    "nipField": {
+      "format": "NIP must consist of 10 digits",
+      "invalid": "Invalid NIP number"
+    },
+    "postalCode": {
+      "format": "Postal code must be in XX-XXX format"
+    }
   },
   "clientsMap": {
     "title": "Clients Map",
@@ -659,13 +705,21 @@
     "username": "Username",
     "email": "Email address",
     "password": "Password",
-    "confirmPassword": "Confirm password",
+    "passwordConfirm": "Confirm password",
     "submit": "Register",
     "hasAccount": "Already have an account?",
     "login": "Sign in",
     "passwordMismatch": "Passwords do not match.",
     "error": "An unexpected error occurred. Please try again.",
-    "registering": "Registering..."
+    "registering": "Registering...",
+    "passwordRequirements": "Password requirements:",
+    "requirements": {
+      "minLength": "At least 8 characters",
+      "uppercase": "Uppercase letter",
+      "lowercase": "Lowercase letter",
+      "number": "Number",
+      "special": "Special character"
+    }
   },
   "reports": {
     "title": "Reports",
@@ -839,7 +893,17 @@
     "success": {
       "title": "Payment Successful",
       "message": "Thank you for your purchase! Your license has been activated.",
-      "backToDashboard": "Back to dashboard"
+      "backToDashboard": "Back to dashboard",
+      "activationCode": "Your activation code:",
+      "copyCode": "Copy code",
+      "codeCopied": "Activation code copied to clipboard",
+      "copyFailed": "Failed to copy activation code",
+      "goToActivation": "Go to License Activation",
+      "copyHint": "You can copy the code and activate your license in the settings.",
+      "verifying": "Verifying payment...",
+      "noSessionId": "No session ID provided.",
+      "fetchError": "An error occurred while verifying the payment.",
+      "serverError": "Server error occurred during payment verification."
     },
     "cancel": {
       "title": "Payment Cancelled",
