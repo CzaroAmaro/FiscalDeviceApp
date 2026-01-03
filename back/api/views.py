@@ -823,7 +823,9 @@ def stripe_webhook(request):
                 order.stripe_payment_intent = session.get('payment_intent')
                 order.save()
 
-                ActivationCode.objects.get_or_create(order=order, defaults={'email': order.email})
+                code_obj = ActivationCode.objects.filter(order=order).first()
+                if not code_obj:
+                    ActivationCode.create_for_order(order=order, email=order.email)
 
         return Response({'status': 'success'}, status=200)
 
