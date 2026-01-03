@@ -658,7 +658,7 @@
       "hasUppercase": "Password must contain at least one uppercase letter",
       "hasLowercase": "Password must contain at least one lowercase letter",
       "hasNumber": "Password must contain at least one number",
-      "hasSpecialChar": "Password must contain at least one special character (!@#$%^&* etc.)",
+      "hasSpecialChar": "Password must contain at least one special character (!{'@'}#$%^&* etc.)",
       "noSpaces": "Password cannot contain spaces",
       "notCommon": "This password is too common and easy to guess",
       "strength": {

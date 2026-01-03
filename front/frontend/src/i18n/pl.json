@@ -657,7 +657,7 @@
       "hasUppercase": "Hasło musi zawierać co najmniej jedną wielką literę",
       "hasLowercase": "Hasło musi zawierać co najmniej jedną małą literę",
       "hasNumber": "Hasło musi zawierać co najmniej jedną cyfrę",
-      "hasSpecialChar": "Hasło musi zawierać co najmniej jeden znak specjalny (!@#$%^&* itp.)",
+      "hasSpecialChar": "Hasło musi zawierać co najmniej jeden znak specjalny (!{'@'}#$%^&* itp.)",
       "noSpaces": "Hasło nie może zawierać spacji",
       "notCommon": "To hasło jest zbyt popularne i łatwe do odgadnięcia",
       "strength": {
