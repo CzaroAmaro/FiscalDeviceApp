@@ -5,58 +5,30 @@ import 'leaflet/dist/leaflet.css'
 import * as L from 'leaflet'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-import { createI18n, useI18n } from 'vue-i18n'
+import { useI18n } from 'vue-i18n'
 import { createVuetify, type ThemeDefinition } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { mdi } from 'vuetify/iconsets/mdi'
-import { en, pl } from 'vuetify/locale'
 import { createVueI18nAdapter } from 'vuetify/locale/adapters/vue-i18n'
 
+import { i18n } from '@/i18n'
 import { useAuthStore } from '@/stores/auth'
-import { useLanguageStore } from '@/stores/language.ts'
+import { useLanguageStore } from '@/stores/language'
 
 import App from './App.vue'
-import enMessages from './i18n/en.json'
-import plMessages from './i18n/pl.json'
 import router from './router'
 
 window.L = L
 
-const getSavedLanguage = (): 'pl' | 'en' => {
-  const saved = localStorage.getItem('user-locale')
-  if (saved === 'pl' || saved === 'en') {
-    return saved
-  }
-  const browserLang = navigator.language.substring(0, 2)
-  return browserLang === 'en' ? 'en' : 'pl'
-}
-
 const getSavedTheme = (): 'light' | 'dark' => {
   const saved = localStorage.getItem('user-theme')
-  if (saved === 'light' || saved === 'dark') {
-    return saved
-  }
-  if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-    return 'dark'
-  }
+  if (saved === 'light' || saved === 'dark') return saved
+  if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark'
   return 'light'
 }
 
-const savedLanguage = getSavedLanguage()
 const savedTheme = getSavedTheme()
-
-document.documentElement.lang = savedLanguage
-
-const i18n = createI18n({
-  legacy: false,
-  locale: savedLanguage,
-  fallbackLocale: 'en',
-  messages: {
-    pl: { ...plMessages, $vuetify: pl },
-    en: { ...enMessages, $vuetify: en },
-  },
-})
 
 const lightTheme: ThemeDefinition = {
   dark: false,
@@ -118,9 +90,7 @@ const vuetify = createVuetify({
     },
   },
   defaults: {
-    VCard: {
-      elevation: 2,
-    },
+    VCard: { elevation: 2 },
   },
 })
 
@@ -132,10 +102,12 @@ app.use(pinia)
 const authStore = useAuthStore()
 authStore.initialize()
 
-app.use(router)
 app.use(i18n)
+
 const languageStore = useLanguageStore()
 languageStore.initLanguage()
+
+app.use(router)
 app.use(vuetify)
 
 app.mount('#app')

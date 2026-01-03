@@ -16,6 +16,7 @@ export const useLanguageStore = defineStore('language', () => {
 
     currentLanguage.value = lang
     i18n.global.locale.value = lang
+
     localStorage.setItem(STORAGE_KEY, lang)
     document.documentElement.lang = lang
   }
@@ -26,9 +27,15 @@ export const useLanguageStore = defineStore('language', () => {
       setLanguage(saved)
       return
     }
+
     const browserLang = navigator.language.substring(0, 2) as Language
     setLanguage(SUPPORTED_LANGUAGES.includes(browserLang) ? browserLang : 'pl')
   }
 
-  return { currentLanguage, setLanguage, initLanguage, supportedLanguages: SUPPORTED_LANGUAGES }
+  return {
+    currentLanguage,
+    setLanguage,
+    initLanguage,
+    supportedLanguages: SUPPORTED_LANGUAGES,
+  }
 })
