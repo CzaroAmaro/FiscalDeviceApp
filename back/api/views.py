@@ -641,30 +641,39 @@ def fetch_company_data(request, nip):
         return Response({"detail": "Nie można połączyć się z usługą Białej Listy."},
                         status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_checkout_session(request):
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-
-    user = request.user
-    if hasattr(user, 'technician_profile'):
-        return Response(
-            {'error': 'Twoje konto jest już aktywne i nie możesz rozpocząć nowej sesji płatności.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    email = user.email or ''
-    amount_cents = request.data.get('amount_cents')
-
-    order = Order.objects.create(
-        company=None,
-        email=email,
-        status='pending',
-        amount_cents=amount_cents or None,
-        currency='PLN',
-    )
-
     try:
+        print("✅ create_checkout_session HIT", flush=True)
+        print("user:", getattr(request.user, "id", None), getattr(request.user, "email", None), flush=True)
+        print("data:", request.data, flush=True)
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+
+        user = request.user
+        if hasattr(user, 'technician_profile'):
+            return Response(
+                {'error': 'Twoje konto jest już aktywne i nie możesz rozpocząć nowej sesji płatności.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        email = user.email or ''
+        amount_cents = request.data.get('amount_cents')
+
+        order = Order.objects.create(
+            company=None,
+            email=email,
+            status='pending',
+            amount_cents=amount_cents or None,
+            currency='PLN',
+        )
+
         metadata = {
             'order_id': str(order.id),
             'requested_by_user_id': str(user.id),
@@ -682,7 +691,11 @@ def create_checkout_session(request):
         else:
             if not amount_cents:
                 order.delete()
-                return Response({'error': 'No amount provided and no STRIPE_PRICE_ID configured.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'error': 'No amount provided and no STRIPE_PRICE_ID configured.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             session = stripe.checkout.Session.create(
                 mode='payment',
                 line_items=[{
@@ -706,16 +719,17 @@ def create_checkout_session(request):
 
 
     except Exception as e:
+        tb = traceback.format_exc()
+        print("🔥 create_checkout_session ERROR:", str(e), flush=True)
+        print(tb, flush=True)
+        logger.exception("create_checkout_session failed")
 
-        import traceback
-
-        print("🔥 Stripe create_checkout_session ERROR:")
-
-        print(traceback.format_exc())
-
-        order.status = 'failed'
-
-        order.save(update_fields=['status'])
+        try:
+            if 'order' in locals() and order:
+                order.status = 'failed'
+                order.save(update_fields=['status'])
+        except Exception:
+            pass
 
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
