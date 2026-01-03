@@ -32,7 +32,6 @@
           </v-card>
         </div>
 
-        <!-- Error state -->
         <v-alert
           v-else-if="error"
           type="error"
@@ -55,10 +54,8 @@
           </div>
         </v-alert>
 
-        <!-- Main content -->
         <div v-else class="settings-content">
           <v-row>
-            <!-- Sidebar navigation (desktop) -->
             <v-col cols="12" md="3" class="d-none d-md-block">
               <v-card rounded="lg" class="settings-nav sticky-nav">
                 <v-list nav density="comfortable" class="pa-2">
@@ -87,9 +84,7 @@
               </v-card>
             </v-col>
 
-            <!-- Settings sections -->
             <v-col cols="12" md="9">
-              <!-- Company Settings Section -->
               <section id="company" class="settings-section">
                 <CompanySettingsCard
                   :company-data="companyData"
@@ -100,12 +95,10 @@
                 />
               </section>
 
-              <!-- Profile Section -->
               <section id="profile" class="settings-section">
                 <EditProfileCard />
               </section>
 
-              <!-- Email Section -->
               <section id="email" class="settings-section">
                 <ChangeEmailCard />
               </section>
@@ -115,7 +108,6 @@
       </v-col>
     </v-row>
 
-    <!-- Snackbar -->
     <v-snackbar
       v-model="snackbar.show"
       :color="snackbar.color"
@@ -137,6 +129,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
+import {useCompanyStore} from '@/stores/company.ts'
 import CompanySettingsCard from '@/components/settings/CompanySettingsCard.vue';
 import EditProfileCard from '@/components/settings/EditProfileForm.vue';
 import ChangeEmailCard from '@/components/settings/ChangeEmailForm.vue';
@@ -146,15 +139,14 @@ interface Company {
   name: string;
 }
 
-// Composables
 const { t } = useI18n();
 const authStore = useAuthStore();
 
-// State
 const isLoading = ref(true);
 const isSavingCompany = ref(false);
 const error = ref<string | null>(null);
 const activeSection = ref('company');
+const companyStore = useCompanyStore();
 
 const companyData = reactive<Partial<Company>>({
   name: '',
@@ -166,7 +158,6 @@ const snackbar = reactive({
   color: 'success' as 'success' | 'error',
 });
 
-// Computed
 const isAdmin = computed(() => authStore.isAdmin);
 
 const navigationSections = computed(() => [
@@ -175,7 +166,6 @@ const navigationSections = computed(() => [
   { id: 'email', title: t('settings.nav.email'), icon: 'mdi-email' },
 ]);
 
-// Methods
 function updateCompanyData(data: Partial<Company>) {
   Object.assign(companyData, data);
 }
@@ -214,6 +204,7 @@ async function saveCompanySettings(name: string) {
   try {
     await api.patch('/company/me/', { name });
     companyData.name = name;
+    companyStore.setCompanyName(name);
     showSnackbar(t('settings.company.saveSuccess'), 'success');
   } catch (err) {
     showSnackbar(t('settings.errors.saveFailed'), 'error');
@@ -237,7 +228,6 @@ function showSnackbar(text: string, color: 'success' | 'error') {
   snackbar.show = true;
 }
 
-// Intersection Observer for active section
 let observer: IntersectionObserver | null = null;
 
 function setupIntersectionObserver() {
@@ -260,7 +250,6 @@ function setupIntersectionObserver() {
   });
 }
 
-// Lifecycle
 onMounted(async () => {
   await fetchCompanyData();
   setupIntersectionObserver();

@@ -31,6 +31,9 @@ export const useCompanyStore = defineStore('company', {
         this.isLoading = false;
       }
     },
+    setCompanyName(name: string) {
+      this.name = name;
+    },
     clearCompanyData() {
       this.name = null;
     }
