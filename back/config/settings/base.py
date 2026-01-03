@@ -83,3 +83,7 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
 CORS_ALLOWED_ORIGINS = [
     os.getenv("FRONTEND_URL", "http://localhost:5173"),
 ]
+
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "")  # opcjonalne, może być puste
