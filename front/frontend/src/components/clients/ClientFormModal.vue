@@ -330,6 +330,8 @@ import { useI18n } from 'vue-i18n';
 import { useClientsStore } from '@/stores/clients';
 import api from '@/api';
 import type { Client, ClientPayload } from '@/types';
+import { useValidation } from '@/composables/useValidation';
+import { extractApiError } from '@/utils/apiErrors';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -344,6 +346,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const clientsStore = useClientsStore();
 const display = useDisplay();
+const { rules: validationRules } = useValidation();
 
 const isMobile = computed(() => display.smAndDown.value);
 
@@ -462,13 +465,25 @@ async function confirmFetchCompanyData() {
 
 async function performFetchCompanyData() {
   const nip = formData.value.nip;
+  const cleanNip = nip.replace(/\D/g, '');
+
+  if (cleanNip.length !== 10) {
+    fetchState.error = t('clients.errors.nipLength');
+    return;
+  }
+
+  const nipValidationResult = validationRules.nip.format(cleanNip);
+  if (nipValidationResult !== true) {
+    fetchState.error = typeof nipValidationResult === 'string'
+      ? nipValidationResult
+      : t('clients.errors.nipInvalid');
+    return;
+  }
 
   fetchState.isFetching = true;
   fetchState.error = null;
 
   try {
-    const cleanNip = nip.replace(/\D/g, '');
-
     interface CompanyDataResponse {
       name?: string;
       address?: string;
@@ -486,17 +501,35 @@ async function performFetchCompanyData() {
         address: response.data.address || '',
         regon: response.data.regon || '',
       };
+    } else {
+      fetchState.error = t('clients.errors.companyNotFound');
     }
   } catch (err: unknown) {
-    const error = err as {
-      response?: { data?: { detail?: string } };
-      message?: string;
-    };
-    fetchState.error =
-      error.response?.data?.detail ?? error.message ?? t('common.errors.serverError');
+    fetchState.error = extractCompanyDataError(err);
   } finally {
     fetchState.isFetching = false;
   }
+}
+function extractCompanyDataError(error: unknown): string {
+  const apiError = extractApiError(error);
+
+  if (apiError.includes('504') || apiError.includes('nie odpowiada')) {
+    return t('clients.errors.gusTimeout');
+  }
+
+  if (apiError.includes('503') || apiError.includes('połączyć')) {
+    return t('clients.errors.gusServiceError');
+  }
+
+  if (apiError.includes('404') || apiError.includes('znaleziono')) {
+    return t('clients.errors.companyNotFound');
+  }
+
+  if (!apiError.includes('Request failed') && !apiError.includes('500')) {
+    return apiError;
+  }
+
+  return t('clients.errors.fetchFailed');
 }
 
 async function handleFormSubmit() {

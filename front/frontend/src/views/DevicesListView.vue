@@ -7,7 +7,6 @@
       @action="handleToolbarAction"
     />
 
-    <!-- Pole wyszukiwania -->
     <div class="mb-4 flex items-center gap-3">
       <v-text-field
         v-model="searchQuery"
@@ -36,12 +35,11 @@
       </DataTable>
     </v-card>
 
-    <!-- Formularze i modale -->
     <DeviceFormModal
       v-model="isFormOpen"
       :editing-device="itemToEdit"
       :newly-added-client-id="newlyCreatedClientId"
-      @save-success="handleFormSave"
+      @save-success="onDeviceFormSave"
       @request-new-client="isClientModalOpen = true"
     />
 
@@ -51,7 +49,6 @@
       @save-success="onClientSaveSuccess"
     />
 
-    <!-- Panel boczny ze szczegółami -->
     <DeviceDetailsDrawer
       v-model="isDetailsDrawerOpen"
       :device="itemToView"
@@ -116,6 +113,9 @@ const itemToView = ref<FiscalDevice | null>(null);
 const isServiceModalOpen = ref(false);
 const itemToPerformService = ref<FiscalDevice | null>(null);
 
+const isClientModalOpen = ref(false);
+const newlyCreatedClientId = ref<number | null>(null);
+
 const { devices, isLoading } = storeToRefs(devicesStore);
 
 const {
@@ -171,9 +171,6 @@ const {
     },
   },
 });
-
-const isClientModalOpen = ref(false);
-const newlyCreatedClientId = ref<number | null>(null);
 
 const deviceHeaders = computed(() => getDeviceHeaders(t));
 
@@ -240,6 +237,11 @@ async function handlePerformServiceConfirm(technicianId: number) {
     isPerformingService.value = false;
     itemToPerformService.value = null;
   }
+}
+
+function onDeviceFormSave(message: string) {
+  handleFormSave(message);
+  newlyCreatedClientId.value = null;
 }
 
 function onClientSaveSuccess(message: string, newClient?: Client) {

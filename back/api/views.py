@@ -613,20 +613,68 @@ class DashboardView(APIView):
         return Response(stats, status=status.HTTP_200_OK)
 
 
+import re
+
+
+def validate_nip(nip: str) -> tuple[bool, str]:
+    cleaned = re.sub(r'\D', '', nip)
+
+    if len(cleaned) != 10:
+        return False, "NIP musi składać się z 10 cyfr"
+
+    weights = [6, 5, 7, 2, 3, 4, 5, 6, 7]
+    checksum = sum(int(cleaned[i]) * weights[i] for i in range(9)) % 11
+
+    if checksum != int(cleaned[9]):
+        return False, "Nieprawidłowy numer NIP (błędna suma kontrolna)"
+
+    return True, cleaned
+
+
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def fetch_company_data(request, nip):
+    is_valid, result = validate_nip(nip)
+    if not is_valid:
+        return Response(
+            {"detail": result},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    cleaned_nip = result
     today = datetime.today().strftime("%Y-%m-%d")
-    url = f"https://wl-api.mf.gov.pl/api/search/nip/{nip}?date={today}"
+    url = f"https://wl-api.mf.gov.pl/api/search/nip/{cleaned_nip}?date={today}"
+
     try:
         with requests.Session() as session:
             response = session.get(url, timeout=10)
+
+            if response.status_code == 400:
+                return Response(
+                    {"detail": "Nieprawidłowy format zapytania do API MF"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
             response.raise_for_status()
+
         data = response.json()
-        if 'code' in data or 'subject' not in data.get('result', {}):
-            return Response({"detail": data.get('message', "Nie znaleziono firmy lub wystąpił błąd.")},
-                            status=status.HTTP_404_NOT_FOUND)
-        subject_data = data['result']['subject']
+
+        if 'code' in data:
+            error_msg = data.get('message', 'Błąd API Ministerstwa Finansów')
+            return Response(
+                {"detail": error_msg},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        result_data = data.get('result', {})
+        subject_data = result_data.get('subject')
+
+        if not subject_data:
+            return Response(
+                {"detail": "Nie znaleziono firmy o podanym NIP w rejestrze"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         cleaned_data = {
             'name': subject_data.get('name', ''),
             'nip': subject_data.get('nip', ''),
@@ -635,11 +683,27 @@ def fetch_company_data(request, nip):
         }
         return Response(cleaned_data, status=status.HTTP_200_OK)
     except requests.exceptions.Timeout:
-        return Response({"detail": "Serwer MF nie odpowiada."}, status=status.HTTP_504_GATEWAY_TIMEOUT)
+        return Response(
+            {"detail": "Serwer Ministerstwa Finansów nie odpowiada. Spróbuj ponownie później."},
+            status=status.HTTP_504_GATEWAY_TIMEOUT
+        )
+    except requests.exceptions.ConnectionError:
+        return Response(
+            {"detail": "Nie można połączyć się z usługą Białej Listy. Sprawdź połączenie internetowe."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
     except requests.exceptions.RequestException as e:
-        print(f"Fetch company data error: {e}")
-        return Response({"detail": "Nie można połączyć się z usługą Białej Listy."},
-                        status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        logger.error(f"Fetch company data error for NIP {cleaned_nip}: {e}")
+        return Response(
+            {"detail": "Wystąpił błąd podczas pobierania danych z API MF"},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
+        )
+    except (KeyError, ValueError, json.JSONDecodeError) as e:
+        logger.error(f"Parse error for NIP {cleaned_nip}: {e}")
+        return Response(
+            {"detail": "Otrzymano nieprawidłową odpowiedź z API MF"},
+            status=status.HTTP_502_BAD_GATEWAY
+        )
 
 import traceback
 import logging

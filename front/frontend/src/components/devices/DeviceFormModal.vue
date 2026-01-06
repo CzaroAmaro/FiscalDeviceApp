@@ -484,15 +484,21 @@ import { useDevicesStore } from '@/stores/devices';
 import { useClientsStore } from '@/stores/clients';
 import { useManufacturersStore } from '@/stores/manufacturers';
 import { useSnackbarStore } from '@/stores/snackbar';
+import { extractApiError } from '@/utils/apiErrors';
 import type { FiscalDevice, DevicePayload, Manufacturer, Client } from '@/types';
 import ManufacturerFormModal from '@/components/manufacturers/ManufacturerFormModal.vue';
 import DatePicker from '@/components/common/DatePicker.vue';
 
-const props = defineProps<{
-  modelValue: boolean;
-  editingDevice: FiscalDevice | null;
-  newlyAddedClientId: number | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean;
+    editingDevice: FiscalDevice | null;
+    newlyAddedClientId?: number | null;
+  }>(),
+  {
+    newlyAddedClientId: null,
+  }
+);
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void;
@@ -675,7 +681,7 @@ async function handleFormSubmit() {
     devicesStore.fetchDevices(true);
   } catch (error) {
     console.error('Błąd zapisu urządzenia:', error);
-    state.value.error = error instanceof Error ? error.message : t('common.errors.unknown');
+    state.value.error = extractApiError(error, t('common.errors.unknown'));
   } finally {
     state.value.isSaving = false;
   }
@@ -707,6 +713,12 @@ watch(() => props.editingDevice, (newDevice) => {
     populateFormFromDevice(newDevice);
   }
 }, { immediate: true });
+
+watch(() => props.newlyAddedClientId, (newClientId) => {
+  if (newClientId && props.modelValue && !isEditing.value) {
+    formData.value.owner = newClientId;
+  }
+});
 
 onMounted(() => {
   clientsStore.fetchClients();

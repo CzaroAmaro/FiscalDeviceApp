@@ -115,6 +115,15 @@
       "overwriteTitle": "Nadpisać dane?",
       "overwriteMessage": "Formularz zawiera już wprowadzone dane. Czy chcesz je nadpisać danymi z bazy GUS?"
     },
+    "errors": {
+      "nipLength": "NIP musi składać się z 10 cyfr",
+      "nipInvalid": "Nieprawidłowy numer NIP (błędna suma kontrolna)",
+      "companyNotFound": "Nie znaleziono firmy o podanym NIP w rejestrze",
+      "gusServiceError": "Usługa GUS jest chwilowo niedostępna. Spróbuj ponownie później",
+      "gusTimeout": "Serwer nie odpowiada. Spróbuj ponownie później",
+      "connectionError": "Błąd połączenia z usługą. Sprawdź połączenie internetowe",
+      "fetchFailed": "Nie udało się pobrać danych firmy"
+    },
     "details": {
       "clientSince": "Klient od {date}",
       "noAddress": "Brak adresu",

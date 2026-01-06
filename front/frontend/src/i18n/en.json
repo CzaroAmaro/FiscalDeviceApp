@@ -116,6 +116,15 @@
       "overwriteTitle": "Overwrite data?",
       "overwriteMessage": "The form already contains entered data. Do you want to overwrite it with data from the GUS database?"
     },
+    "errors": {
+      "nipLength": "NIP must consist of 10 digits",
+      "nipInvalid": "Invalid NIP number (incorrect checksum)",
+      "companyNotFound": "No company found with the given NIP in the registry",
+      "gusServiceError": "GUS service is temporarily unavailable. Please try again later",
+      "gusTimeout": "Server is not responding. Please try again later",
+      "connectionError": "Connection error. Please check your internet connection",
+      "fetchFailed": "Failed to fetch company data"
+    },
     "details": {
       "clientSince": "Client since {date}",
       "noAddress": "No address",

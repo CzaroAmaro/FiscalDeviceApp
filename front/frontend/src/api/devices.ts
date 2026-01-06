@@ -26,29 +26,21 @@ export const getDevicesForSelect = async (filters: { clients?: number[], brands?
     const res = await api.get('/devices/', { params });
 
     const data = res.data;
-    // przypadek: odpowiedź jest bezpośrednią tablicą
     if (Array.isArray(data)) {
       return data as FiscalDevice[];
     }
-    // przypadek: paginacja DRF: { count, next, previous, results: [...] }
     if (data && Array.isArray((data as any).results)) {
       return (data as any).results as FiscalDevice[];
     }
 
-    // Nieoczekiwany kształt odpowiedzi - logujemy i zwracamy pustą tablicę
     console.warn('[getDevicesForSelect] Unexpected response shape for /devices/:', data);
     return [];
   } catch (error) {
     console.error('[getDevicesForSelect] Błąd pobierania /devices/:', error);
-    // zamiast rzucać — zwracamy pustą tablicę aby UI nie crashował; można też przepuścić błąd dalej
     return [];
   }
 };
 
-/**
- * Pobiera raport PDF dla danego urządzenia i inicjuje pobieranie w przeglądarce.
- * @param deviceId ID urządzenia
- */
 export const downloadDeviceReport = async (deviceId: number): Promise<void> => {
   try {
     const response = await api.get(`/devices/${deviceId}/export-pdf/`, {
