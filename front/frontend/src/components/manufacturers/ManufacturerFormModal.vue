@@ -6,7 +6,6 @@
     :fullscreen="isMobile"
   >
     <v-card class="manufacturer-form-card" rounded="lg">
-      <!-- Nagłówek -->
       <div class="form-header">
         <div class="d-flex align-center">
           <v-avatar
@@ -39,10 +38,8 @@
 
       <v-divider />
 
-      <!-- Formularz -->
       <v-card-text class="form-content">
         <v-form ref="formRef" @submit.prevent="handleFormSubmit">
-          <!-- Alert błędu -->
           <v-alert
             v-if="state.error"
             type="error"
@@ -58,7 +55,6 @@
             {{ state.error }}
           </v-alert>
 
-          <!-- Sekcja: Dane producenta -->
           <div class="form-section">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-information</v-icon>
@@ -81,7 +77,6 @@
               </template>
             </v-text-field>
 
-            <!-- Podpowiedź -->
             <v-alert
               type="info"
               variant="tonal"
@@ -97,7 +92,6 @@
             </v-alert>
           </div>
 
-          <!-- Podgląd (opcjonalnie) -->
           <div v-if="formData.name" class="preview-section mt-6">
             <h3 class="section-title">
               <v-icon start size="18" color="primary">mdi-eye</v-icon>
@@ -164,12 +158,11 @@ import { ref, computed, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 import { useI18n } from 'vue-i18n';
 import { useManufacturersStore } from '@/stores/manufacturers';
+import { extractApiError } from '@/utils/apiErrors';
 import type { Manufacturer } from '@/types';
 
-// Types
 type ManufacturerPayload = Pick<Manufacturer, 'name'>;
 
-// Props & Emits
 const props = defineProps<{
   modelValue: boolean;
   editingManufacturer: Manufacturer | null;
@@ -180,18 +173,14 @@ const emit = defineEmits<{
   (e: 'save-success', message: string, newManufacturer?: Manufacturer): void;
 }>();
 
-// Composables
 const { t } = useI18n();
 const manufacturersStore = useManufacturersStore();
 const display = useDisplay();
 
-// Responsive
 const isMobile = computed(() => display.smAndDown.value);
 
-// Form ref
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }>; reset: () => void } | null>(null);
 
-// State
 const state = ref({
   isSaving: false,
   error: '',
@@ -203,7 +192,6 @@ const getInitialFormData = (): ManufacturerPayload => ({
 
 const formData = ref<ManufacturerPayload>(getInitialFormData());
 
-// Computed
 const isDialogOpen = computed({
   get: () => props.modelValue,
   set: (val: boolean) => emit('update:modelValue', val),
@@ -217,12 +205,10 @@ const formTitle = computed(() =>
     : t('manufacturers.forms.addTitle')
 );
 
-// Validation rules
 const rules = {
   required: (v: string | null | undefined) => !!v?.trim() || t('validation.required'),
 };
 
-// Methods
 function getInitials(name: string): string {
   if (!name) return '?';
   return name
@@ -249,7 +235,6 @@ function closeDialog() {
 }
 
 async function handleFormSubmit() {
-  // Walidacja formularza
   const validation = await formRef.value?.validate();
   if (!validation?.valid) {
     return;
@@ -279,13 +264,12 @@ async function handleFormSubmit() {
     manufacturersStore.fetchManufacturers(true);
   } catch (error) {
     console.error('Błąd zapisu producenta:', error);
-    state.value.error = error instanceof Error ? error.message : t('common.errors.unknown');
+    state.value.error = extractApiError(error, t('common.errors.unknown'));
   } finally {
     state.value.isSaving = false;
   }
 }
 
-// Watchers
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     if (props.editingManufacturer) {
@@ -308,7 +292,6 @@ watch(() => props.editingManufacturer, (newManufacturer) => {
   overflow: hidden;
 }
 
-/* Header */
 .form-header {
   display: flex;
   align-items: center;
@@ -321,12 +304,10 @@ watch(() => props.editingManufacturer, (newManufacturer) => {
   );
 }
 
-/* Content */
 .form-content {
   padding: 24px;
 }
 
-/* Section */
 .form-section,
 .preview-section {
   margin-bottom: 8px;
@@ -343,20 +324,17 @@ watch(() => props.editingManufacturer, (newManufacturer) => {
   margin-bottom: 16px;
 }
 
-/* Footer */
 .form-footer {
   padding: 16px 24px;
   background: rgb(var(--v-theme-surface));
 }
 
-/* Preview card */
 .preview-card {
   border-radius: 12px;
   background: rgba(var(--v-theme-primary), 0.02);
   border-color: rgba(var(--v-theme-primary), 0.2);
 }
 
-/* Form fields */
 :deep(.v-field) {
   border-radius: 10px;
 }
@@ -365,7 +343,6 @@ watch(() => props.editingManufacturer, (newManufacturer) => {
   padding-right: 8px;
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .form-header {
     padding: 16px;
