@@ -31,21 +31,6 @@
             class="font-weight-bold text-h6 px-6"
           >
             {{ activationCode }}
-            <template #append>
-              <v-btn
-                icon
-                size="small"
-                variant="text"
-                color="white"
-                class="ml-2"
-                @click="copyCode"
-              >
-                <v-icon>{{ copied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
-                <v-tooltip activator="parent" location="top">
-                  {{ copied ? $t('payment.success.codeCopied') : $t('payment.success.copyCode') }}
-                </v-tooltip>
-              </v-btn>
-            </template>
           </v-chip>
         </div>
 
