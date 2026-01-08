@@ -655,7 +655,7 @@
       "format": "Username can only contain letters, numbers, underscores and hyphens",
       "noStartWithNumber": "Username cannot start with a number"
     },
-    "emailField": {
+    "email": {
       "required": "Email address is required",
       "format": "Please enter a valid email address",
       "maxLength": "Email address is too long"
@@ -667,7 +667,7 @@
       "hasUppercase": "Password must contain at least one uppercase letter",
       "hasLowercase": "Password must contain at least one lowercase letter",
       "hasNumber": "Password must contain at least one number",
-      "hasSpecialChar": "Password must contain at least one special character (!{'@'}#$%^&* etc.)",
+      "hasSpecialChar": "Password must contain at least one special character (!@#$%^&* etc.)",
       "noSpaces": "Password cannot contain spaces",
       "notCommon": "This password is too common and easy to guess",
       "strength": {
@@ -687,9 +687,9 @@
     "phone": {
       "format": "Please enter a valid phone number"
     },
-    "nipField": {
+    "nip": {
       "format": "NIP must consist of 10 digits",
-      "invalid": "Invalid NIP number"
+      "invalid": "Invalid NIP number (incorrect checksum)"
     },
     "postalCode": {
       "format": "Postal code must be in XX-XXX format"
@@ -900,19 +900,24 @@
   },
   "payment": {
     "success": {
-      "title": "Payment Successful",
-      "message": "Thank you for your purchase! Your license has been activated.",
+      "title": "Payment Successful!",
+      "message": "Here is your unique activation code. Copy it and use it on the activation page to unlock full access to the application.",
       "backToDashboard": "Back to dashboard",
       "activationCode": "Your activation code:",
       "copyCode": "Copy code",
-      "codeCopied": "Activation code copied to clipboard",
-      "copyFailed": "Failed to copy activation code",
-      "goToActivation": "Go to License Activation",
-      "copyHint": "You can copy the code and activate your license in the settings.",
-      "verifying": "Verifying payment...",
-      "noSessionId": "No session ID provided.",
-      "fetchError": "An error occurred while verifying the payment.",
-      "serverError": "Server error occurred during payment verification."
+      "codeCopied": "Copied!",
+      "copyFailed": "Error - copy manually",
+      "goToActivation": "Go to activation",
+      "copyHint": "Select and copy manually (Ctrl+C)",
+      "verifying": "Verifying payment and generating code...",
+      "noSessionId": "Missing payment session identifier in URL.",
+      "fetchError": "Failed to retrieve activation code. Check your codes on the profile page or contact support.",
+      "serverError": "A server error occurred. Please try again in a moment.",
+      "emailSent": {
+        "title": "Email has been sent",
+        "message": "Activation code has also been sent to: {email}",
+        "hint": "Check your spam folder if the email hasn't arrived."
+      }
     },
     "cancel": {
       "title": "Payment Cancelled",

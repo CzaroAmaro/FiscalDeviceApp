@@ -654,7 +654,7 @@
       "format": "Nazwa użytkownika może zawierać tylko litery, cyfry, podkreślenia i myślniki",
       "noStartWithNumber": "Nazwa użytkownika nie może zaczynać się od cyfry"
     },
-    "emailField": {
+    "email": {
       "required": "Adres e-mail jest wymagany",
       "format": "Podaj poprawny adres e-mail",
       "maxLength": "Adres e-mail jest zbyt długi"
@@ -666,7 +666,7 @@
       "hasUppercase": "Hasło musi zawierać co najmniej jedną wielką literę",
       "hasLowercase": "Hasło musi zawierać co najmniej jedną małą literę",
       "hasNumber": "Hasło musi zawierać co najmniej jedną cyfrę",
-      "hasSpecialChar": "Hasło musi zawierać co najmniej jeden znak specjalny (!{'@'}#$%^&* itp.)",
+      "hasSpecialChar": "Hasło musi zawierać co najmniej jeden znak specjalny (!@#$%^&* itp.)",
       "noSpaces": "Hasło nie może zawierać spacji",
       "notCommon": "To hasło jest zbyt popularne i łatwe do odgadnięcia",
       "strength": {
@@ -686,9 +686,9 @@
     "phone": {
       "format": "Podaj poprawny numer telefonu"
     },
-    "nipField": {
+    "nip": {
       "format": "NIP musi składać się z 10 cyfr",
-      "invalid": "Nieprawidłowy numer NIP"
+      "invalid": "Nieprawidłowy numer NIP (błędna suma kontrolna)"
     },
     "postalCode": {
       "format": "Kod pocztowy musi być w formacie XX-XXX"
@@ -899,11 +899,11 @@
   },
   "payment": {
     "success": {
-      "title": "Płatność zakończona pomyślnie",
-      "message": "Dziękujemy za zakup! Twoja licencja została aktywowana.",
-      "backToDashboard": "Powrót do pulpitu",
+      "title": "Płatność zakończona sukcesem!",
+      "message": "Oto Twój unikalny kod aktywacyjny. Skopiuj go i użyj na stronie aktywacji, aby odblokować pełny dostęp do aplikacji.",
+      "backToDashboard": "Wróć do strony głównej",
       "activationCode": "Twój kod aktywacyjny:",
-      "copyCode": "Skopiuj kod",
+      "copyCode": "Kopiuj kod",
       "codeCopied": "Skopiowano!",
       "copyFailed": "Błąd - skopiuj ręcznie",
       "goToActivation": "Przejdź do aktywacji",
@@ -911,7 +911,12 @@
       "verifying": "Weryfikowanie płatności i generowanie kodu...",
       "noSessionId": "Brak identyfikatora sesji płatności w adresie URL.",
       "fetchError": "Nie udało się pobrać kodu aktywacyjnego. Sprawdź swoje kody na stronie profilu lub skontaktuj się z pomocą.",
-      "serverError": "Wystąpił błąd serwera. Spróbuj ponownie za chwilę."
+      "serverError": "Wystąpił błąd serwera. Spróbuj ponownie za chwilę.",
+      "emailSent": {
+        "title": "Wiadomość email została wysłana",
+        "message": "Kod aktywacyjny został również wysłany na adres: {email}",
+        "hint": "Sprawdź również folder spam, jeśli wiadomość nie dotarła."
+      }
     },
     "cancel": {
       "title": "Płatność anulowana",

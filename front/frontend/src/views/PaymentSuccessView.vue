@@ -3,25 +3,24 @@
     <v-card width="550" class="text-center pa-6">
       <div v-if="isLoading">
         <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
-        <p class="mt-4 text-body-1">Weryfikowanie płatności i generowanie kodu...</p>
+        <p class="mt-4 text-body-1">{{ $t('payment.success.verifying') }}</p>
       </div>
 
       <div v-else-if="error">
         <v-icon size="64" color="error" class="mb-4">mdi-close-circle-outline</v-icon>
-        <v-card-title class="text-h5 text-error">Wystąpił błąd</v-card-title>
+        <v-card-title class="text-h5 text-error">{{ $t('common.errors.unknown') }}</v-card-title>
         <v-card-text class="text-body-1">{{ error }}</v-card-text>
         <v-card-actions class="justify-center">
-          <v-btn color="primary" :to="{ name: 'home' }">Wróć do strony głównej</v-btn>
+          <v-btn color="primary" :to="{ name: 'home' }">{{ $t('payment.success.backToDashboard') }}</v-btn>
         </v-card-actions>
       </div>
 
       <div v-else-if="activationCode">
         <v-icon size="64" color="success" class="mb-4">mdi-check-decagram</v-icon>
-        <v-card-title class="text-h5 text-success">Płatność zakończona sukcesem!</v-card-title>
+        <v-card-title class="text-h5 text-success">{{ $t('payment.success.title') }}</v-card-title>
 
         <v-card-text class="text-body-1">
-          Oto Twój unikalny kod aktywacyjny. Skopiuj go i użyj na stronie aktywacji,
-          aby odblokować pełny dostęp do aplikacji.
+          {{ $t('payment.success.message') }}
         </v-card-text>
 
         <div class="my-5">
@@ -43,7 +42,7 @@
               >
                 <v-icon>{{ copied ? 'mdi-check' : 'mdi-content-copy' }}</v-icon>
                 <v-tooltip activator="parent" location="top">
-                  {{ copied ? 'Skopiowano!' : 'Kopiuj kod' }}
+                  {{ copied ? $t('payment.success.codeCopied') : $t('payment.success.copyCode') }}
                 </v-tooltip>
               </v-btn>
             </template>
@@ -58,14 +57,13 @@
           icon="mdi-email-check-outline"
         >
           <v-alert-title class="text-subtitle-1 font-weight-medium">
-            Wiadomość email została wysłana
+            {{ $t('payment.success.emailSent.title') }}
           </v-alert-title>
           <div class="text-body-2 mt-1">
-            Kod aktywacyjny został również wysłany na adres:
-            <strong>{{ emailSentTo }}</strong>
+            {{ $t('payment.success.emailSent.message', { email: emailSentTo }) }}
           </div>
           <div class="text-caption text-medium-emphasis mt-2">
-            Sprawdź również folder spam, jeśli wiadomość nie dotarła.
+            {{ $t('payment.success.emailSent.hint') }}
           </div>
         </v-alert>
 
@@ -77,7 +75,7 @@
             :to="{ name: 'redeem-code' }"
             prepend-icon="mdi-key-variant"
           >
-            Przejdź do aktywacji
+            {{ $t('payment.success.goToActivation') }}
           </v-btn>
         </v-card-actions>
       </div>
@@ -88,8 +86,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { handlePaymentSuccess } from '@/api/payments';
 
+const { t } = useI18n();
 const route = useRoute();
 const isLoading = ref(true);
 const activationCode = ref<string | null>(null);
@@ -107,14 +107,14 @@ const copyCode = async () => {
       copied.value = false;
     }, 2000);
   } catch (err) {
-    console.error('Nie udało się skopiować kodu:', err);
+    console.error('Failed to copy code:', err);
   }
 };
 
 onMounted(async () => {
   const sessionId = route.query.session_id as string;
   if (!sessionId) {
-    error.value = 'Brak identyfikatora sesji płatności w adresie URL.';
+    error.value = t('payment.success.noSessionId');
     isLoading.value = false;
     return;
   }
@@ -125,10 +125,10 @@ onMounted(async () => {
       activationCode.value = response.code;
       emailSentTo.value = response.email_sent_to || null;
     } else {
-      error.value = response.error || 'Nie udało się pobrać kodu aktywacyjnego. Sprawdź swoje kody na stronie profilu lub skontaktuj się z pomocą.';
+      error.value = response.error || t('payment.success.fetchError');
     }
   } catch (err) {
-    error.value = 'Wystąpił błąd serwera. Spróbuj ponownie za chwilę.';
+    error.value = t('payment.success.serverError');
   } finally {
     isLoading.value = false;
   }
