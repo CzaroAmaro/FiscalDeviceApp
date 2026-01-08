@@ -86,7 +86,7 @@ def send_device_inspection_reminder(self, device_id, trigger_user_id=None):
     msg = EmailMultiAlternatives(
         subject=subject,
         body=text_body,
-        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER),
+        from_email=settings.DEFAULT_FROM_EMAIL,
         to=[recipient_email],
     )
     msg.attach_alternative(html_body, "text/html")
