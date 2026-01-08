@@ -80,21 +80,6 @@ const isLoading = ref(true);
 const activationCode = ref<string | null>(null);
 const emailSentTo = ref<string | null>(null);
 const error = ref<string | null>(null);
-const copied = ref(false);
-
-const copyCode = async () => {
-  if (!activationCode.value) return;
-
-  try {
-    await navigator.clipboard.writeText(activationCode.value);
-    copied.value = true;
-    setTimeout(() => {
-      copied.value = false;
-    }, 2000);
-  } catch (err) {
-    console.error('Failed to copy code:', err);
-  }
-};
 
 onMounted(async () => {
   const sessionId = route.query.session_id as string;

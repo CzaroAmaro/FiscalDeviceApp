@@ -207,7 +207,7 @@ def send_activation_code_email(self, activation_code_id):
         msg = EmailMultiAlternatives(
             subject=subject,
             body=text_body,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', settings.EMAIL_HOST_USER),
+            from_email=settings.DEFAULT_FROM_EMAIL,
             to=[recipient_email],
         )
 
