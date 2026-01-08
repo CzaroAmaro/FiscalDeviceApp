@@ -1,0 +1,27 @@
+Dziękujemy za zakup!
+
+Witaj,
+
+Twoja płatność została pomyślnie zrealizowana. Poniżej znajdziesz swój unikalny kod aktywacyjny:
+
+╔══════════════════════════════════════╗
+   KOD AKTYWACYJNY: {{ activation_code }}
+╚══════════════════════════════════════╝
+
+Jak użyć kodu:
+1. Zaloguj się do aplikacji FiscalLink
+2. Przejdź do strony aktywacji kodu: {{ redeem_url }}
+3. Wprowadź powyższy kod i kliknij "Aktywuj"
+
+Ważne informacje:
+- Kod jest jednorazowy i może być użyty tylko raz
+- Kod wygasa: {{ expires_at }}
+- Zachowaj tę wiadomość na wypadek potrzeby ponownego użycia kodu
+
+Jeśli masz pytania lub potrzebujesz pomocy, skontaktuj się z nami odpowiadając na tę wiadomość.
+
+Z poważaniem,
+Zespół FiscalLink
+---
+Ta wiadomość została wygenerowana automatycznie.
+Prosimy nie odpowiadać bezpośrednio na ten e-mail.

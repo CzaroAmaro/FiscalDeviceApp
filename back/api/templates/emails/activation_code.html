@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twój kod aktywacyjny</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: #ffffff;
+            padding: 30px 40px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .success-badge {
+            background-color: #E8F5E9;
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .success-badge .checkmark {
+            color: #4CAF50;
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .success-badge span {
+            color: #2E7D32;
+            font-weight: 600;
+        }
+        .code-box {
+            background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+            border: 2px dashed #1976D2;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .code-label {
+            color: #1565C0;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .code-value {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 28px;
+            font-weight: bold;
+            color: #0D47A1;
+            letter-spacing: 3px;
+            background-color: #ffffff;
+            padding: 15px 25px;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .instructions {
+            background-color: #FAFAFA;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #424242;
+            font-size: 16px;
+        }
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 10px;
+            color: #616161;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            box-shadow: 0 3px 6px rgba(25, 118, 210, 0.3);
+        }
+        .cta-button:hover {
+            background: linear-gradient(135deg, #1565C0 0%, #0D47A1 100%);
+        }
+        .info-box {
+            background-color: #FFF8E1;
+            border-left: 4px solid #FFC107;
+            padding: 15px 20px;
+            margin: 25px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .info-box h4 {
+            margin: 0 0 10px 0;
+            color: #F57C00;
+            font-size: 14px;
+        }
+        .info-box ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #795548;
+        }
+        .info-box li {
+            margin-bottom: 5px;
+        }
+        .footer {
+            background-color: #ECEFF1;
+            padding: 25px 40px;
+            text-align: center;
+            color: #78909C;
+            font-size: 13px;
+        }
+        .footer a {
+            color: #1976D2;
+            text-decoration: none;
+        }
+        .divider {
+            height: 1px;
+            background-color: #E0E0E0;
+            margin: 20px 0;
+        }
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 25px;
+            }
+            .code-value {
+                font-size: 20px;
+                letter-spacing: 2px;
+                padding: 12px 18px;
+            }
+            .header {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">🎉</div>
+            <h1>Dziękujemy za zakup!</h1>
+        </div>
+
+        <div class="content">
+            <div class="success-badge">
+                <span class="checkmark">✓</span>
+                <span>Płatność została pomyślnie zrealizowana</span>
+            </div>
+
+            <p>Witaj,</p>
+            <p>Twoja transakcja przebiegła pomyślnie. Poniżej znajdziesz swój unikalny kod aktywacyjny, który umożliwi Ci pełny dostęp do aplikacji <strong>Serwisant</strong>.</p>
+
+            <div class="code-box">
+                <div class="code-label">Twój kod aktywacyjny</div>
+                <div class="code-value">{{ activation_code }}</div>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{ redeem_url }}" class="cta-button">Aktywuj teraz →</a>
+            </div>
+
+            <div class="instructions">
+                <h3>📋 Jak aktywować kod?</h3>
+                <ol>
+                    <li>Zaloguj się do aplikacji <strong>Serwisant</strong></li>
+                    <li>Przejdź do <a href="{{ redeem_url }}">strony aktywacji kodu</a></li>
+                    <li>Wprowadź powyższy kod w odpowiednie pole</li>
+                    <li>Kliknij przycisk <strong>"Aktywuj"</strong></li>
+                </ol>
+            </div>
+
+            <div class="info-box">
+                <h4>⚠️ Ważne informacje</h4>
+                <ul>
+                    <li>Kod jest <strong>jednorazowy</strong> i może być użyty tylko raz</li>
+                    <li>Data ważności kodu: <strong>{{ expires_at }}</strong></li>
+                    <li>Zachowaj tę wiadomość do momentu aktywacji kodu</li>
+                </ul>
+            </div>
+
+            <div class="divider"></div>
+
+            <p style="color: #757575; font-size: 14px;">
+                Jeśli masz pytania lub potrzebujesz pomocy z aktywacją, odpowiedz na tę wiadomość, a nasz zespół wsparcia chętnie Ci pomoże.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p><strong>Zespół FiscalLink</strong></p>
+            <p>Ta wiadomość została wygenerowana automatycznie.</p>
+            <div class="divider"></div>
+            <p style="font-size: 11px; color: #90A4AE;">
+                © {{ current_year }} FiscalLink. Wszelkie prawa zastrzeżone.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

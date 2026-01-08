@@ -823,13 +823,16 @@ def handle_payment_success(request):
 
         activation = ActivationCode.objects.filter(order=order).first()
         if not activation:
-            # To oznacza, że webhook go jeszcze nie utworzył
             return Response(
                 {'status': 'processing', 'message': 'Kod aktywacyjny jest w trakcie generowania.'},
                 status=status.HTTP_202_ACCEPTED
             )
 
-        return Response({'code': activation.code}, status=status.HTTP_200_OK)
+        # Zwracamy kod oraz email, na który wysłano wiadomość
+        return Response({
+            'code': activation.code,
+            'email_sent_to': activation.email or order.email,
+        }, status=status.HTTP_200_OK)
 
     except stripe.error.StripeError as e:
         return Response({'error': f'Błąd Stripe: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -889,7 +892,13 @@ def stripe_webhook(request):
 
                 code_obj = ActivationCode.objects.filter(order=order).first()
                 if not code_obj:
-                    ActivationCode.create_for_order(order=order, email=order.email)
+                    code_obj = ActivationCode.create_for_order(order=order, email=order.email)
+
+                    from api.tasks import send_activation_code_email
+                    send_activation_code_email.delay(activation_code_id=code_obj.id)
+
+                    logger.info(
+                        f"stripe_webhook: Created activation code {code_obj.code} for order {order.id} and scheduled email")
 
         return Response({'status': 'success'}, status=200)
 
@@ -899,7 +908,6 @@ def stripe_webhook(request):
         print(tb, flush=True)
         logger.exception("stripe_webhook failed")
         return Response({'error': 'webhook failed'}, status=500)
-
 
 
 @api_view(['GET'])
