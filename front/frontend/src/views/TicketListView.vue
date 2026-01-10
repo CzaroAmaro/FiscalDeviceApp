@@ -81,7 +81,6 @@
           <span>{{ t('common.confirmDelete') }}</span>
         </v-card-title>
         <v-card-text class="pb-2">
-          {{ confirmMessage }}
           <br>
           <span class="text-medium-emphasis">{{ t('common.confirmDeleteMsg') }}</span>
         </v-card-text>

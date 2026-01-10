@@ -72,7 +72,7 @@
     <v-dialog v-model="isConfirmOpen" max-width="500" persistent>
       <v-card>
         <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
-        <v-card-text>{{ t('common.confirmDeleteMsg') }}<br>{{ t('common.confirmDeleteMsg') }}</v-card-text>
+        <v-card-text>{{ t('common.confirmDeleteMsg') }}</v-card-text>
         <v-card-actions>
           <v-spacer/>
           <v-btn text :disabled="isDeleting" @click="isConfirmOpen = false">{{ t('common.cancel') }}</v-btn>

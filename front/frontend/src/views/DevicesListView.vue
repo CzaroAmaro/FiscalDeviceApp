@@ -67,8 +67,7 @@
       <v-card>
         <v-card-title class="text-h5">{{ t('common.confirmDelete') }}</v-card-title>
         <v-card-text>
-          {{ confirmMessage }}
-          <br>{{ t('common.confirmDeleteMsg') }}
+          {{ t('common.confirmDeleteMsg') }}
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
