@@ -31,7 +31,7 @@
 import { ref, computed } from 'vue';
 
 const props = defineProps<{
-  modelValue: string | null; // Wartość z v-model (zawsze string YYYY-MM-DD lub null)
+  modelValue: string | null;
   label?: string;
   rules?: any[];
   clearable?: boolean;
@@ -43,32 +43,21 @@ const emit = defineEmits<{
 
 const menu = ref(false);
 
-/**
- * Formatuje datę do stringa YYYY-MM-DD.
- * To jest wewnętrzna funkcja pomocnicza komponentu.
- */
 function formatDateToString(date: Date | string | null | undefined): string | null {
   if (!date) return null;
   try {
     const d = new Date(date);
     if (isNaN(d.getTime())) return null;
-    return d.toLocaleDateString('sv-SE'); // Prosty trik na format YYYY-MM-DD
+    return d.toLocaleDateString('sv-SE');
   } catch (e) {
     return null;
   }
 }
 
-/**
- * Właściwość computed do obsługi v-model na v-date-picker.
- * v-date-picker pracuje na obiektach Date, a my chcemy przechowywać stringi.
- * Ta właściwość jest "mostem" między tymi dwoma światami.
- */
 const dateValue = computed({
-  // Getter: konwertuje string z modelu na obiekt Date dla v-date-pickera
   get() {
     return props.modelValue ? new Date(props.modelValue) : null;
   },
-  // Setter: pobiera obiekt Date z v-date-pickera, formatuje go i emituje na zewnątrz
   set(val: Date | null) {
     emit('update:modelValue', formatDateToString(val));
   },

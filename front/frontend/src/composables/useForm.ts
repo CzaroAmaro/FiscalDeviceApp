@@ -2,13 +2,6 @@ import type { Ref } from 'vue';
 import { computed,reactive, ref } from 'vue';
 import type { VForm } from 'vuetify/components';
 
-/**
- * Generyczny composable do zarządzania formularzem.
- *
- * TPayload - kształt payloadu wysyłanego do API / store
- * TItem - typ edytowanego elementu (np. Client | null)
- * TResult - rezultat zwracany przez addFn/updateFn (np. Client)
- */
 export type FormPayload = Record<string, unknown>;
 export type EditableItem<TId extends number = number> = { id: TId } | null;
 export type TransformPayloadFn<T extends FormPayload> = (payload: T) => T;
@@ -38,23 +31,15 @@ export function useForm<
   function resetForm() {
     state.error = null;
     if (isEditing.value && editingItem.value) {
-      // === NOWA, POPRAWNA LOGIKA ===
-      // 1. Zresetuj formularz do stanu początkowego, aby wyczyścić stare dane.
       Object.assign(formData, initialData);
 
-      // 2. Jeśli istnieje specjalna funkcja transformująca, użyj jej.
       if (transformItemToForm) {
         const transformedData = transformItemToForm(editingItem.value);
         Object.assign(formData, transformedData);
       } else {
-        // 3. W przeciwnym razie użyj starej, prostej logiki (dla prostszych przypadków).
-        // UWAGA: To nadal może powodować problemy dla złożonych obiektów,
-        // dlatego użycie transformItemToForm jest zalecane.
         Object.assign(formData, editingItem.value as unknown as TPayload);
       }
-      // ===========================
     } else {
-      // przy dodawaniu zwróć do initialData
       Object.assign(formData, initialData);
     }
   }

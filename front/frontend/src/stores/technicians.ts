@@ -3,8 +3,6 @@ import { defineStore } from 'pinia';
 import api from '@/api';
 import type { Technician } from '@/types';
 
-// Definiujemy typ Payload dla dodawania/edycji serwisanta
-// Zgodnie z typem `Technician`, potrzebujemy ID użytkownika, numeru telefonu i statusu.
 type TechnicianPayload = {
   user: number;
   phone_number: string;

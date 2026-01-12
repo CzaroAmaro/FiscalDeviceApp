@@ -1,4 +1,3 @@
-# api/tasks.py
 from celery import shared_task
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
@@ -15,19 +14,13 @@ logger = logging.getLogger(__name__)
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
 def send_device_inspection_reminder(self, device_id, trigger_user_id=None):
-    """
-    Wyślij e-mail przypomnienie o przeglądzie dla urządzenia fiskalnego.
-
-    - device_id: PK obiektu FiscalDevice
-    - trigger_user_id: opcjonalne id użytkownika, który wymusił wysyłkę (tylko dla logów)
-    """
     try:
         device = FiscalDevice.objects.select_related('owner', 'brand').get(pk=device_id)
     except FiscalDevice.DoesNotExist:
         logger.warning("send_device_inspection_reminder: device %s does not exist", device_id)
         return False
 
-    client = device.owner  # zakładamy, że pole to Client
+    client = device.owner
     recipient_email = getattr(client, 'email', None)
 
     if not recipient_email:
@@ -116,17 +109,8 @@ def send_device_inspection_reminder(self, device_id, trigger_user_id=None):
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
 def send_email_task(self, subject, to_email, body, html_body=None):
-    """
-    Uniwersalne zadanie Celery do wysyłania e-maili.
-
-    :param subject: Tytuł wiadomości e-mail.
-    :param to_email: Adres odbiorcy (jako string lub lista stringów).
-    :param body: Treść wiadomości w formacie tekstowym.
-    :param html_body: Opcjonalna treść wiadomości w formacie HTML.
-    """
     logger.info(f"Wysyłanie e-maila z tematem '{subject}' do {to_email}")
 
-    # Upewnij się, że to_email jest listą
     if not isinstance(to_email, list):
         recipients = [to_email]
     else:
@@ -154,12 +138,7 @@ def send_email_task(self, subject, to_email, body, html_body=None):
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=5)
 def send_activation_code_email(self, activation_code_id):
-    """
-    Wysyła e-mail z kodem aktywacyjnym po udanej płatności.
-
-    :param activation_code_id: ID obiektu ActivationCode
-    """
-    from .models.billing import ActivationCode  # Import wewnątrz funkcji, aby uniknąć circular imports
+    from .models.billing import ActivationCode
 
     try:
         activation = ActivationCode.objects.select_related('order').get(id=activation_code_id)

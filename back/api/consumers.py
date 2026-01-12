@@ -38,7 +38,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             data = json.loads(text_data)
             message_content = data.get('message', '').strip()
         except (json.JSONDecodeError, AttributeError):
-            return  # Ignoruj nieprawidłowe dane
+            return
 
         if not message_content or len(message_content) > 1024:
             return
@@ -50,7 +50,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message_payload = {
             'id': new_message.id,
             'sender_id': self.technician.id,
-            'sender_name': self.technician.full_name,  # Używamy property z Twojego modelu
+            'sender_name': self.technician.full_name,
             'content': new_message.content,
             'timestamp': new_message.timestamp.isoformat(),
         }

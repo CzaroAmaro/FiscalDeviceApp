@@ -33,7 +33,6 @@ export const useAuthStore = defineStore('auth', {
         console.log('Pobrano profil użytkownika:', this.user);
       } catch (error) {
         console.error("Nie udało się pobrać profilu użytkownika.", error);
-        // Interceptor w api.ts powinien zająć się wylogowaniem w razie błędu 401
       }
     },
     async refreshUserData() {

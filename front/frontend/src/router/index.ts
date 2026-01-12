@@ -141,9 +141,7 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: 'login', query: { redirect: to.fullPath } });
   }
 
-  // Sprawdź uprawnienia admina
   if (to.meta.requiresAdmin) {
-    // Upewnij się, że dane użytkownika są załadowane
     if (!authStore.user && isAuthenticated) {
       await authStore.fetchUser();
     }

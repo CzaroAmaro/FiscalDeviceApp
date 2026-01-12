@@ -340,8 +340,6 @@ const validityInfo = computed(() => {
   const years = Math.floor(months / 12);
   const remainingMonths = months % 12;
 
-  // Logika budowania tekstu okresu (np. "1 rok i 3 miesiące") pozostaje dynamiczna
-  // ponieważ JSON nie zawiera generycznych kluczy dla lat/miesięcy w sekcji common
   let periodText = '';
   if (years > 0) {
     periodText = `${years} ${years === 1 ? 'rok' : years < 5 ? 'lata' : 'lat'}`;

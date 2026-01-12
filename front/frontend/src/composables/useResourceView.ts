@@ -41,7 +41,6 @@ export function useResourceView<T extends ResourceItem>(
   });
 
   function handleToolbarAction(actionId: string) {
-    // 1. Sprawdź, czy to akcja niestandardowa
     if (customActions && customActions[actionId]) {
       customActions[actionId](selectedItems.value);
       return;

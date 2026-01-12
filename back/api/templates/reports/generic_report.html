@@ -42,7 +42,6 @@
         <div class="device-block">
             <h2>{{ device.brand.name }} {{ device.model_name }} ({{ device.unique_number }})</h2>
 
-            <!-- Sekcja Dane Urządzenia i Właściciela -->
             <h3>Dane podstawowe</h3>
             <table class="details-table">
                 <tr><td>Właściciel:</td><td>{{ device.owner.name }} (NIP: {{ device.owner.nip }})</td></tr>
@@ -51,7 +50,6 @@
                 <tr><td>Status:</td><td>{{ device.get_status_display }}</td></tr>
             </table>
 
-            <!-- Sekcja Historia Zleceń Serwisowych (warunkowo) -->
            {% if params.include_service_history %}
                 <h3>Historia Zleceń Serwisowych</h3>
                 <table class="history-table">
@@ -73,7 +71,6 @@
                 </table>
             {% endif %}
 
-            <!-- Sekcja Dziennik Zdarzeń (warunkowo) -->
             {% if params.include_event_log %}
                 <h3>Dziennik Zdarzeń (Przeglądy i akcje)</h3>
                 <table class="history-table">

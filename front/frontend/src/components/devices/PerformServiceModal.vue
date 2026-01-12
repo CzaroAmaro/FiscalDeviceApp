@@ -71,14 +71,12 @@ function handleSubmit() {
   }
 }
 
-// Reset state when modal is closed
 watch(() => props.modelValue, (newValue) => {
   if (!newValue) {
     selectedTechnicianId.value = null;
     eligibleTechnicians.value = [];
     error.value = null;
   } else {
-    // Fetch data when modal opens
     fetchTechnicians();
   }
 });

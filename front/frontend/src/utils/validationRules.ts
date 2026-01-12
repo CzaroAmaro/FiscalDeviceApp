@@ -1,9 +1,5 @@
-// src/utils/validationRules.ts
-
-// Typy dla reguł walidacji Vuetify
 type ValidationRule = (value: string) => boolean | string;
 
-// Helper do tłumaczeń (przyjmuje funkcję t z i18n)
 type TranslateFunction = (key: string, params?: Record<string, any>) => string;
 
 export const createValidationRules = (t: TranslateFunction) => {
@@ -110,7 +106,7 @@ export const createValidationRules = (t: TranslateFunction) => {
 
     phone: {
       format: (value: string): boolean | string => {
-        if (!value) return true; // Opcjonalne
+        if (!value) return true;
         const pattern = /^(\+?[0-9]{1,4})?[-.\s]?(\(?\d{1,4}\)?)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
         return pattern.test(value.replace(/\s/g, '')) || t('validation.phone.format');
       },
@@ -148,7 +144,7 @@ export const combineRules = (...rules: ValidationRule[]): ValidationRule[] => {
 };
 
 export interface PasswordStrength {
-  score: number; // 0-5
+  score: number;
   label: string;
   color: string;
   percentage: number;
@@ -161,18 +157,15 @@ export const calculatePasswordStrength = (password: string, t: TranslateFunction
 
   let score = 0;
 
-  // Długość
   if (password.length >= 8) score++;
   if (password.length >= 12) score++;
   if (password.length >= 16) score++;
 
-  // Różnorodność znaków
   if (/[a-z]/.test(password)) score++;
   if (/[A-Z]/.test(password)) score++;
   if (/\d/.test(password)) score++;
   if (/[^a-zA-Z0-9]/.test(password)) score++;
 
-  // Normalizacja do 0-5
   const normalizedScore = Math.min(5, Math.floor(score * 5 / 7));
 
   const strengthMap: Record<number, { label: string; color: string }> = {

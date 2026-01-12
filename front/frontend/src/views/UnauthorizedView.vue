@@ -25,5 +25,4 @@
 </template>
 
 <script setup lang="ts">
-// Prosty komponent bez logiki
 </script>

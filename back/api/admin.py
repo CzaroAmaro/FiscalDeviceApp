@@ -8,7 +8,6 @@ from .models.devices import FiscalDevice
 from .models.tickets import ServiceTicket
 from .models.billing import Order, ActivationCode
 
-# --- Konfiguracja Użytkowników, Firm i Serwisantów ---
 
 class TechnicianInline(admin.StackedInline):
     model = Technician
@@ -19,19 +18,15 @@ class TechnicianInline(admin.StackedInline):
 
 @admin.register(CustomUser)
 class CustomUserAdmin(BaseUserAdmin):
-    """Rozszerzony panel użytkownika z profilem serwisanta."""
     inlines = (TechnicianInline,)
 
-# DODAJEMY REJESTRACJĘ MODELU COMPANY
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    """Panel administracyjny dla modelu Company."""
     list_display = ('name', 'created_at')
     search_fields = ('name',)
 
 @admin.register(Technician)
 class TechnicianAdmin(admin.ModelAdmin):
-    """Panel dla bezpośredniej edycji serwisantów."""
     list_display = ('full_name', 'email', 'company', 'role', 'is_active', 'has_user_account')
     list_filter = ('company', 'role', 'is_active')
     search_fields = ('first_name', 'last_name', 'email', 'user__username')
@@ -49,21 +44,19 @@ class TechnicianAdmin(admin.ModelAdmin):
 
     autocomplete_fields = ('user',)
 
-    # Metoda do wyświetlania statusu konta użytkownika w liście
     @admin.display(description='Posiada konto', boolean=True)
     def has_user_account(self, obj):
         return obj.user is not None
 
 
-# --- Konfiguracja Klientów, Producentów i Urządzeń ---
 
 class FiscalDeviceInline(admin.TabularInline):
     model = FiscalDevice
     extra = 0
     show_change_link = True
     fields = ('model_name', 'serial_number', 'status', 'sale_date')
-    readonly_fields = fields # Wszystkie pola tylko do odczytu
-    classes = ('collapse',) # Ukrywa domyślnie sekcję
+    readonly_fields = fields
+    classes = ('collapse',)
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
@@ -88,7 +81,6 @@ class FiscalDeviceAdmin(admin.ModelAdmin):
     autocomplete_fields = ('owner', 'brand')
     date_hierarchy = 'sale_date'
 
-# --- Konfiguracja Certyfikatów i Zgłoszeń Serwisowych ---
 
 @admin.register(Certification)
 class CertificationAdmin(admin.ModelAdmin):
@@ -107,7 +99,6 @@ class ServiceTicketAdmin(admin.ModelAdmin):
     readonly_fields = ('ticket_number', 'created_at', 'completed_at')
     date_hierarchy = 'created_at'
 
-    # Twoje fieldsets są świetne, zostawiamy je
     fieldsets = (
         ('Informacje o zgłoszeniu', {
             'fields': ('ticket_number', 'title', 'ticket_type', 'status', 'description')
@@ -117,11 +108,9 @@ class ServiceTicketAdmin(admin.ModelAdmin):
         }),
         ('Rozwiązanie i daty', {
             'fields': ('resolution_notes', 'scheduled_for', 'created_at', 'completed_at'),
-            'classes': ('collapse',) # Ukrywa sekcję domyślnie
+            'classes': ('collapse',)
         }),
     )
-
-# --- DODAJEMY REJESTRACJĘ MODELI BILLING ---
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):

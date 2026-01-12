@@ -16,10 +16,6 @@ export const useManufacturersStore = defineStore('manufacturers', {
   },
 
   actions: {
-    /**
-     * Pobiera listę producentów.
-     * @param force - Jeśli true, pobierze dane z serwera nawet jeśli są już w stanie.
-     */
     async fetchManufacturers(force = false) {
       if (this.manufacturers.length > 0 && !force) return;
       this.isLoading = true;
@@ -35,15 +31,11 @@ export const useManufacturersStore = defineStore('manufacturers', {
       }
     },
 
-    /**
-     * Dodaje nowego producenta.
-     */
     async addManufacturer(payload: ManufacturerPayload): Promise<Manufacturer> {
       this.isLoading = true;
       this.error = null;
       try {
         const response = await api.post<Manufacturer>('/manufacturers/', payload);
-        // Dodajemy do lokalnego stanu, aby uniknąć ponownego fetch
         this.manufacturers.push(response.data);
         return response.data;
       } catch (error) {
@@ -55,9 +47,6 @@ export const useManufacturersStore = defineStore('manufacturers', {
       }
     },
 
-    /**
-     * Aktualizuje istniejącego producenta.
-     */
     async updateManufacturer(id: number, payload: ManufacturerPayload): Promise<Manufacturer> {
       this.isLoading = true;
       this.error = null;
@@ -77,15 +66,11 @@ export const useManufacturersStore = defineStore('manufacturers', {
       }
     },
 
-    /**
-     * Usuwa producenta.
-     */
     async deleteManufacturer(id: number): Promise<void> {
       this.isLoading = true;
       this.error = null;
       try {
         await api.delete(`/manufacturers/${id}/`);
-        // Usuwamy z lokalnego stanu
         this.manufacturers = this.manufacturers.filter(m => m.id !== id);
       } catch (error) {
         console.error(`Błąd usuwania producenta o ID ${id}:`, error);

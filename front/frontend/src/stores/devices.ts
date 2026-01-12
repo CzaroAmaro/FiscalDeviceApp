@@ -31,10 +31,6 @@ export const useDevicesStore = defineStore('devices', {
   },
 
   actions: {
-    /**
-     * Pobiera listę urządzeń z API.
-     * @param {boolean} force - Jeśli true, wymusza ponowne pobranie danych, ignorując pamięć podręczną.
-     */
     async fetchDevices(force = false) {
       if (this.devices.length > 0 && !force) {
         return;
@@ -63,7 +59,6 @@ export const useDevicesStore = defineStore('devices', {
       this.error = null;
       try {
         const devices = await getDevicesForSelect(filters);
-        // zawsze mapujemy po tablicy (domyślnie []), żeby uniknąć błędów
         this.filteredForSelect = (devices || []).map(d => ({
           id: d.id,
           display_name: `${d.owner?.name || '—'} - ${d.model_name || '—'} (${d.unique_number || '—'})`
@@ -71,16 +66,12 @@ export const useDevicesStore = defineStore('devices', {
       } catch (error) {
         console.error('Błąd pobierania filtrowanych urządzeń dla selecta:', error);
         this.error = 'Nie udało się załadować listy urządzeń.';
-        this.filteredForSelect = []; // zapewnienie, że zawsze jest tablica
+        this.filteredForSelect = [];
       } finally {
         this.isLoadingForSelect = false;
       }
     },
 
-    /**
-     * Dodaje nowe urządzenie fiskalne.
-     * @param {DevicePayload} deviceData - Dane nowego urządzenia.
-     */
     async addDevice(deviceData: DevicePayload) {
       try {
         const response = await api.post<FiscalDevice>('/devices/', deviceData);
@@ -92,11 +83,6 @@ export const useDevicesStore = defineStore('devices', {
       }
     },
 
-    /**
-     * Aktualizuje istniejące urządzenie fiskalne.
-     * @param {number} deviceId - ID aktualizowanego urządzenia.
-     * @param {DevicePayload} deviceData - Nowe dane urządzenia.
-     */
     async updateDevice(deviceId: number, deviceData: DevicePayload) {
       try {
         const response = await api.put<FiscalDevice>(`/devices/${deviceId}/`, deviceData);
@@ -118,10 +104,6 @@ export const useDevicesStore = defineStore('devices', {
       }
     },
 
-    /**
-     * Usuwa urządzenie fiskalne.
-     * @param {number} deviceId - ID usuwanego urządzenia.
-     */
     async deleteDevice(deviceId: number) {
       try {
         await api.delete(`/devices/${deviceId}/`);

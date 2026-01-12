@@ -8,20 +8,17 @@
       <v-divider />
 
       <v-card-text style="min-height: 250px;">
-        <!-- Stan ładowania -->
         <div v-if="isLoading" class="d-flex flex-column align-center justify-center fill-height">
           <v-progress-circular indeterminate size="64" color="primary" />
           <p class="mt-4 text-grey">Analizowanie problemu, proszę czekać...</p>
           <p class="text-caption text-grey">(może to potrwać kilka sekund)</p>
         </div>
 
-        <!-- Stan błędu -->
         <v-alert v-else-if="error" type="error" border="start" variant="tonal" prominent>
           <template #title><h4>Błąd Analizy</h4></template>
           {{ error }}
         </v-alert>
 
-        <!-- Stan sukcesu -->
         <div v-else-if="suggestions">
           <p class="mb-4">
             <strong>Możliwa przyczyna:</strong><br/>
@@ -51,7 +48,6 @@
 import { ref, watch } from 'vue';
 import api from '@/api';
 
-// Definicja typów dla propsów i sugestii
 interface AiSuggestions {
   possible_cause: string;
   suggested_category: string;
@@ -59,18 +55,16 @@ interface AiSuggestions {
 }
 
 const props = defineProps<{
-  modelValue: boolean; // Kontroluje widoczność modala
-  description: string; // Opis problemu do analizy
+  modelValue: boolean;
+  description: string;
 }>();
 
 defineEmits(['update:modelValue']);
 
-// Stan wewnętrzny komponentu
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 const suggestions = ref<AiSuggestions | null>(null);
 
-// Funkcja do wywołania API
 async function fetchAiSuggestions() {
   if (!props.description || props.description.trim().length < 10) {
     error.value = "Opis problemu jest zbyt krótki. Opisz go bardziej szczegółowo.";
@@ -94,7 +88,6 @@ async function fetchAiSuggestions() {
   }
 }
 
-// Uruchamia analizę, gdy tylko modal staje się widoczny
 watch(() => props.modelValue, (isOpen) => {
   if (isOpen) {
     fetchAiSuggestions();

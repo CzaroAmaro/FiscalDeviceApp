@@ -12,7 +12,6 @@ export function useCountUp(endValue: () => number, duration = 1500) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
 
-      // Easing function (ease-out)
       const easeOut = 1 - Math.pow(1 - progress, 3);
 
       displayValue.value = Math.round(start + (target - start) * easeOut);

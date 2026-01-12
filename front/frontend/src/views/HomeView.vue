@@ -39,7 +39,6 @@ import { useCertificationsStore } from '@/stores/certifications';
 
 const { t } = useI18n();
 
-// Stores
 const devicesStore = useDevicesStore();
 const clientsStore = useClientsStore();
 const techniciansStore = useTechniciansStore();
@@ -47,7 +46,6 @@ const ticketsStore = useTicketsStore();
 const manufacturersStore = useManufacturersStore();
 const certificationsStore = useCertificationsStore();
 
-// Interfejs dla konfiguracji kart
 interface StatCardConfig {
   titleKey: string;
   value: number;
@@ -57,7 +55,6 @@ interface StatCardConfig {
   to: RouteLocationRaw;
 }
 
-// Reaktywna konfiguracja kart
 const statsCards = computed<StatCardConfig[]>(() => [
   {
     titleKey: 'dashboard.cards.devices',
@@ -96,7 +93,7 @@ const statsCards = computed<StatCardConfig[]>(() => [
     value: manufacturersStore.manufacturerCount ?? 0,
     loading: manufacturersStore.isLoading,
     icon: 'mdi-factory',
-    color: 'error', // Zmienione z 'red' na 'error'
+    color: 'error',
     to: { name: 'manufacturer-list' },
   },
   {
@@ -109,7 +106,6 @@ const statsCards = computed<StatCardConfig[]>(() => [
   },
 ]);
 
-// Fetch data on mount
 onMounted(async () => {
   await Promise.allSettled([
     devicesStore.fetchDevices(),

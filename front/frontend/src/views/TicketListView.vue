@@ -124,7 +124,6 @@ const ticketsStore = useTicketsStore();
 const snackbarStore = useSnackbarStore();
 const { tickets, isLoading, movingTicketId } = storeToRefs(ticketsStore);
 
-// Stan widoku
 const isFormOpen = ref(false);
 const itemToEdit = ref<ServiceTicket | null>(null);
 const isResolveModalOpen = ref(false);
@@ -139,7 +138,6 @@ const confirmMessage = computed(() =>
     : ''
 );
 
-// Definicja kolumn
 const columns = ref([
   {
     title: t('tickets.statuses.open'),
@@ -161,7 +159,6 @@ const columns = ref([
   },
 ]);
 
-// Grupowanie ticketów
 const ticketsByStatus = computed(() => {
   return tickets.value.reduce((acc, ticket) => {
     const status = ticket.status as 'open' | 'in_progress' | 'closed';
@@ -174,7 +171,6 @@ onMounted(() => {
   ticketsStore.fetchTickets(true);
 });
 
-// Handlers
 function handleToolbarAction(actionId: string) {
   if (actionId === 'add') {
     itemToEdit.value = null;
@@ -256,7 +252,7 @@ async function handleDeleteConfirm() {
 
 <style scoped>
 .kanban-container {
-  max-width: 100%; /* Zmiana z 1800px */
+  max-width: 100%;
 }
 
 .page-header {
@@ -274,13 +270,12 @@ async function handleDeleteConfirm() {
 
 .kanban-board {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 równe kolumny */
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   padding: 8px 0 16px;
   min-height: calc(100vh - 220px);
 }
 
-/* Scrollbar */
 .kanban-board::-webkit-scrollbar {
   height: 8px;
 }
@@ -294,7 +289,6 @@ async function handleDeleteConfirm() {
   border-radius: 4px;
 }
 
-/* Responsywność */
 @media (max-width: 1200px) {
   .kanban-board {
     grid-template-columns: repeat(2, 1fr);

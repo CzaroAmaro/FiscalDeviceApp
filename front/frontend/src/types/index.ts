@@ -59,7 +59,7 @@ export interface User {
 
 export interface Technician {
   id: number;
-  user: User | null; // Ważne: user może być null
+  user: User | null;
   first_name: string;
   last_name: string;
   email: string;
@@ -67,7 +67,7 @@ export interface Technician {
   is_active: boolean;
   role: 'admin' | 'technician';
   role_display: string;
-  full_name: string; // To jest @property, zawsze będzie stringiem
+  full_name: string;
 }
 
 export interface TechnicianPayload {

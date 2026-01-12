@@ -7,14 +7,12 @@ import type { ChartDataResponse } from '@/types';
 import { useSnackbarStore } from './snackbar';
 
 export const useChartsStore = defineStore('charts', () => {
-  // --- State ---
   const loading = ref<boolean>(false);
   const error = ref<string | null>(null);
   const data = ref<ChartDataResponse | null>(null);
 
-  // --- Actions ---
   async function fetchChartData() {
-    if (data.value) return; // Pobierz dane tylko raz, jeśli jeszcze ich nie ma
+    if (data.value) return;
 
     loading.value = true;
     error.value = null;
@@ -32,11 +30,9 @@ export const useChartsStore = defineStore('charts', () => {
   }
 
   return {
-    // state
     loading,
     error,
     data,
-    // actions
     fetchChartData
   };
 });

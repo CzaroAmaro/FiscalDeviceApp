@@ -32,7 +32,6 @@ const animate = (target: number) => {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / props.duration, 1);
 
-    // Ease-out cubic
     const easeOut = 1 - Math.pow(1 - progress, 3);
 
     currentValue.value = Math.round(start + (target - start) * easeOut);

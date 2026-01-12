@@ -103,7 +103,6 @@ export const useTicketsStore = defineStore('tickets', {
       this.isLoading = true;
       try {
         const response = await api.post<ServiceTicket>(`/tickets/${ticketId}/resolve/`, payload);
-        // Znajdź i zaktualizuj zgłoszenie w liście
         const index = this.tickets.findIndex(t => t.id === ticketId);
         if (index !== -1) {
           this.tickets[index] = response.data;

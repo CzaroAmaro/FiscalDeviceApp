@@ -106,7 +106,6 @@ class UserProfileView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        # Zawsze zwracaj obiekt zalogowanego użytkownika
         return self.request.user
 
 class RegisterView(generics.CreateAPIView):
@@ -118,7 +117,6 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        # Zwracamy dane nowo utworzonego użytkownika
         return Response(
             CustomUserSerializer(instance=user, context=self.get_serializer_context()).data,
             status=status.HTTP_201_CREATED
@@ -364,7 +362,7 @@ class FiscalDeviceViewSet(viewsets.ModelViewSet):
             is_active=True,
             certifications__manufacturer=device.brand,
             certifications__expiry_date__gte=today
-        ).distinct()  # distinct() jest ważne, jeśli serwisant miałby kilka ważnych certyfikatów tej samej marki
+        ).distinct()
 
         serializer = TechnicianSummarySerializer(eligible_techs, many=True)
         return Response(serializer.data)
@@ -502,7 +500,7 @@ class ServiceTicketViewSet(viewsets.ModelViewSet):
 
         if self.action == 'partial_update':
             if list(self.request.data.keys()) == ['status']:
-                return ServiceTicketTechnicianUpdateSerializer  # Ten serializer zawiera 'status'
+                return ServiceTicketTechnicianUpdateSerializer
 
             if self.request.user.technician_profile.is_admin:
                 return ServiceTicketWriteSerializer
@@ -828,7 +826,6 @@ def handle_payment_success(request):
                 status=status.HTTP_202_ACCEPTED
             )
 
-        # Zwracamy kod oraz email, na który wysłano wiadomość
         return Response({
             'code': activation.code,
             'email_sent_to': activation.email or order.email,
@@ -973,7 +970,7 @@ def redeem_activation_code(request):
     }, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated, IsCompanyAdmin]) # Tylko admin może generować raporty
+@permission_classes([IsAuthenticated, IsCompanyAdmin])
 def export_device_pdf(request, device_id):
     try:
         company = request.user.technician_profile.company
@@ -1054,7 +1051,7 @@ class ChartView(APIView):
         datasets = []
         for ticket_type_value, ticket_type_label in ServiceTicket.TicketType.choices:
             data_for_all_months = [monthly_data[month].get(ticket_type_value, 0) for month in all_months_labels]
-            color_set = colors.get(ticket_type_value)  # Bezpieczne pobranie
+            color_set = colors.get(ticket_type_value)
 
             dataset = {
                 "label": ticket_type_label,
@@ -1248,7 +1245,7 @@ class RequestEmailChangeView(APIView):
         send_email_task.delay(
             subject=subject,
             body=plain_message,
-            to_email=new_email,  # Wyślij na NOWY adres
+            to_email=new_email,
             html_body=html_message
         )
 
@@ -1259,7 +1256,7 @@ class RequestEmailChangeView(APIView):
 
 
 class ConfirmEmailChangeView(APIView):
-    permission_classes = [permissions.AllowAny]  # Każdy z linkiem może tu wejść
+    permission_classes = [permissions.AllowAny]
     serializer_class = ConfirmEmailChangeSerializer
 
     def post(self, request, *args, **kwargs):

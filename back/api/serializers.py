@@ -139,7 +139,6 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = CustomUser.objects.create_user(**validated_data)
-        # Technician creation moved to registration view (requires activation code/company)
         return user
 
 class ClientSummarySerializer(serializers.ModelSerializer):

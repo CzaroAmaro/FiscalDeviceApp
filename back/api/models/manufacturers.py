@@ -3,7 +3,6 @@ from .users import Company, Technician
 
 
 class Manufacturer(models.Model):
-    """Manufacturer created per company (company-scoped)."""
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='manufacturers')
     name = models.CharField(max_length=100, verbose_name="Nazwa producenta")
 
@@ -23,7 +22,6 @@ class Manufacturer(models.Model):
 
 
 class Certification(models.Model):
-    """Certification of a technician for a given manufacturer (company-scoped)."""
     technician = models.ForeignKey(Technician, on_delete=models.CASCADE, related_name="certifications")
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.CASCADE, related_name="certifications")
     certificate_number = models.CharField(max_length=100, verbose_name="Numer legitymacji/certyfikatu")

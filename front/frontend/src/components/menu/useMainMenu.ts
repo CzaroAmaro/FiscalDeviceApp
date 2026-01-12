@@ -1,4 +1,4 @@
-import { computed, type MaybeRefOrGetter,type Ref, ref, toValue, watchEffect } from 'vue'
+import { computed, type Ref, ref } from 'vue'
 
 import type { MenuItem } from '@/config/menuItems'
 import { useAuthStore } from '@/stores/auth.ts'
@@ -43,7 +43,6 @@ export function useMenu(items: Ref<MenuItem[]>, searchQuery: Ref<string | null>)
   const filterByRole = (menuItems: MenuItem[]): MenuItem[] => {
     return menuItems
       .filter(item => {
-        // Filter out admin-only items for non-admins
         if (item.adminOnly && !authStore.isAdmin) {
           return false
         }
@@ -52,7 +51,6 @@ export function useMenu(items: Ref<MenuItem[]>, searchQuery: Ref<string | null>)
       .map(item => {
         if (item.children && item.children.length > 0) {
           const filteredChildren = filterByRole(item.children)
-          // If all children were filtered out, hide the parent too
           if (filteredChildren.length === 0) {
             return null
           }
@@ -74,7 +72,6 @@ export function useMenu(items: Ref<MenuItem[]>, searchQuery: Ref<string | null>)
           const filteredChildren = filterBySearch(item.children, query)
 
           if (filteredChildren.length > 0) {
-            // Open the group if children match
             if (item.title && !openedGroups.value.includes(item.title)) {
               openedGroups.value = [...openedGroups.value, item.title]
             }
@@ -94,10 +91,8 @@ export function useMenu(items: Ref<MenuItem[]>, searchQuery: Ref<string | null>)
   }
 
   const filteredItems = computed(() => {
-    // First filter by role
     let result = filterByRole(items.value)
 
-    // Then filter by search query if present
     if (isSearching.value && searchQuery.value) {
       result = filterBySearch(result, searchQuery.value.trim())
     }

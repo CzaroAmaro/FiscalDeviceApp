@@ -7,7 +7,6 @@
     class="device-details-drawer"
   >
     <template v-if="device">
-      <!-- Nagłówek -->
       <div class="drawer-header">
         <div class="d-flex align-center justify-space-between">
           <div class="d-flex align-center">
@@ -33,7 +32,6 @@
           </v-btn>
         </div>
 
-        <!-- Status -->
         <div class="mt-4">
           <DeviceStatusChip :status="device.status" size="default" />
         </div>
@@ -41,9 +39,7 @@
 
       <v-divider />
 
-      <!-- Zawartość -->
       <div class="drawer-content">
-        <!-- Sekcja: Identyfikacja -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-card-account-details</v-icon>
@@ -77,7 +73,6 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Właściciel -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-domain</v-icon>
@@ -105,7 +100,6 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Przeglądy -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-calendar-check</v-icon>
@@ -171,7 +165,6 @@
 
         <v-divider class="my-4" />
 
-        <!-- Sekcja: Zgłoszenia -->
         <div class="detail-section">
           <h3 class="section-title">
             <v-icon start size="18">mdi-ticket</v-icon>
@@ -190,7 +183,6 @@
           </v-card>
         </div>
 
-        <!-- Sekcja: Informacje dodatkowe -->
         <template v-if="device.operating_instructions || device.remarks">
           <v-divider class="my-4" />
 
@@ -213,7 +205,6 @@
         </template>
       </div>
 
-      <!-- Stopka z akcjami -->
       <div class="drawer-footer">
         <v-btn
           variant="tonal"
@@ -244,7 +235,6 @@
       </div>
     </template>
 
-    <!-- Pusty stan -->
     <div v-else class="empty-state">
       <v-icon size="64" color="grey-lighten-2">mdi-printer-pos-off</v-icon>
       <p class="text-body-1 text-medium-emphasis mt-4">
@@ -283,7 +273,6 @@ const isDrawerOpen = computed({
   set: (val) => emit('update:modelValue', val),
 });
 
-// Date formatting
 function formatDate(date: string | null | undefined): string {
   if (!date) return '—';
   return new Date(date).toLocaleDateString('pl-PL', {
@@ -293,7 +282,6 @@ function formatDate(date: string | null | undefined): string {
   });
 }
 
-// Copy to clipboard
 async function copyToClipboard(text: string) {
   try {
     await navigator.clipboard.writeText(text);
@@ -303,7 +291,6 @@ async function copyToClipboard(text: string) {
   }
 }
 
-// Date status helpers
 const isOverdue = computed(() => {
   if (!props.device?.next_service_date) return false;
   return new Date(props.device.next_service_date) < new Date();
@@ -317,7 +304,6 @@ const isUpcoming = computed(() => {
   return diffDays <= 30;
 });
 
-// Timeline dot classes
 const saleStatusClass = computed(() => 'bg-primary');
 
 const lastServiceStatusClass = computed(() => {
@@ -331,7 +317,6 @@ const nextServiceStatusClass = computed(() => {
   return 'bg-grey-lighten-1';
 });
 
-// Tickets count
 const ticketsCountColor = computed(() => {
   const count = props.device?.tickets_count || 0;
   if (count === 0) return 'text-success';
@@ -360,7 +345,6 @@ const ticketsCountLabel = computed(() => {
   height: 100%;
 }
 
-/* Header */
 .drawer-header {
   padding: 20px;
   background: linear-gradient(
@@ -370,14 +354,12 @@ const ticketsCountLabel = computed(() => {
   );
 }
 
-/* Content */
 .drawer-content {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
 }
 
-/* Section */
 .detail-section {
   margin-bottom: 8px;
 }
@@ -393,7 +375,6 @@ const ticketsCountLabel = computed(() => {
   margin-bottom: 16px;
 }
 
-/* Detail grid */
 .detail-grid {
   display: flex;
   flex-direction: column;
@@ -421,12 +402,10 @@ const ticketsCountLabel = computed(() => {
   align-items: center;
 }
 
-/* Owner card */
 .owner-card {
   border-radius: 12px;
 }
 
-/* Timeline */
 .timeline {
   position: relative;
   padding-left: 24px;
@@ -492,12 +471,10 @@ const ticketsCountLabel = computed(() => {
   gap: 2px;
 }
 
-/* Tickets card */
 .tickets-card {
   border-radius: 12px;
 }
 
-/* Info blocks */
 .info-block {
   background: rgba(var(--v-theme-on-surface), 0.03);
   border-radius: 8px;
@@ -521,7 +498,6 @@ const ticketsCountLabel = computed(() => {
   color: rgba(var(--v-theme-on-surface), 0.8);
 }
 
-/* Footer */
 .drawer-footer {
   padding: 16px;
   border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
@@ -530,7 +506,6 @@ const ticketsCountLabel = computed(() => {
   background: rgb(var(--v-theme-surface));
 }
 
-/* Empty state */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -541,7 +516,6 @@ const ticketsCountLabel = computed(() => {
   padding: 24px;
 }
 
-/* Scrollbar */
 .drawer-content::-webkit-scrollbar {
   width: 6px;
 }
